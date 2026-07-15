@@ -18,30 +18,7 @@ Workflow:
 
 from dataclasses import dataclass, fields, replace
 from typing import Any
-
-
-@dataclass
-class PdfManifestEntry:
-    valid_pdf: bool
-    file: str
-    title: str
-    author: str
-    size: int
-    optimized: bool
-    isbn: str
-    year: str
-
-    # Extra field beyond the Rust struct: ISBN with hyphens/spaces stripped and
-    # the check digit uppercased, for lookup/dedup use. `isbn` stays exactly
-    # as it appears in the PDF text.
-    isbn_normalized: str = ""
-
-    # Extra field beyond the Rust struct: "<title>-<author>-<year>"
-    book_id: str = ""
-
-    # Extra field beyond the Rust struct: source format, currently always "pdf"
-    book_type: str = "pdf"
-
+from PdfManifestEntry import PdfManifestEntry
 
 def new_empty_manifest_entry() -> PdfManifestEntry:
     """Return a PdfManifestEntry with every field at its 'empty' value."""
