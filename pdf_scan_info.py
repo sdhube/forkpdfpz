@@ -30,6 +30,8 @@ import click
 import fitz  # PyMuPDF
 import yaml
 
+from pdf_actions import write_entry_to_yaml
+
 # Matches "©", "(c)", or the word "Copyright" (case-insensitive)
 COPYRIGHT_PATTERN = re.compile(r"©|\(c\)|\bcopyright\b", re.IGNORECASE)
 
@@ -200,28 +202,6 @@ def build_manifest_entry(pdf_path: str, max_pages: int = 5, context_lines: int =
         isbn_normalized=(_normalize_isbn(raw_isbn) if raw_isbn else ""),
         book_id=f"{title}-{author}-{year}",
     )
-
-
-def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
-    """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
-    path = Path(yaml_path)
-
-    manifest: list[dict] = []
-    if path.exists():
-        with path.open("r", encoding="utf-8") as f:
-            loaded = yaml.safe_load(f)
-            if isinstance(loaded, list):
-                manifest = loaded
-
-    # Update the entry for this file (remove old data for it) then re-add it
-    # in its correct alphabetical slot by title, rather than tacking it on
-    # at the end of the list.
-    manifest = [e for e in manifest if e.get("file") != entry.file]
-    manifest.append(entry.to_yaml_dict())
-    manifest.sort(key=lambda e: (e.get("title") or "").lower())
-
-    with path.open("w", encoding="utf-8") as f:
-        yaml.safe_dump(manifest, f, sort_keys=False, allow_unicode=True)
 
 
 # --------------------------------------------------------------------------

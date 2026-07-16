@@ -1,11 +1,45 @@
 
+from pathlib import Path
+
 import click
 import pikepdf
+import yaml
+
 from pprint import  pformat
 from pdf_manifest_info_sources import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_functions import grep_copyright_line_pdf 
 from pdf_update_manifest import append_info_source, update_manifest_info_empty_fields
 from PdfManifestEntry import PdfManifestEntry, new_empty_manifest_entry
+#--------------------------------------------
+# public functions 
+#
+#--------------------------------------------
+
+def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
+    """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
+    path = Path(yaml_path)
+
+    manifest: list[dict] = []
+    if path.exists():
+        with path.open("r", encoding="utf-8") as f:
+            loaded = yaml.safe_load(f)
+            if isinstance(loaded, list):
+                manifest = loaded
+
+    # Update the entry for this file (remove old data for it) then re-add it
+    # in its correct alphabetical slot by title, rather than tacking it on
+    # at the end of the list.
+    manifest = [e for e in manifest if e.get("file") != entry.file]
+    manifest.append(entry.to_yaml_dict())
+    manifest.sort(key=lambda e: (e.get("title") or "").lower())
+
+    with path.open("w", encoding="utf-8") as f:
+        yaml.safe_dump(manifest, f, sort_keys=False, allow_unicode=True)
+
+
+
+
+
 
 def pdf_action(pdf_path, legacy_info=False):
     entry: PdfManifestEntry = new_empty_manifest_entry()
@@ -22,6 +56,7 @@ def pdf_action(pdf_path, legacy_info=False):
         grep_copyright_line_pdf(pdf_path, entry_content)
         update_manifest_info_empty_fields(entry, entry_content)
         print(pformat(entry))
+    write_entry_to_yaml(entry=entry, yaml_path="files.yaml")
 
 # --------------------------------------------------------------------------
 # CLI
@@ -42,6 +77,7 @@ def main(pdf_path: str, legacy_info: bool) -> None:
 
 if __name__ == "__main__":
     main()
+
 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
