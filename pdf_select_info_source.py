@@ -18,24 +18,8 @@ Workflow:
 
 from dataclasses import dataclass, fields, replace
 from typing import Any
-from PdfManifestEntry import PdfManifestEntry
+from PdfManifestEntry import PdfManifestEntry, new_empty_manifest_entry
 import pikepdf
-
-def new_empty_manifest_entry() -> PdfManifestEntry:
-    """Return a PdfManifestEntry with every field at its 'empty' value."""
-    return PdfManifestEntry(
-        valid_pdf=False,
-        file="",
-        title="",
-        author="",
-        size=0,
-        optimized=False,
-        isbn="",
-        year="",
-        isbn_normalized="",
-        book_id="",
-        book_type="pdf",
-    )
 
 
 def _is_empty(value: Any) -> bool:
@@ -148,26 +132,33 @@ def append_info_source(
     return replace(manifest_object, **updates)
 
 
-def doc_info_legacy(pdf: pikepdf.Pdf):
+def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
     # legacy DocInfo dict lives in the trailer, not pdf.Root — remove it outright
     # --- DocInfo: report then remove ---
     wanted_substrings = ("title", "author", "isbn", "year")
+    fields_to_check = {
+        "/Title": "title",
+        "/Author": "author",
+    }
 
     if "/Info" in pdf.trailer:
-        print("DocInfo fields found before removal:")
         for key, value in pdf.trailer.Info.items():
             if any(w in str(key).lower() for w in wanted_substrings):
-                print(f"  {key}: {value}")
+                if  key not in fields_to_check:
+                    print(f"{key} not supported")
+                    continue 
+                manifest_key = fields_to_check[key]
+                setattr(entry, manifest_key, str(value))
 
 
-def doc_info_xmp(pdf: pikepdf.Pdf):
+def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
     # --- inspect XMP for bibliographic fields before wiping it ---
     fields_to_check = {
-        "dc:title": "Title",
-        "dc:creator": "Author(s)",
-        "dc:date": "Date",
+        "dc:title": "title",
+        "dc:creator": "author",
+        "dc:date": "year",
         "dc:publisher": "Publisher",
-        "prism:isbn": "ISBN",
+        "prism:isbn": "isbn",
         "prism:publicationDate": "Publication date",
     }
 
@@ -178,9 +169,9 @@ def doc_info_xmp(pdf: pikepdf.Pdf):
             if meta.get(key)
         }
         if found:
-            print("XMP metadata found before removal:")
             for label, value in found.items():
-                print(f"  {label}: {value}")
+                # print(f"  {label}: {value}")
+                setattr(entry, label, str(value)) 
         else:
             print("No title/author/date/ISBN found in XMP metadata.")
 

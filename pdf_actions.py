@@ -1,13 +1,17 @@
 import click
 import pikepdf
+from pprint import  pformat
 from pdf_select_info_source import doc_info_legacy, doc_info_xmp
-
+from PdfManifestEntry import PdfManifestEntry, new_empty_manifest_entry
 
 def pdf_action(pdf_path, legacy_info=False):
     with pikepdf.open(pdf_path) as pdf:
-        doc_info_legacy(pdf)
-        doc_info_xmp(pdf)
-
+        entry: PdfManifestEntry = new_empty_manifest_entry()
+        doc_info_legacy(pdf, entry)
+        print(pformat(entry))
+        entry: PdfManifestEntry = new_empty_manifest_entry()
+        doc_info_xmp(pdf, entry)
+        print(pformat(entry))
 
 # --------------------------------------------------------------------------
 # CLI

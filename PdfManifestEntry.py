@@ -55,3 +55,20 @@ class PdfManifestEntry:
             book_id=d.get("book_id", ""),
             book_type=d.get("book_type", "pdf"),
         )
+
+
+def new_empty_manifest_entry() -> PdfManifestEntry:
+    """Return a PdfManifestEntry with every field at its 'empty' value."""
+    return PdfManifestEntry(
+        valid_pdf=False,
+        file="",
+        title="",
+        author="",
+        size=0,
+        optimized=False,
+        isbn="",
+        year="",
+        isbn_normalized="",
+        book_id="",
+        book_type="pdf",
+    )
