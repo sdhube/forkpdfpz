@@ -1,27 +1,9 @@
 """
 pdf_select_info_source.py
-
-Merges multiple "info source" results into a single PdfManifestEntry.
-
-Workflow:
-    1. Start from an empty manifest_object (new_empty_manifest_entry()).
-    2. For each info source available (filename parsing, PDF metadata,
-       ISBN lookup, OCR, etc.), build a PdfManifestEntry with whatever
-       fields that source was able to determine, and call
-       append_info_source(manifest_object, info_source).
-    3. Empty fields on manifest_object are simply filled in from the
-       info source. Non-empty fields are reconciled via
-       update_old_by_new(), which currently just keeps the existing
-       value if it agrees with the new one (a true conflict-resolution
-       policy can be layered in later).
 """
 
 from PdfManifestEntry import PdfManifestEntry, new_empty_manifest_entry
 import pikepdf
-
-from pdf_update_manifest import append_info_source
-
-
 
 
 def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
@@ -68,34 +50,4 @@ def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
             print("No title/author/date/ISBN found in XMP metadata.")
 
 
-if __name__ == "__main__":
-    # Small smoke test / usage example.
-    manifest = new_empty_manifest_entry()
-
-    from_filename = PdfManifestEntry(
-        valid_pdf=True,
-        file="clean-code.pdf",
-        title="Clean Code",
-        author="",
-        size=0,
-        optimized=False,
-        isbn="",
-        year="2008",
-    )
-
-    from_metadata = PdfManifestEntry(
-        valid_pdf=True,
-        file="",
-        title="Clean Code",
-        author="Robert C. Martin",
-        size=4_200_000,
-        optimized=True,
-        isbn="978-0-13-235088-4",
-        year="2008",
-    )
-
-    manifest = append_info_source(manifest, from_filename)
-    manifest = append_info_source(manifest, from_metadata)
-
-    print(manifest)
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
