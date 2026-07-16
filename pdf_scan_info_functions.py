@@ -8,18 +8,15 @@ YEAR_PATTERN = re.compile(r"\b20[12]\d\b")
 COPYRIGHT_PATTERN = re.compile(r"(^[^\n]+)\n([^\n]*©[^\n]*)$", re.M)
 
 # ISBN_PATTERN = re.compile(r"ISBN[^\n]*$", re.M)
-ISBN_PATTERN = re.compile(
-    r"(\bISBN)(?:-1[03])?[:\s]*((?:97[89][-\s]?)?\d(?:[-\s]?\d){8}[-\s]?[\dXx])",
-    re.IGNORECASE,
-)
+ISBN_PATTERN = re.compile(r"(\bISBN)(?:-1[03])?[:\s]*((?:97[89][-\s]?)?\d(?:[-\s]?\d){8}[-\s]?[\dXx])", re.IGNORECASE)
+
 
 def normalize_isbn(isbn: str) -> str:
     """Strip hyphens/spaces and uppercase the trailing check digit ('x' -> 'X')."""
     return re.sub(r"[-\s]", "", isbn).upper()
 
 
-
-def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry , max_search_pages=5):
+def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, max_search_pages=5):
     # Matches: (Any characters except newline) followed by a newline,
     # followed by a line containing the copyright symbol or word.
     doc = pymupdf.open(pdf_path)
@@ -30,7 +27,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry , max_search_pages
     year = ""
     isbn = ""
     for page_num in range(max_pages):
-        
+
         page = doc[page_num]
         page_text = page.get_text("text")
         if not page_text:
@@ -42,19 +39,13 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry , max_search_pages
             m = YEAR_PATTERN.search(copyright_line)
             if m:
                 year = m.group(0)
-            
+
             m = ISBN_PATTERN.search(page_text)
             if m:
-                isbn= m.group(2)
+                isbn = m.group(2)
                 normalized_isbn = normalize_isbn(isbn)
-            break         
+            break
     entry.year = year
     entry.title = line_before
-    entry.isbn = isbn 
+    entry.isbn = isbn
     entry.isbn_normalized = normalized_isbn
-    
-    
-
-
-if __name__ == "__main__":
-    global_grep_pdf("your_document.pdf")
