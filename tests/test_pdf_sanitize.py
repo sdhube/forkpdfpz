@@ -1,9 +1,11 @@
 # tests/test_pdf_sanitize.py
 # PYTHONPATH=./ pytest tests/test_pdf_sanitize.py
-import shutil
-from pathlib import Path
+
 
 import pytest
+import shutil
+import tempfile
+from pathlib import Path
 
 from pdf_sanitize import sanitize_pdf
 
@@ -24,17 +26,19 @@ def source_base_stem_pdf(source_pdf):
 
 
 @pytest.fixture
-def tmp_dir(tmp_path, source_pdf_folder, source_pdf):
-    pdfs_dir = tmp_path / source_pdf_folder
-    pdfs_dir.mkdir(parents=True)
+def tmp_dir(source_pdf_folder, source_pdf):
+    
+    flat_tmp_path = tempfile.mkdtemp()
+    shallow_tmp = Path(flat_tmp_path)
+    pdfs_dir = shallow_tmp
     shutil.copy(source_pdf, pdfs_dir / source_pdf.name)
-    return tmp_path
+    return shallow_tmp
 
 
 def test_sanitize(tmp_dir, source_pdf_folder, source_base_stem_pdf):
-    pdf_path = tmp_dir / source_pdf_folder / f"{source_base_stem_pdf}.pdf"
+    pdf_path = tmp_dir / f"{source_base_stem_pdf}.pdf"
     sanitize_pdf(str(pdf_path))
 
-    sanitized_path = tmp_dir / source_pdf_folder / f"{source_base_stem_pdf}-sanitized.pdf"
+    sanitized_path = tmp_dir / f"{source_base_stem_pdf}-sanitized.pdf"
     assert sanitized_path.exists()
     assert sanitized_path.stat().st_size > 0
