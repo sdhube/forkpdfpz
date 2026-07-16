@@ -15,25 +15,26 @@ def source_pdf_folder():
 
 @pytest.fixture
 def source_pdf(source_pdf_folder):
-    return Path(__file__).parent / source_pdf_folder / "ml-linearized.pdf"
+    return Path(__file__).parent.parent / source_pdf_folder / "ml-linearized.pdf"
 
 
 @pytest.fixture
-def source_base_pdf(source_pdf):
+def source_base_stem_pdf(source_pdf):
     return source_pdf.stem
 
 
 @pytest.fixture
 def tmp_dir(tmp_path, source_pdf_folder, source_pdf):
-    pdfs_dir = tmp_path / "project" / source_pdf_folder
+    pdfs_dir = tmp_path / source_pdf_folder
     pdfs_dir.mkdir(parents=True)
     shutil.copy(source_pdf, pdfs_dir / source_pdf.name)
     return tmp_path
 
 
-def test_sanitize(tmp_dir, source_pdf_folder, source_base_pdf):
-    sanitize_pdf(str(tmp_dir))
+def test_sanitize(tmp_dir, source_pdf_folder, source_base_stem_pdf):
+    pdf_path = tmp_dir / source_pdf_folder / f"{source_base_stem_pdf}.pdf"
+    sanitize_pdf(str(pdf_path))
 
-    sanitized_path = tmp_dir / "project" / source_pdf_folder / f"{source_base_pdf}-sanitized.pdf"
+    sanitized_path = tmp_dir / source_pdf_folder / f"{source_base_stem_pdf}-sanitized.pdf"
     assert sanitized_path.exists()
     assert sanitized_path.stat().st_size > 0
