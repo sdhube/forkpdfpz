@@ -19,6 +19,7 @@ Workflow:
 from dataclasses import dataclass, fields, replace
 from typing import Any
 from PdfManifestEntry import PdfManifestEntry
+import pikepdf
 
 def new_empty_manifest_entry() -> PdfManifestEntry:
     """Return a PdfManifestEntry with every field at its 'empty' value."""
@@ -146,7 +147,8 @@ def append_info_source(
 
     return replace(manifest_object, **updates)
 
-def legacy_doc_info(pdf):
+
+def doc_info_legacy(pdf: pikepdf.Pdf):
     # legacy DocInfo dict lives in the trailer, not pdf.Root — remove it outright
     # --- DocInfo: report then remove ---
     wanted_substrings = ("title", "author", "isbn", "year")
@@ -156,11 +158,9 @@ def legacy_doc_info(pdf):
         for key, value in pdf.trailer.Info.items():
             if any(w in str(key).lower() for w in wanted_substrings):
                 print(f"  {key}: {value}")
-        del pdf.trailer.Info
-        print("DocInfo removed.")
-    else:
-        print("No DocInfo present.")
 
+
+def doc_info_xmp(pdf: pikepdf.Pdf):
     # --- inspect XMP for bibliographic fields before wiping it ---
     fields_to_check = {
         "dc:title": "Title",
@@ -183,7 +183,7 @@ def legacy_doc_info(pdf):
                 print(f"  {label}: {value}")
         else:
             print("No title/author/date/ISBN found in XMP metadata.")
-        meta.clear()
+
 
 if __name__ == "__main__":
     # Small smoke test / usage example.
@@ -215,3 +215,4 @@ if __name__ == "__main__":
     manifest = append_info_source(manifest, from_metadata)
 
     print(manifest)
+# python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info

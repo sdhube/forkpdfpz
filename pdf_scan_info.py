@@ -280,3 +280,4 @@ def main(pdf_path: str, pages: int, context: int, yaml_out: str, write: bool) ->
 
 if __name__ == "__main__":
     main()
+# Example: python pdf_scan_info.py  /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --yaml-out=/tmp/tmp80tnmer3/files.yml
