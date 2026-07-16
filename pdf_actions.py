@@ -1,16 +1,21 @@
+
 import click
 import pikepdf
 from pprint import  pformat
-from pdf_select_info_source import doc_info_legacy, doc_info_xmp
+from pdf_manifest_info_sources import doc_info_legacy, doc_info_xmp
+from pdf_update_manifest import append_info_source, update_manifest_info_empty_fields
 from PdfManifestEntry import PdfManifestEntry, new_empty_manifest_entry
 
 def pdf_action(pdf_path, legacy_info=False):
     with pikepdf.open(pdf_path) as pdf:
         entry: PdfManifestEntry = new_empty_manifest_entry()
-        doc_info_legacy(pdf, entry)
+        entry_doc: PdfManifestEntry = new_empty_manifest_entry()
+        doc_info_legacy(pdf, entry_doc)
+        update_manifest_info_empty_fields(entry, entry_doc)
         print(pformat(entry))
-        entry: PdfManifestEntry = new_empty_manifest_entry()
-        doc_info_xmp(pdf, entry)
+        entry_xmp: PdfManifestEntry = new_empty_manifest_entry()
+        doc_info_xmp(pdf, entry_xmp)
+        update_manifest_info_empty_fields(entry, entry_xmp)
         print(pformat(entry))
 
 # --------------------------------------------------------------------------
@@ -32,4 +37,6 @@ def main(pdf_path: str, legacy_info: bool) -> None:
 
 if __name__ == "__main__":
     main()
+
+
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
