@@ -1,9 +1,17 @@
 from pprint import pformat
 from pathlib import Path, PurePosixPath
+import shutil
+import tempfile
 import yaml
 import click
 
 from PdfManifestEntry import PdfManifestEntry, BooksManifest, BooksLib
+
+
+def tmp_dir() -> Path:
+    flat_tmp_path = tempfile.mkdtemp()
+    shallow_tmp = Path(flat_tmp_path)
+    return shallow_tmp
 
 
 def load_books_manifest(yaml_path: str) -> BooksManifest:
@@ -26,8 +34,11 @@ def load_books_manifest(yaml_path: str) -> BooksManifest:
         )
 
 
-def load_books_lib(yaml_path: str, print_first: bool):
+def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = False):
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
+    if not tmp_path:
+        tmp_path = tmp_dir()
+    books_lib.tmp_path = tmp_path
     print(f"loaded {pformat(books_lib)}")
     print()
     books_lib.books_manifest = load_books_manifest(books_lib.yaml_path)
@@ -38,8 +49,18 @@ def load_books_lib(yaml_path: str, print_first: bool):
         books_count = len(books_manifest.books)
         print(f"count={books_count}")
         first_entry: PdfManifestEntry | None = next(iter(books_manifest.books), None)
-        print(f"first entry: {pformat(first_entry)}")
+        first_entry: PdfManifestEntry = books_manifest.books[2]
 
+
+        print(f"first entry: {pformat(first_entry)}")
+        pdf_input_path = Path(books_lib.yaml_base_path).joinpath( first_entry.input_file)
+        pdf_name = PurePosixPath(first_entry.input_file).name
+        pdf_output_path = Path( books_lib.tmp_path).joinpath( pdf_name)
+        shutil.copy(pdf_input_path, pdf_output_path) 
+        for path in books_lib.tmp_path.iterdir():
+            info = path.stat()
+            print(f"source {pdf_input_path}")
+            print(f"{books_lib.tmp_path}/{path.name} {info.st_size}")
 
 # --------------------------------------------------------------------------
 # CLI
@@ -56,7 +77,7 @@ def load_books_lib(yaml_path: str, print_first: bool):
     help="Print first entry from yaml.",
 )
 def main(yaml_path: str, print_first: bool) -> None:
-    load_books_lib(yaml_path, print_first)
+    load_books_lib(yaml_path, print_first=print_first)
 
 
 if __name__ == "__main__":

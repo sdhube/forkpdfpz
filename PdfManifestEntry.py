@@ -93,10 +93,12 @@ class BooksLib:
     sqlite_path: str
     yaml_name: str
     books_manifest: Optional[BooksManifest]
+    tmp_path: str
 
     @classmethod
     def from_yaml_path(cls, _yaml_path: str) -> BooksLib:
         py = PurePosixPath(_yaml_path)
         dy = py.parent
         db = py.name
-        return cls(yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db, books_manifest=None)
+        return cls(yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db,
+                   books_manifest=None, tmp_path="")
