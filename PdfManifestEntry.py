@@ -61,6 +61,22 @@ class PdfManifestEntry:
             book_type=d.get("book_type", "pdf"),
         )
 
+    def to_dict(self) -> dict:
+        return {
+            "valid_pdf": self.valid_pdf,
+            "input_file": self.input_file,
+            "file": self.file,
+            "title": self.title,
+            "author": self.author,
+            "size": self.size,
+            "Optimized": self.optimized,
+            "isbn": self.isbn,
+            "year": self.year,
+            "isbn_normalized": self.isbn_normalized,
+            "book_id": self.book_id,
+            "book_type": self.book_type,
+        }
+
     @classmethod
     def new_empty_manifest_entry(cls) -> PdfManifestEntry:
         """Return a PdfManifestEntry with every field at its 'empty' value."""
