@@ -99,6 +99,7 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
 
 @click.command()
 @click.argument("yaml_path", type=click.Path(exists=True, dir_okay=False))
+@click.option('--tmp-path', type=click.Path(path_type=Path), help='Optional temporary path.')
 @click.option(
     "--print-first",
     "print_first",
@@ -106,11 +107,11 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
     default=False,
     help="Print first entry from yaml.",
 )
-def main(yaml_path: str, print_first: bool) -> None:
-    load_books_lib(yaml_path, print_first=print_first)
+def main(yaml_path: str, tmp_path, print_first: bool) -> None:
+    load_books_lib(yaml_path, tmp_path=tmp_path, print_first=print_first)
 
 
 if __name__ == "__main__":
     main()
 # /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --print-first 
-# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml
+# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --tmp-path=/tmp/stam
