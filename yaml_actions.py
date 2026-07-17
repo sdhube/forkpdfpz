@@ -23,7 +23,9 @@ def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
     pdf_name = PurePosixPath(entry.input_file).name
     pdf_output_path = Path(books_lib.tmp_path).joinpath(pdf_name)
     entry.file = pdf_output_path
-    shutil.copy(pdf_input_path, pdf_output_path) 
+    print(f"copy {pdf_input_path} to {pdf_output_path}")
+    with open(pdf_input_path, 'rb') as src, open(pdf_output_path, 'wb') as dst:
+        shutil.copyfileobj(src, dst)
 
 
 def save_books_manifest(manifest: BooksManifest, yaml_path: str) -> None:
@@ -68,7 +70,7 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = Fal
     print()
     books_lib.books_manifest = load_books_manifest(books_lib.yaml_path)
     books_manifest: BooksManifest = books_lib.books_manifest
-    copy_yaml_pdf(books_manifest)
+    copy_yaml_pdf(books_lib)
     if print_first:
         print(f"books_lib.books_manifest = {type(books_lib.books_manifest)}")
         print(f"books_manifest = {type(books_manifest)}")
