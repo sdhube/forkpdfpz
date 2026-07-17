@@ -45,7 +45,7 @@ class PdfManifestEntry:
 
 
     @classmethod
-    def from_yaml_dict(cls, d: dict) -> "PdfManifestEntry":
+    def from_dict(cls, d: dict) -> "PdfManifestEntry":
         return cls(
             valid_pdf=d.get("valid_pdf", False),
             input_file=d.get("input_file", ""),
