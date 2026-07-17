@@ -13,6 +13,17 @@ def tmp_dir() -> Path:
     shallow_tmp = Path(flat_tmp_path)
     return shallow_tmp
 
+# -----------------------------------------
+# public functions
+# ------------------------------------------
+
+
+def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
+    pdf_input_path = Path(books_lib.yaml_base_path).joinpath(entry.input_file)
+    pdf_name = PurePosixPath(entry.input_file).name
+    pdf_output_path = Path(books_lib.tmp_path).joinpath(pdf_name)
+    shutil.copy(pdf_input_path, pdf_output_path) 
+
 
 def load_books_manifest(yaml_path: str) -> BooksManifest:
     p: Path = Path(yaml_path)
@@ -50,16 +61,11 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = Fal
         print(f"count={books_count}")
         first_entry: PdfManifestEntry | None = next(iter(books_manifest.books), None)
         first_entry: PdfManifestEntry = books_manifest.books[2]
-
-
         print(f"first entry: {pformat(first_entry)}")
-        pdf_input_path = Path(books_lib.yaml_base_path).joinpath( first_entry.input_file)
-        pdf_name = PurePosixPath(first_entry.input_file).name
-        pdf_output_path = Path( books_lib.tmp_path).joinpath( pdf_name)
-        shutil.copy(pdf_input_path, pdf_output_path) 
+        copy_to_temp(books_lib, first_entry)
         for path in books_lib.tmp_path.iterdir():
             info = path.stat()
-            print(f"source {pdf_input_path}")
+            print(f"source {PurePosixPath(path).name}")
             print(f"{books_lib.tmp_path}/{path.name} {info.st_size}")
 
 # --------------------------------------------------------------------------
