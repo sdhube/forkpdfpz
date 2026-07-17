@@ -19,9 +19,9 @@ def tmp_dir() -> Path:
 
 
 def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
-    pdf_input_path = Path(books_lib.yaml_base_path).joinpath(entry.input_file)
-    pdf_name = PurePosixPath(entry.input_file).name
-    pdf_output_path = Path(books_lib.tmp_path).joinpath(pdf_name)
+    pdf_input_path = str(Path(books_lib.yaml_base_path).joinpath(entry.input_file))
+    pdf_name = str(PurePosixPath(entry.input_file).name)
+    pdf_output_path = str(Path(books_lib.tmp_path).joinpath(pdf_name))
     entry.file = pdf_output_path
     print(f"copy {pdf_input_path} to {pdf_output_path}")
     with open(pdf_input_path, 'rb') as src, open(pdf_output_path, 'wb') as dst:
