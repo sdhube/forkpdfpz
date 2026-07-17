@@ -3,13 +3,15 @@
 # --------------------------------------------------------------------------
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from pathlib import Path, PurePosixPath
+from typing import Optional, List, Dict, Any
+
 
 @dataclass
 class PdfManifestEntry:
     valid_pdf: bool
     file: str
-    input_file: str 
+    input_file: str
     title: str
     author: str
     size: int
@@ -41,8 +43,6 @@ class PdfManifestEntry:
             "book_id": self.book_id,
             "book_type": self.book_type,
         }
-
-
 
     @classmethod
     def from_dict(cls, d: dict) -> "PdfManifestEntry":
@@ -79,8 +79,24 @@ class PdfManifestEntry:
             book_type="pdf",
         )
 
+
 @dataclass
 class BooksManifest:
     input_path: str
     books: List[PdfManifestEntry] = field(default_factory=list)
 
+
+@dataclass
+class BooksLib:
+    yaml_path: str
+    yaml_base_path: str
+    sqlite_path: str
+    yaml_name: str
+    books_manifest: Optional[BooksManifest]
+
+    @classmethod
+    def from_yaml_path(cls, _yaml_path: str) -> BooksLib:
+        py = PurePosixPath(_yaml_path)
+        dy = py.parent
+        db = py.name
+        return cls(yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db, books_manifest=None)
