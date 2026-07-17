@@ -22,7 +22,21 @@ def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
     pdf_input_path = Path(books_lib.yaml_base_path).joinpath(entry.input_file)
     pdf_name = PurePosixPath(entry.input_file).name
     pdf_output_path = Path(books_lib.tmp_path).joinpath(pdf_name)
+    entry.file = pdf_output_path
     shutil.copy(pdf_input_path, pdf_output_path) 
+
+
+def save_books_manifest(manifest: BooksManifest, yaml_path: str) -> None:
+    print(f"yaml_path={yaml_path}")
+    documents = [
+        {"input_path": manifest.input_path},
+        [book.to_dict() for book in manifest.books],
+    ]
+    with open(yaml_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump_all(
+            documents, f, sort_keys=False, allow_unicode=True, explicit_start=True
+        )
+    print(f"saved books manifest {yaml_path}")
 
 
 def load_books_manifest(yaml_path: str) -> BooksManifest:
@@ -54,6 +68,7 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = Fal
     print()
     books_lib.books_manifest = load_books_manifest(books_lib.yaml_path)
     books_manifest: BooksManifest = books_lib.books_manifest
+    copy_yaml_pdf(books_manifest)
     if print_first:
         print(f"books_lib.books_manifest = {type(books_lib.books_manifest)}")
         print(f"books_manifest = {type(books_manifest)}")
@@ -68,6 +83,13 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = Fal
             print(f"source {PurePosixPath(path).name}")
             print(f"{books_lib.tmp_path}/{path.name} {info.st_size}")
 
+
+def copy_yaml_pdf(books_lib: BooksLib) -> None:
+    books_manifest: BooksManifest = books_lib.books_manifest
+    for book in books_manifest.books:
+        copy_to_temp(books_lib, book)
+    save_books_manifest(books_manifest, "copied.yml")
+     
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
@@ -89,3 +111,4 @@ def main(yaml_path: str, print_first: bool) -> None:
 if __name__ == "__main__":
     main()
 # /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --print-first 
+# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml
