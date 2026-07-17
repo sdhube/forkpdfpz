@@ -2,8 +2,8 @@
 # Data class matching the Rust `PdfManifestEntry` struct
 # --------------------------------------------------------------------------
 
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
+from typing import List, Dict, Any
 
 @dataclass
 class PdfManifestEntry:
@@ -42,6 +42,8 @@ class PdfManifestEntry:
             "book_type": self.book_type,
         }
 
+
+
     @classmethod
     def from_yaml_dict(cls, d: dict) -> "PdfManifestEntry":
         return cls(
@@ -59,20 +61,26 @@ class PdfManifestEntry:
             book_type=d.get("book_type", "pdf"),
         )
 
+    @classmethod
+    def new_empty_manifest_entry(cls) -> PdfManifestEntry:
+        """Return a PdfManifestEntry with every field at its 'empty' value."""
+        return PdfManifestEntry(
+            valid_pdf=False,
+            input_file="",
+            file="",
+            title="",
+            author="",
+            size=0,
+            optimized=False,
+            isbn="",
+            year="",
+            isbn_normalized="",
+            book_id="",
+            book_type="pdf",
+        )
 
-def new_empty_manifest_entry() -> PdfManifestEntry:
-    """Return a PdfManifestEntry with every field at its 'empty' value."""
-    return PdfManifestEntry(
-        valid_pdf=False,
-        input_file="",
-        file="",
-        title="",
-        author="",
-        size=0,
-        optimized=False,
-        isbn="",
-        year="",
-        isbn_normalized="",
-        book_id="",
-        book_type="pdf",
-    )
+@dataclass
+class BooksManifest:
+    input_path: str
+    books: List[PdfManifestEntry] = field(default_factory=list)
+

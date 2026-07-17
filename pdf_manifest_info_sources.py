@@ -2,7 +2,7 @@
 pdf_select_info_source.py
 """
 
-from PdfManifestEntry import PdfManifestEntry, new_empty_manifest_entry
+from PdfManifestEntry import PdfManifestEntry
 import pikepdf
 
 
