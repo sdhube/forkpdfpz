@@ -9,12 +9,13 @@ from dataclasses import dataclass
 class PdfManifestEntry:
     valid_pdf: bool
     file: str
+    input_file: str 
     title: str
     author: str
     size: int
     optimized: bool
-    isbn: str
     year: str
+    isbn: str
     # Extra field beyond the Rust struct: ISBN with hyphens/spaces stripped and
     # the check digit uppercased, for lookup/dedup use. `isbn` stays exactly
     # as it appears in the PDF text.
@@ -28,6 +29,7 @@ class PdfManifestEntry:
         """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
         return {
             "valid_pdf": self.valid_pdf,
+            "input_file": self.input_file,
             "file": self.file,
             "title": self.title,
             "author": self.author,
@@ -44,6 +46,7 @@ class PdfManifestEntry:
     def from_yaml_dict(cls, d: dict) -> "PdfManifestEntry":
         return cls(
             valid_pdf=d.get("valid_pdf", False),
+            input_file=d.get("input_file", ""),
             file=d.get("file", ""),
             title=d.get("title", ""),
             author=d.get("author", ""),
@@ -61,6 +64,7 @@ def new_empty_manifest_entry() -> PdfManifestEntry:
     """Return a PdfManifestEntry with every field at its 'empty' value."""
     return PdfManifestEntry(
         valid_pdf=False,
+        input_file="",
         file="",
         title="",
         author="",

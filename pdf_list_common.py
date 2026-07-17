@@ -25,16 +25,7 @@ import yaml
 # renaming, or removing fields here needs no other code changes.
 # =========================================================================
 
-@dataclass
-class PdfManifest:
-    input_file: str
-    title: str = ""
-    author: str = ""
-    page_count: int = 0
-    tags: List[str] = field(default_factory=list)
-    description: str = ""
-    output_path: str = ""
-
+from PdfManifestEntry import PdfManifestEntry
 
 # =========================================================================
 # Load
