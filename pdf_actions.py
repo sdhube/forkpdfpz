@@ -41,8 +41,7 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
 
 
 
-def pdf_action(pdf_path, legacy_info=False):
-    entry: PdfManifestEntry = new_empty_manifest_entry()
+def single_pdf_action(pdf_path, entry: PdfManifestEntry, legacy_info=False):
     entry_doc: PdfManifestEntry = new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = new_empty_manifest_entry()
     entry_content: PdfManifestEntry = new_empty_manifest_entry()
@@ -56,7 +55,7 @@ def pdf_action(pdf_path, legacy_info=False):
         grep_copyright_line_pdf(pdf_path, entry_content)
         update_manifest_info_empty_fields(entry, entry_content)
         print(pformat(entry))
-    write_entry_to_yaml(entry=entry, yaml_path="files.yaml")
+    # write_entry_to_yaml(entry=entry, yaml_path="files.yaml")
 
 # --------------------------------------------------------------------------
 # CLI
@@ -72,7 +71,8 @@ def pdf_action(pdf_path, legacy_info=False):
     help="Enable legacy info mode (sets legacy_co_info to True).",
 )
 def main(pdf_path: str, legacy_info: bool) -> None:
-    pdf_action(pdf_path, legacy_info=legacy_info)
+    entry: PdfManifestEntry = new_empty_manifest_entry()
+    single_pdf_action(pdf_path, entry, legacy_info=legacy_info)
 
 
 if __name__ == "__main__":
