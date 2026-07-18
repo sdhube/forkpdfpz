@@ -7,17 +7,14 @@ about — at the cost of total runtime = sum of every entry's processing time.
 """
 
 from PdfManifestEntry import PdfManifestEntry, BooksLib, BooksManifest
-from pdf_list_common import enrich_entry_data,manifest_to_entry_dict, write_header, append_entry
-)
-
+from pdf_list_common import enrich_entry_data, manifest_to_entry_dict, write_header, append_entry
 
 
 def copy_all(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
     for book in books_manifest.books:
         copy_to_temp(books_lib, book)
-        
-    
+
     with open(output_path, "w", encoding="utf-8") as out:
         write_header(out)
 
@@ -29,5 +26,3 @@ def copy_all(books_lib: BooksLib) -> None:
                 entry = manifest_to_entry_dict(m, status="error", error_msg=str(exc))
 
             append_entry(out, entry)  # no lock needed: single thread
-
-

@@ -31,6 +31,7 @@ from PdfManifestEntry import PdfManifestEntry
 # Load
 # =========================================================================
 
+
 def load_entries(yaml_path: str, dc: Type = PdfManifest) -> List[Any]:
     """Reads input YAML entries into a list of PdfManifest instances.
     Validates shape up front: unknown keys are dropped, missing required
@@ -51,9 +52,10 @@ def load_entries(yaml_path: str, dc: Type = PdfManifest) -> List[Any]:
 # thread/task without synchronization.
 # =========================================================================
 
+
 def enrich_entry_data(manifest: PdfManifest) -> PdfManifest:
     """Heavy lifting: PDF parsing, network calls, etc. Mutate/return the dataclass."""
-    manifest.page_count = manifest.page_count or 1        # placeholder logic
+    manifest.page_count = manifest.page_count or 1  # placeholder logic
     manifest.description = manifest.description or "enriched"
     return manifest
 
@@ -69,6 +71,7 @@ def manifest_to_entry_dict(manifest: PdfManifest, status: str, error_msg: str = 
 # =========================================================================
 # Incremental append-and-flush writer
 # =========================================================================
+
 
 def dump_entry_as_list_item(entry: Dict[str, Any], indent: str = "  ") -> str:
     """Renders one entry as a single YAML list item, indented to nest under
