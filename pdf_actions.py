@@ -1,6 +1,6 @@
 
 from dataclasses import fields
-from pathlib import Path
+from pathlib import Path,PurePath
 
 import click
 import pikepdf
@@ -60,6 +60,8 @@ def update_manifest_info_empty_fields(
 
 def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_title_for_futures=True):
     pdf_path = path_linearized_sanitized(entry.file, tmp_path) 
+    if not entry.name:
+        entry.name = str(PurePath(pdf_path).name)
     if res := single_pdf_action_with_path(pdf_path, entry):
         return res
     

@@ -11,6 +11,21 @@ from pdf_scan_info_pages import YEAR_PATTERN
 COPYRIGHT_WORD_PATTERN = re.compile(r"(?:©|copyright)\s*(.*)", re.IGNORECASE)
 
 
+def handle_author_is_copyright(entry: PdfManifestEntry):
+    m = COPYRIGHT_WORD_PATTERN.search(entry.author)
+    if m:
+        print(f"found match to copyright {m.group(1)}")
+        my = YEAR_PATTERN.search(m.group(1))
+        if my:
+            entry.year = my.group(0)
+        entry.author = ""
+    else: 
+        # print("no match to copyright")
+        pass
+
+
+
+
 def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
     # legacy DocInfo dict lives in the trailer, not pdf.Root — remove it outright
     # --- DocInfo: report then remove ---
@@ -28,15 +43,7 @@ def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
                     continue 
                 manifest_key = fields_to_check[key]
                 setattr(entry, manifest_key, str(value))
-    
-    m = COPYRIGHT_WORD_PATTERN.search(entry.author)
-    if m:
-        my = YEAR_PATTERN.search(m.group(1))
-        if my:
-            entry.year = m.group(0)
-        entry.title = ""
-    else: 
-        print("no mathc to copyright")
+    handle_author_is_copyright(entry)
 
 def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
     # --- inspect XMP for bibliographic fields before wiping it ---
@@ -62,5 +69,7 @@ def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
         else:
             # print("No title/author/date/ISBN found in XMP metadata.")
             pass 
+    handle_author_is_copyright(entry)
+
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
