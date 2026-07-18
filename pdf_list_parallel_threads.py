@@ -24,7 +24,7 @@ def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
     """
     updates books lib with books info in parallel using threadpool
     """
-    print(f"is multicode: {sys._is_gil_enabled()}")  # False = actually running free-threaded
+    print(f"is multicore python: {sys._is_gil_enabled()}")  # False = actually running free-threaded
     manifest: List[PdfManifestEntry] = books_lib.books_manifest
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:

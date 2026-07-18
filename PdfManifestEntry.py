@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import Optional, List
 
+from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
+
 
 @dataclass
 class PdfManifestEntry:
@@ -27,6 +29,13 @@ class PdfManifestEntry:
     # Extra field beyond the Rust struct: source format, currently always "pdf"
     book_type: str = "pdf"
 
+    def scan_blacklisted_values(self):
+        if is_value_containing_blacklisted_terms(self.title):
+            self.title = ""
+        
+        if is_value_containing_blacklisted_terms(self.author):
+            self.author = ""
+        
     def to_yaml_dict(self) -> dict:
         """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
         return {

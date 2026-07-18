@@ -7,6 +7,8 @@ import pikepdf
 import yaml
 
 from pprint import pformat
+from pdf_names_conversion import path_linearized_sanitized
+from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf
 from PdfManifestEntry import PdfManifestEntry
@@ -57,29 +59,36 @@ def update_manifest_info_empty_fields(
 
 
 def single_pdf_action(entry: PdfManifestEntry, do_return_title_for_futures=True):
-    pdf_path = entry.file 
-    single_pdf_action_with_path(pdf_path, entry)
+    pdf_path = path_linearized_sanitized(entry.file) 
+    if res := single_pdf_action_with_path(pdf_path, entry):
+        return res
     
     if do_return_title_for_futures:
         return entry.file, entry.title
     
     
-def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, legacy_info=False):
+def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=False):
     entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_content: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     if not Path(pdf_path).exists():
-        return
+        return f"pdf not found {str(pdf_path)}"
     with pikepdf.open(pdf_path) as pdf:
         doc_info_legacy(pdf, entry_doc)
+        entry_doc.scan_blacklisted_values() 
         update_manifest_info_empty_fields(entry, entry_doc)
-        # print(pformat(entry))
+        if print_values:
+            print(f"legacy: {pformat(entry)}")
         doc_info_xmp(pdf, entry_xmp)
+        entry_xmp.scan_blacklisted_values()
         update_manifest_info_empty_fields(entry, entry_xmp)
-        # print(pformat(entry))
-        grep_copyright_line_pdf(pdf_path, entry_content)
+        if print_values:
+            print(f"xmp: {pformat(entry)}")
+        grep_copyright_line_pdf(pdf_path, entry_content, print_values)
+        entry_content.scan_blacklisted_values()
         update_manifest_info_empty_fields(entry, entry_content)
-        # print(pformat(entry))
+        if print_values:
+            print(f"grep copyright {pformat(entry)}")
     # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")
 
 # --------------------------------------------------------------------------
@@ -89,16 +98,10 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, legacy_info=F
 
 @click.command()
 @click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))
-@click.option(
-    "--legacy-info",
-    "legacy_info",
-    is_flag=True,
-    default=False,
-    help="Enable legacy info mode (sets legacy_co_info to True).",
-)
-def main(pdf_path: str, legacy_info: bool) -> None:
+@click.option("--print-values", is_flag=True, default=False, help="print values for debug",)
+def main(pdf_path: str, print_values: bool) -> None:
     entry: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
-    single_pdf_action_with_path(pdf_path, entry, legacy_info=legacy_info)
+    single_pdf_action_with_path(pdf_path, entry, print_values=print_values)
 
 
 if __name__ == "__main__":
