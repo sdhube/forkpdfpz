@@ -12,6 +12,7 @@ COPYRIGHT_PATTERN = re.compile(r"(^[^\n]+)\n([^\n]*©[^\n]*)$", re.M)
 ISBN_PATTERN = re.compile(r"(\bISBN)(?:-1[03])?[:\s]*((?:97[89][-\s]?)?\d(?:[-\s]?\d){8}[-\s]?[\dXx])", re.IGNORECASE)
 
 BY_PATTERN = re.compile(r"\bBy\s+(.*)$", re.IGNORECASE)
+BY_PATTERN = re.compile(r"(\bBy\s+|[:\-—–]\s*)(.*$)", re.IGNORECASE)
 
 
 def normalize_isbn(isbn: str) -> str:
@@ -42,7 +43,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
             line_before = match.group(1).strip()
             m = BY_PATTERN.search(line_before)
             if m:
-                author = m.group(1).strip()
+                author = m.group(2).strip()
             else:
                 print(f"by pattern not found {line_before}")
                 title = line_before    
@@ -56,7 +57,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
                 isbn = m.group(2)
                 normalized_isbn = normalize_isbn(isbn)
             break
-    entry.author=author
+    entry.author = author
     entry.year = year
     entry.title = title
     entry.isbn = isbn
