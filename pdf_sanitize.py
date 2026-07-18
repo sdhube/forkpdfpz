@@ -21,11 +21,12 @@ def additional_removals(pdf):
     if "/OpenAction" in pdf.Root:
         del pdf.Root.OpenAction
 
+
 def remove_unreferenced(pdf, out_path):
     """
     TODO add call to remove_unreferenced(pdf)
     """
-    
+
     pdf.remove_unreferenced_resources()
 
     pdf.save(out_path)
@@ -36,6 +37,7 @@ def remove_unreferenced(pdf, out_path):
 # --------------------------------------------------------------------------
 # Public function
 # --------------------------------------------------------------------------
+
 
 def sanitize_pdf(pdf_path: str) -> None:
     scrubber = (
@@ -57,11 +59,10 @@ def sanitize_pdf(pdf_path: str) -> None:
         scrubber.apply(pdf).save(str(out))
 
 
-
-
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
+
 
 @click.command()
 @click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))

@@ -28,13 +28,10 @@ def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
     manifest: List[PdfManifestEntry] = books_lib.books_manifest
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_manifest = {
-            executor.submit(single_pdf_action, m, books_lib.tmp_path): m for m in manifest.books
-        }
+        future_to_manifest = {executor.submit(single_pdf_action, m, books_lib.tmp_path): m for m in manifest.books}
 
         for future in concurrent.futures.as_completed(future_to_manifest):
             try:
-                print(f"finished thread{ future.result()}")
+                print(f"finished thread{future.result()}")
             except Exception as exc:
                 print(f"exception thread thread {exc}")
-                
