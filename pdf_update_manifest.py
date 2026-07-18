@@ -3,6 +3,7 @@ from typing import Any
 
 from PdfManifestEntry import PdfManifestEntry
 
+
 def _is_empty(value: Any) -> bool:
     """
     Field-agnostic emptiness check used to decide whether a field on
@@ -79,23 +80,6 @@ _FIELD_UPDATERS = {
 }
 
 
-def update_manifest_info_empty_fields(
-    manifest_object: PdfManifestEntry,
-    info_source: PdfManifestEntry,
-) -> PdfManifestEntry:
-    """
-    Update empty  manifest info with values from PdfManifestEntry
-    """
-    for f in fields(manifest_object):
-        name = f.name
-        value = getattr(manifest_object, name)
-        new_value = getattr(info_source, name)
-        if not isinstance(value, str):
-            continue
-        if (not len(value)) and len(new_value):
-            setattr(manifest_object, name, new_value)
-
-
 def append_info_source(
     manifest_object: PdfManifestEntry,
     info_source: PdfManifestEntry,
@@ -128,3 +112,5 @@ def append_info_source(
             updates[name] = _FIELD_UPDATERS[name](old_value, new_value)
 
     return replace(manifest_object, **updates)
+
+

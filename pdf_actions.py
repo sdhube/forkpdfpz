@@ -1,4 +1,5 @@
 
+from dataclasses import fields
 from pathlib import Path
 
 import click
@@ -8,7 +9,6 @@ import yaml
 from pprint import  pformat
 from pdf_manifest_info_sources import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_functions import grep_copyright_line_pdf 
-from pdf_update_manifest import append_info_source, update_manifest_info_empty_fields
 from PdfManifestEntry import PdfManifestEntry
 #--------------------------------------------
 # public functions 
@@ -35,6 +35,23 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
 
     with path.open("w", encoding="utf-8") as f:
         yaml.safe_dump(manifest, f, sort_keys=False, allow_unicode=True)
+
+
+def update_manifest_info_empty_fields(
+    manifest_object: PdfManifestEntry,
+    info_source: PdfManifestEntry,
+) -> PdfManifestEntry:
+    """
+    Update empty  manifest info with values from PdfManifestEntry
+    """
+    for f in fields(manifest_object):
+        name = f.name
+        value = getattr(manifest_object, name)
+        new_value = getattr(info_source, name)
+        if not isinstance(value, str):
+            continue
+        if (not len(value)) and len(new_value):
+            setattr(manifest_object, name, new_value)
 
 
 
@@ -77,7 +94,6 @@ def main(pdf_path: str, legacy_info: bool) -> None:
 
 if __name__ == "__main__":
     main()
-
 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
