@@ -20,6 +20,7 @@ class PdfManifestEntry:
     optimized: bool
     year: str
     isbn: str
+    name: str
     # Extra field beyond the Rust struct: ISBN with hyphens/spaces stripped and
     # the check digit uppercased, for lookup/dedup use. `isbn` stays exactly
     # as it appears in the PDF text.
@@ -47,6 +48,7 @@ class PdfManifestEntry:
             "size": self.size,
             "Optimized": self.optimized,
             "isbn": self.isbn,
+            "name": self.name,
             "year": self.year,
             "isbn_normalized": self.isbn_normalized,
             "book_id": self.book_id,
@@ -64,6 +66,7 @@ class PdfManifestEntry:
             size=d.get("size", 0),
             optimized=d.get("Optimized", False),
             isbn=d.get("isbn", ""),
+            name=d.get("name", ""),
             year=d.get("year", ""),
             isbn_normalized=d.get("isbn_normalized", ""),
             book_id=d.get("book_id", ""),
@@ -80,6 +83,7 @@ class PdfManifestEntry:
             "size": self.size,
             "Optimized": self.optimized,
             "isbn": self.isbn,
+            "name": self.name,
             "year": self.year,
             "isbn_normalized": self.isbn_normalized,
             "book_id": self.book_id,
@@ -98,6 +102,7 @@ class PdfManifestEntry:
             size=0,
             optimized=False,
             isbn="",
+            name="",
             year="",
             isbn_normalized="",
             book_id="",
