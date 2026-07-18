@@ -56,21 +56,31 @@ def update_manifest_info_empty_fields(
             setattr(manifest_object, name, new_value)
 
 
-def single_pdf_action(pdf_path, entry: PdfManifestEntry, legacy_info=False):
+def single_pdf_action(entry: PdfManifestEntry, do_return_title_for_futures=True):
+    pdf_path = entry.file 
+    single_pdf_action_with_path(pdf_path, entry)
+    
+    if do_return_title_for_futures:
+        return entry.file, entry.title
+    
+    
+def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, legacy_info=False):
     entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_content: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
+    if not Path(pdf_path).exists():
+        return
     with pikepdf.open(pdf_path) as pdf:
         doc_info_legacy(pdf, entry_doc)
         update_manifest_info_empty_fields(entry, entry_doc)
-        print(pformat(entry))
+        # print(pformat(entry))
         doc_info_xmp(pdf, entry_xmp)
         update_manifest_info_empty_fields(entry, entry_xmp)
-        print(pformat(entry))
+        # print(pformat(entry))
         grep_copyright_line_pdf(pdf_path, entry_content)
         update_manifest_info_empty_fields(entry, entry_content)
-        print(pformat(entry))
-    # write_entry_to_yaml(entry=entry, yaml_path="files.yaml")
+        # print(pformat(entry))
+    # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")
 
 # --------------------------------------------------------------------------
 # CLI
@@ -88,7 +98,7 @@ def single_pdf_action(pdf_path, entry: PdfManifestEntry, legacy_info=False):
 )
 def main(pdf_path: str, legacy_info: bool) -> None:
     entry: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
-    single_pdf_action(pdf_path, entry, legacy_info=legacy_info)
+    single_pdf_action_with_path(pdf_path, entry, legacy_info=legacy_info)
 
 
 if __name__ == "__main__":

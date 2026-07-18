@@ -26,6 +26,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, max_search_pages=
     line_before = ""
     year = ""
     isbn = ""
+    normalized_isbn = ""
     for page_num in range(max_pages):
 
         page = doc[page_num]

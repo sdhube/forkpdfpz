@@ -47,7 +47,7 @@ def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
                 # print(f"  {label}: {value}")
                 setattr(entry, label, str(value)) 
         else:
-            print("No title/author/date/ISBN found in XMP metadata.")
-
+            # print("No title/author/date/ISBN found in XMP metadata.")
+            pass 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
