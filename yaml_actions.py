@@ -46,7 +46,7 @@ def load_books_manifest(yaml_path: str) -> BooksManifest:
     if not p.is_file():
         print(f"{yaml_path} is not a file")
         return None
-    print(f"yaml_path={yaml_path}")    
+    print(f"yaml_path={yaml_path}") 
     with open(yaml_path, "r", encoding="utf-8") as f:
         # safe_load_all handles the document separator (---) safely
         documents = list(yaml.safe_load_all(f))
@@ -61,7 +61,7 @@ def load_books_manifest(yaml_path: str) -> BooksManifest:
         )
 
 
-def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = False):
+def load_books_lib(yaml_path: str, tmp_path: str = None, copy_pdfs: bool = False, print_first: bool = False):
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
     if not tmp_path:
         tmp_path = tmp_dir()
@@ -70,7 +70,8 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = Fal
     print()
     books_lib.books_manifest = load_books_manifest(books_lib.yaml_path)
     books_manifest: BooksManifest = books_lib.books_manifest
-    copy_yaml_pdf(books_lib)
+    if copy_pdfs:
+        copy_yaml_pdf(books_lib)
     if print_first:
         print(f"books_lib.books_manifest = {type(books_lib.books_manifest)}")
         print(f"books_manifest = {type(books_manifest)}")
@@ -79,7 +80,8 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, print_first: bool = Fal
         first_entry: PdfManifestEntry | None = next(iter(books_manifest.books), None)
         first_entry: PdfManifestEntry = books_manifest.books[2]
         print(f"first entry: {pformat(first_entry)}")
-        copy_to_temp(books_lib, first_entry)
+        if copy_pdfs:
+            copy_to_temp(books_lib, first_entry)
         for path in books_lib.tmp_path.iterdir():
             info = path.stat()
             print(f"source {PurePosixPath(path).name}")
@@ -91,7 +93,8 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
     for book in books_manifest.books:
         copy_to_temp(books_lib, book)
     save_books_manifest(books_manifest, "copied.yml")
-     
+
+
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
@@ -100,6 +103,7 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
 @click.command()
 @click.argument("yaml_path", type=click.Path(exists=True, dir_okay=False))
 @click.option('--tmp-path', type=click.Path(path_type=Path), help='Optional temporary path.')
+@click.option('--copy-pdfs', is_flag=True, default=False, help='copy pdf files from input_files to tmp')
 @click.option(
     "--print-first",
     "print_first",
@@ -107,11 +111,12 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
     default=False,
     help="Print first entry from yaml.",
 )
-def main(yaml_path: str, tmp_path, print_first: bool) -> None:
-    load_books_lib(yaml_path, tmp_path=tmp_path, print_first=print_first)
+def main(yaml_path: str, tmp_path, copy_pdfs, print_first: bool) -> None:
+    load_books_lib(yaml_path, tmp_path=tmp_path, copy_pdfs=copy_pdfs, print_first=print_first)
 
 
 if __name__ == "__main__":
     main()
-# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --print-first 
+# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --print-first
 # /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --tmp-path=/tmp/stam
+# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml  --copy-pdfs
