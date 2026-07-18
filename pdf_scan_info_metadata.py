@@ -70,6 +70,9 @@ def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
             # print("No title/author/date/ISBN found in XMP metadata.")
             pass 
     handle_author_is_copyright(entry)
-
+    my = YEAR_PATTERN.search(entry.year)
+    if my:
+        entry.year = my.group(0)
+ 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info

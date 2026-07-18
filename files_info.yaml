@@ -36,7 +36,7 @@ input_path: /home/sd/gitlab_books
   Optimized: false
   isbn: ''
   name: cloud-native-devops-with-kubernetes-2nd-edition-y2021-linearized-sanitized.pdf
-  year: '[''2022-05-25T00:00:00-07:00'']'
+  year: '2022'
   isbn_normalized: ''
   book_id: ''
   book_type: pdf
@@ -142,7 +142,7 @@ input_path: /home/sd/gitlab_books
   Optimized: false
   isbn: '9781617299193'
   name: effective-data-science-infrastructure-how-to-make-data-scientists-productive-y2022-linearized-sanitized.pdf
-  year: '[''2022-07-18T21:11:10.172751-05:00'']'
+  year: '2022'
   isbn_normalized: '9781617299193'
   book_id: ''
   book_type: pdf
@@ -156,7 +156,7 @@ input_path: /home/sd/gitlab_books
   Optimized: false
   isbn: ''
   name: Effective Python_ 90 Specific Ways to Writ - Brett Slatkin-y2020-linearized-sanitized.pdf
-  year: '[''2019-11-22T00:00:00+02:00'']'
+  year: '2019'
   isbn_normalized: ''
   book_id: ''
   book_type: pdf
@@ -327,7 +327,7 @@ input_path: /home/sd/gitlab_books
   Optimized: false
   isbn: ''
   name: sqlalchemy-2-in-practice-learn-to-program-relational-databases-in-python-step-by-step-linearized-sanitized.pdf
-  year: '[''2023-04-29T02:00:00+02:00'']'
+  year: '2023'
   isbn_normalized: ''
   book_id: ''
   book_type: pdf
