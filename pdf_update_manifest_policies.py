@@ -112,5 +112,3 @@ def append_info_source(
             updates[name] = _FIELD_UPDATERS[name](old_value, new_value)
 
     return replace(manifest_object, **updates)
-
-
