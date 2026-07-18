@@ -1,0 +1,334 @@
+---
+input_path: /home/sd/gitlab_books
+---
+- valid_pdf: false
+  input_file: ./books-testing/testing_ai/artificial-intelligence-and-software-testing-building-systems-you-can-trust.pdf
+  file: /home/sd/tmp/artificial-intelligence-and-software-testing-building-systems-you-can-trust.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/Clean-architectures-in-python-y2020/clean-architectures-in-python-y2020.pdf
+  file: /home/sd/tmp/clean-architectures-in-python-y2020.pdf
+  title: Clean Architectures in Python
+  author: Leonardo Giordani
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/cloud-native-devops-with-kubernetes-2nd-edition-y2021/cloud-native-devops-with-kubernetes-2nd-edition-y2021.pdf
+  file: /home/sd/tmp/cloud-native-devops-with-kubernetes-2nd-edition-y2021.pdf
+  title: Cloud Native DevOps with Kubernetes, 2nd Edition
+  author: Justin Domingus & John Arundel
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '[''2022-05-25T00:00:00-07:00'']'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./interviews/dockertest/compatible_idioms.pdf
+  file: /home/sd/tmp/compatible_idioms.pdf
+  title: Writing Python 2-3 compatible code
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/concise-testing/Concise Guide to Software Testing by
+    Gerard ORegan-y2019.pdf
+  file: /home/sd/tmp/Concise Guide to Software Testing by Gerard ORegan-y2019.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./interviews/leetcode/a01LaakmannCrackingEd6/pdf-chapters/Cracking-Interview-Laakmann_c09_Recursion_141_147_353_382.pdf
+  file: /home/sd/tmp/Cracking-Interview-Laakmann_c09_Recursion_141_147_353_382.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./interviews/leetcode/a01LaakmannCrackingEd6/pdf-chapters/Cracking-Interview-Laakmann_c11_testing_163_201_428_432.pdf
+  file: /home/sd/tmp/Cracking-Interview-Laakmann_c11_testing_163_201_428_432.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./interviews/leetcode/a01LaakmannCrackingEd6/Cracking_the_Coding_Interview-189_Programming_Questions_and_Solutions_6th_Edition_By_Gayle_Laakmann_McDowell.pdf
+  file: /home/sd/tmp/Cracking_the_Coding_Interview-189_Programming_Questions_and_Solutions_6th_Edition_By_Gayle_Laakmann_McDowell.pdf
+  title: CRACKING THE CODING INTERVIEW, SIXTH EDITION
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '2015'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/designing-microservices-with-django-an-overview-of-tools-and-practices-1st-ed1-y21019/designing-microservices-with-django-an-overview-of-tools-and-practices-1st-ed1-y21019.pdf
+  file: /home/sd/tmp/designing-microservices-with-django-an-overview-of-tools-and-practices-1st-ed1-y21019.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '2019'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/devops-in-python-infrastructure-as-python-y2019/devops-in-python-infrastructure-as-python-y2019.pdf
+  file: /home/sd/tmp/devops-in-python-infrastructure-as-python-y2019.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '2019'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/effective-data-science-infrastructure-how-to-make-data-scientists-productive-y2022/effective-data-science-infrastructure-how-to-make-data-scientists-productive-y2022.pdf
+  file: /home/sd/tmp/effective-data-science-infrastructure-how-to-make-data-scientists-productive-y2022.pdf
+  title: 'Effective Data Science Infrastructure: How to Make Data Scientists More
+    Productive'
+  author: Ville Tuulos
+  size: 0
+  Optimized: false
+  isbn: '9781617299193'
+  year: '[''2022-07-18T21:11:10.172751-05:00'']'
+  isbn_normalized: '9781617299193'
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/effective-python-y2020/Effective Python_ 90 Specific
+    Ways to Writ - Brett Slatkin-y2020.pdf
+  file: /home/sd/tmp/Effective Python_ 90 Specific Ways to Writ - Brett Slatkin-y2020.pdf
+  title: 'Effective Python: 90 Specific Ways to Write Better Python, 2nd Edition'
+  author: Brett Slatkin
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '[''2019-11-22T00:00:00+02:00'']'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/effective-python-y2020/Effective-Python-Brett-Slatkin_2nd-orig-y2020.pdf
+  file: /home/sd/tmp/Effective-Python-Brett-Slatkin_2nd-orig-y2020.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/effective-testing-a-dev-guide/effective-software-testing-a-developers-guide-mauricio-aniche-y2022.pdf
+  file: /home/sd/tmp/effective-software-testing-a-developers-guide-mauricio-aniche-y2022.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/Essential-sqlalchemy-2e-master-y2016/Essential
+    SQLAlchemy, 2nd Edition.pdf
+  file: /home/sd/tmp/Essential SQLAlchemy, 2nd Edition.pdf
+  title: Essential SQLAlchemy
+  author: Jason Myers and Rick Copeland
+  size: 0
+  Optimized: false
+  isbn: 978-1-491-91646-9
+  year: '2010'
+  isbn_normalized: '9781491916469'
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/Essential-sqlalchemy-2e-master-y2016/essential-sqlalchemy-jason-myers.pdf
+  file: /home/sd/tmp/essential-sqlalchemy-jason-myers.pdf
+  title: Essential SQLAlchemy
+  author: Jason Myers and Rick Copeland
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/Essential-sqlalchemy-2e-master-y2016/essential-sqlalchemy-mapping-python-to-databases-2nd-edition-y2016.pdf
+  file: /home/sd/tmp/essential-sqlalchemy-mapping-python-to-databases-2nd-edition-y2016.pdf
+  title: Essential SQLAlchemy
+  author: Jason Myers
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '2016'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/implementing-automation-y2009/implementing-automated-software-testing-how-to-save-time-and-lower-costs-while-raising-quality-y2009.pdf
+  file: /home/sd/tmp/implementing-automated-software-testing-how-to-save-time-and-lower-costs-while-raising-quality-y2009.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/kubernetes-for-developers-y2023/kubernetes-for-developers-meap-v15_y2023.pdf
+  file: /home/sd/tmp/kubernetes-for-developers-meap-v15_y2023.pdf
+  title: Kubernetes for Developers MEAP V15
+  author: copyright-2023-manning-publications.html
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/practical-python-artificial-intelligence-programming-y2023/practical-python-artificial-intelligence-programming-y2023.pdf
+  file: /home/sd/tmp/practical-python-artificial-intelligence-programming-y2023.pdf
+  title: Practical Python Artificial Intelligence Programming
+  author: Mark Watson
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '2023'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_aws/python-devops-book-ruthlessly-effective-y2020/python-for-devops-learn-ruthlessly-effective-automation-y2020.pdf
+  file: /home/sd/tmp/python-for-devops-learn-ruthlessly-effective-automation-y2020.pdf
+  title: Python for DevOps
+  author: Noah Gift;Kennedy  Behrman;Alfredo  Deza;Grig  Gheorghiu;
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '2020'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/uml/Software-Engineering-with-UML/Software-Engineering-with-UML-Bhuvan-Unhelkar-y2018.pdf
+  file: /home/sd/tmp/Software-Engineering-with-UML-Bhuvan-Unhelkar-y2018.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/testing_strategies_accelarating/software-testing-strategies-accelarating-y2025.pdf
+  file: /home/sd/tmp/software-testing-strategies-accelarating-y2025.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/testing-strategies-2020s/software-testing-strategies-a-testing-guide-for-the-2020s.pdf
+  file: /home/sd/tmp/software-testing-strategies-a-testing-guide-for-the-2020s.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/SQLAlchemy_2_In_Practice-y2023/sqlalchemy-2-in-practice-learn-to-program-relational-databases-in-python-step-by-step.pdf
+  file: /home/sd/tmp/sqlalchemy-2-in-practice-learn-to-program-relational-databases-in-python-step-by-step.pdf
+  title: 'SQLAlchemy 2 In Practice: Learn to program relational databases in Python
+    step by step'
+  author: Grinberg, Miguel
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: '[''2023-04-29T02:00:00+02:00'']'
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books_good_sources/Essential-sqlalchemy-2e-master-y2016/sqlalchemy.pdf
+  file: /home/sd/tmp/sqlalchemy.pdf
+  title: Introduction to SQLAlchemy
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
+- valid_pdf: false
+  input_file: ./books-testing/uml/uml-simple-beginner/UML - A Simple Guide for Beginners
+    A basic guide to systems analysis and design-Martins Consiglio Regis, Marco Aurelio-y2024.pdf
+  file: /home/sd/tmp/UML - A Simple Guide for Beginners A basic guide to systems analysis
+    and design-Martins Consiglio Regis, Marco Aurelio-y2024.pdf
+  title: ''
+  author: ''
+  size: 0
+  Optimized: false
+  isbn: ''
+  year: ''
+  isbn_normalized: ''
+  book_id: ''
+  book_type: pdf
