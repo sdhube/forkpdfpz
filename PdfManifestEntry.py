@@ -3,8 +3,8 @@
 # --------------------------------------------------------------------------
 
 from dataclasses import dataclass, field
-from pathlib import Path, PurePosixPath
-from typing import Optional, List, Dict, Any
+from pathlib import PurePosixPath
+from typing import Optional, List
 
 
 @dataclass
