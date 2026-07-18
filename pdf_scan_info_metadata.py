@@ -1,9 +1,14 @@
 """
 pdf_select_info_source.py
 """
+import re
+
+import pikepdf
 
 from PdfManifestEntry import PdfManifestEntry
-import pikepdf
+from pdf_scan_info_pages import YEAR_PATTERN
+
+COPYRIGHT_WORD_PATTERN = re.compile(r"(?:©|copyright)\s*(.*)", re.IGNORECASE)
 
 
 def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
@@ -23,7 +28,15 @@ def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
                     continue 
                 manifest_key = fields_to_check[key]
                 setattr(entry, manifest_key, str(value))
-
+    
+    m = COPYRIGHT_WORD_PATTERN.search(entry.author)
+    if m:
+        my = YEAR_PATTERN.search(m.group(1))
+        if my:
+            entry.year = m.group(0)
+        entry.title = ""
+    else: 
+        print("no mathc to copyright")
 
 def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry):
     # --- inspect XMP for bibliographic fields before wiping it ---
