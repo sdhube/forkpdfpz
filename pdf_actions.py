@@ -7,7 +7,7 @@ import pikepdf
 import yaml
 
 from pprint import  pformat
-from pdf_manifest_info_sources import doc_info_legacy, doc_info_xmp
+from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_functions import grep_copyright_line_pdf 
 from PdfManifestEntry import PdfManifestEntry
 #--------------------------------------------
