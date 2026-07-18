@@ -58,8 +58,8 @@ def update_manifest_info_empty_fields(
             setattr(manifest_object, name, new_value)
 
 
-def single_pdf_action(entry: PdfManifestEntry, do_return_title_for_futures=True):
-    pdf_path = path_linearized_sanitized(entry.file) 
+def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_title_for_futures=True):
+    pdf_path = path_linearized_sanitized(entry.file, tmp_path) 
     if res := single_pdf_action_with_path(pdf_path, entry):
         return res
     

@@ -29,7 +29,7 @@ def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_manifest = {
-            executor.submit(single_pdf_action, m): m for m in manifest.books
+            executor.submit(single_pdf_action, m, books_lib.tmp_path): m for m in manifest.books
         }
 
         for future in concurrent.futures.as_completed(future_to_manifest):
