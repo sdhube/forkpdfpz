@@ -6,14 +6,16 @@ import click
 import pikepdf
 import yaml
 
-from pprint import  pformat
+from pprint import pformat
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
-from pdf_scan_info_functions import grep_copyright_line_pdf 
+from pdf_scan_info_pages import grep_copyright_line_pdf
 from PdfManifestEntry import PdfManifestEntry
-#--------------------------------------------
-# public functions 
+
+
+# --------------------------------------------
+# public functions
 #
-#--------------------------------------------
+# --------------------------------------------
 
 def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
     """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
@@ -54,12 +56,8 @@ def update_manifest_info_empty_fields(
             setattr(manifest_object, name, new_value)
 
 
-
-
-
-
 def single_pdf_action(pdf_path, entry: PdfManifestEntry, legacy_info=False):
-    entry_doc: PdfManifestEntry =  PdfManifestEntry.new_empty_manifest_entry()
+    entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_content: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     with pikepdf.open(pdf_path) as pdf:
@@ -77,6 +75,7 @@ def single_pdf_action(pdf_path, entry: PdfManifestEntry, legacy_info=False):
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
+
 
 @click.command()
 @click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))
