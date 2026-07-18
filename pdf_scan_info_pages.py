@@ -10,10 +10,16 @@ COPYRIGHT_PATTERN = re.compile(r"(^[^\n]+)\n([^\n]*©[^\n]*)$", re.M)
 
 # ISBN_PATTERN = re.compile(r"ISBN[^\n]*$", re.M)
 ISBN_PATTERN = re.compile(r"(\bISBN)(?:-1[03])?[:\s]*((?:97[89][-\s]?)?\d(?:[-\s]?\d){8}[-\s]?[\dXx])", re.IGNORECASE)
+ISBN_PATTERN = re.compile(
+    r"(\bISBN)(?:-1[03])?(?:\s*:\s*)?(?:\s*\([^)]*\))?\s*:?\s*"
+    r"((?:97[89][-\s]?)?\d(?:[-\s]?\d){8,11}[-\s]?[\dXx]?)\s*",
+    re.IGNORECASE
+)
 
 BY_PATTERN = re.compile(r"\bBy\s+(.*)$", re.IGNORECASE)
-BY_PATTERN = re.compile(r"(\bBy\s+|[:\-—–]\s*)(.*$)", re.IGNORECASE)
+# TODO   BY_PATTERN = re.compile(r"(\bBy\s+|[:\-—–]\s*)(.*$)", re.IGNORECASE)
 
+DOI_PATTERN = re.compile(r"\bdoi\.org.*")
 
 def normalize_isbn(isbn: str) -> str:
     """Strip hyphens/spaces and uppercase the trailing check digit ('x' -> 'X')."""
@@ -41,9 +47,11 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
         match = COPYRIGHT_PATTERN.search(page_text)
         if match:
             line_before = match.group(1).strip()
+            print(f"line before={line_before}")
             m = BY_PATTERN.search(line_before)
             if m:
-                author = m.group(2).strip()
+                print(f"by pattern  found {line_before}")
+                author = m.group(1).strip()
             else:
                 print(f"by pattern not found {line_before}")
                 title = line_before    
@@ -51,6 +59,11 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
             m = YEAR_PATTERN.search(copyright_line)
             if m:
                 year = m.group(0)
+            m = BY_PATTERN.search(copyright_line)
+            if m and not author:
+                print(f"by pattern  found in copyright line {line_before}")
+                author = m.group(1).strip()
+ 
 
             m = ISBN_PATTERN.search(page_text)
             if m:
@@ -60,13 +73,13 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     entry.author = author
     entry.year = year
     entry.title = title
-    entry.isbn = isbn
+    entry.isbn = str(isbn).rstrip()
     entry.isbn_normalized = normalized_isbn
     if print_values:
-        print(f"year={entry.year}, isbn={entry.isbn} title={entry.title}")
+        print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} normalized_isbn={normalized_isbn}")
     
     
- # --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
 

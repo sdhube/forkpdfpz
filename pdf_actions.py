@@ -11,6 +11,8 @@ from pdf_names_conversion import path_linearized_sanitized
 from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf
+from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn 
+
 from PdfManifestEntry import PdfManifestEntry
 
 
@@ -73,6 +75,7 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
     entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_content: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
+    entry_google: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     if not Path(pdf_path).exists():
         return f"pdf not found {str(pdf_path)}"
     with pikepdf.open(pdf_path) as pdf:
@@ -91,6 +94,14 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
         update_manifest_info_empty_fields(entry, entry_content)
         if print_values:
             print(f"grep copyright {pformat(entry)}")
+        if entry.isbn_normalized and not entry.title:
+            if google_book_info_by_isbn(entry.isbn_normalized,entry_google):
+                open_library_book_info_by_isbn(entry.isbn_normalized,entry_google)
+ 
+            update_manifest_info_empty_fields(entry, entry_google)
+            if print_values:
+                print(f"update_google {pformat(entry)}")
+ 
     # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")
 
 # --------------------------------------------------------------------------
