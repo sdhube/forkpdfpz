@@ -132,3 +132,70 @@ class BooksLib:
         db = py.name
         return cls(yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db,
                    books_manifest=None, tmp_path="")
+
+pdf_manifest_schema = {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Book Metadata",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "valid_pdf": {
+        "type": "boolean"
+      },
+      "input_file": {
+        "type": "string"
+      },
+      "file": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "author": {
+        "type": "string"
+      },
+      "size": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "Optimized": {
+        "type": "boolean"
+      },
+      "isbn": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "year": {
+        "type": "string"
+      },
+      "isbn_normalized": {
+        "type": "string"
+      },
+      "book_id": {
+        "type": "string"
+      },
+      "book_type": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "valid_pdf",
+      "input_file",
+      "file",
+      "title",
+      "author",
+      "size",
+      "Optimized",
+      "isbn",
+      "name",
+      "year",
+      "isbn_normalized",
+      "book_id",
+      "book_type"
+    ],
+    "additionalProperties": false
+  }
+}   
