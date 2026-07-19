@@ -8,10 +8,12 @@ import click
 from PdfManifestEntry import PdfManifestEntry, BooksManifest, BooksLib
 from pdf_list_parallel_threads import threadpool_books_info
 
+
 def tmp_dir() -> Path:
     flat_tmp_path = tempfile.mkdtemp()
     shallow_tmp = Path(flat_tmp_path)
     return shallow_tmp
+
 
 # -----------------------------------------
 # public functions
@@ -35,9 +37,7 @@ def save_books_manifest(manifest: BooksManifest, yaml_path: str) -> None:
         [book.to_dict() for book in manifest.books],
     ]
     with open(yaml_path, "w", encoding="utf-8") as f:
-        yaml.safe_dump_all(
-            documents, f, sort_keys=False, allow_unicode=True, explicit_start=True
-        )
+        yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
     print(f"saved books manifest {yaml_path}")
 
 
@@ -46,22 +46,25 @@ def load_books_manifest(yaml_path: str) -> BooksManifest:
     if not p.is_file():
         print(f"{yaml_path} is not a file")
         return None
-    print(f"yaml_path={yaml_path}") 
+    print(f"yaml_path={yaml_path}")
     with open(yaml_path, "r", encoding="utf-8") as f:
         # safe_load_all handles the document separator (---) safely
         documents = list(yaml.safe_load_all(f))
-        list_path = documents[0]   # Contains {'input_path': '/mnt/shared/gitlab_books'}
+        list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
         books_list = documents[1]  # Contains your array of PDF dictionaries
 
         parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
         print(f"loaded books manifest {yaml_path}")
-        return BooksManifest(
-            input_path=list_path.get("input_path", ""),
-            books=parsed_books
-        )
+        return BooksManifest(input_path=list_path.get("input_path", ""), books=parsed_books)
 
 
-def load_books_lib(yaml_path: str, tmp_path: str = None, update_yaml_info: bool=False, copy_pdfs: bool = False, print_first: bool = False):
+def load_books_lib(
+    yaml_path: str,
+    tmp_path: str = None,
+    update_yaml_info: bool = False,
+    copy_pdfs: bool = False,
+    print_first: bool = False,
+):
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
     if not tmp_path:
         tmp_path = tmp_dir()
@@ -87,10 +90,10 @@ def load_books_lib(yaml_path: str, tmp_path: str = None, update_yaml_info: bool=
             print(f"source {PurePosixPath(path).name}")
             print(f"{books_lib.tmp_path}/{path.name} {info.st_size}")
     if update_yaml_info:
-        threadpool_books_info(books_lib)     
+        threadpool_books_info(books_lib)
         save_books_manifest(books_lib.books_manifest, "files_info.yaml")
 
- 
+
 def copy_yaml_pdf(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
     for book in books_manifest.books:
@@ -115,8 +118,10 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
     default=False,
     help="Print first entry from yaml.",
 )
-def main(yaml_path: str, tmp_path: str, update_yaml_info: bool, copy_pdfs: bool, print_first: bool ) -> None:
-    load_books_lib(yaml_path, tmp_path=tmp_path, update_yaml_info=update_yaml_info, copy_pdfs=copy_pdfs, print_first=print_first)
+def main(yaml_path: str, tmp_path: str, update_yaml_info: bool, copy_pdfs: bool, print_first: bool) -> None:
+    load_books_lib(
+        yaml_path, tmp_path=tmp_path, update_yaml_info=update_yaml_info, copy_pdfs=copy_pdfs, print_first=print_first
+    )
 
 
 if __name__ == "__main__":

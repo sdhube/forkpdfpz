@@ -20,8 +20,12 @@ import asyncio
 import dataclasses
 
 from common import (
-    PdfManifest, load_entries, enrich_entry_data,
-    manifest_to_entry_dict, write_header, append_entry,
+    PdfManifest,
+    load_entries,
+    enrich_entry_data,
+    manifest_to_entry_dict,
+    write_header,
+    append_entry,
 )
 
 INPUT_FILE = "input.yaml"
@@ -29,8 +33,7 @@ OUTPUT_FILE = "output_parallel_async.yaml"
 CONCURRENCY = 10  # <-- controls how many entries are "in flight" at once
 
 
-async def process_one(manifest: PdfManifest, out, write_lock: asyncio.Lock,
-                       semaphore: asyncio.Semaphore) -> None:
+async def process_one(manifest: PdfManifest, out, write_lock: asyncio.Lock, semaphore: asyncio.Semaphore) -> None:
     async with semaphore:  # caps how many entries run concurrently
         try:
             enriched = await asyncio.to_thread(enrich_entry_data, manifest)
@@ -52,10 +55,7 @@ async def process_all_async(input_path: str, output_path: str, concurrency: int 
 
         # One asyncio.Task per entry — each is a "promise" that starts
         # running immediately; gather() is Promise.all().
-        tasks = [
-            asyncio.create_task(process_one(m, out, write_lock, semaphore))
-            for m in manifests
-        ]
+        tasks = [asyncio.create_task(process_one(m, out, write_lock, semaphore)) for m in manifests]
         await asyncio.gather(*tasks)
 
 

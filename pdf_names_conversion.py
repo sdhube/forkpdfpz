@@ -13,6 +13,5 @@ def path_linearized_sanitized(pdf_path: str, tmp_path: str) -> str:
         if tmp_path:
             out_path = Path(tmp_path).joinpath(name)
         else:
-            out_path = Path(name)    
-    return str(out_path)    
- 
+            out_path = Path(name)
+    return str(out_path)

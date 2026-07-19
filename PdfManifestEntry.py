@@ -33,10 +33,10 @@ class PdfManifestEntry:
     def scan_blacklisted_values(self):
         if is_value_containing_blacklisted_terms(self.title):
             self.title = ""
-        
+
         if is_value_containing_blacklisted_terms(self.author):
             self.author = ""
-        
+
     def to_yaml_dict(self) -> dict:
         """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
         return {
@@ -130,8 +130,10 @@ class BooksLib:
         py = PurePosixPath(_yaml_path)
         dy = py.parent
         db = py.name
-        return cls(yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db,
-                   books_manifest=None, tmp_path="")
+        return cls(
+            yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db, books_manifest=None, tmp_path=""
+        )
+
 
 pdf_manifest_schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",

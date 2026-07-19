@@ -1,6 +1,5 @@
-
 from dataclasses import fields
-from pathlib import Path,PurePath
+from pathlib import Path, PurePath
 
 import click
 import pikepdf
@@ -11,7 +10,7 @@ from pdf_names_conversion import path_linearized_sanitized
 from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf
-from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn 
+from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn
 
 from PdfManifestEntry import PdfManifestEntry
 
@@ -20,6 +19,7 @@ from PdfManifestEntry import PdfManifestEntry
 # public functions
 #
 # --------------------------------------------
+
 
 def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
     """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
@@ -61,16 +61,16 @@ def update_manifest_info_empty_fields(
 
 
 def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_title_for_futures=True):
-    pdf_path = path_linearized_sanitized(entry.file, tmp_path) 
+    pdf_path = path_linearized_sanitized(entry.file, tmp_path)
     if not entry.name:
         entry.name = str(PurePath(pdf_path).name)
     if res := single_pdf_action_with_path(pdf_path, entry):
         return res
-    
+
     if do_return_title_for_futures:
         return entry.file, entry.title
-    
-    
+
+
 def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=False):
     entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
@@ -80,7 +80,7 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
         return f"pdf not found {str(pdf_path)}"
     with pikepdf.open(pdf_path) as pdf:
         doc_info_legacy(pdf, entry_doc)
-        entry_doc.scan_blacklisted_values() 
+        entry_doc.scan_blacklisted_values()
         update_manifest_info_empty_fields(entry, entry_doc)
         if print_values:
             print(f"legacy: {pformat(entry)}")
@@ -95,14 +95,15 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
         if print_values:
             print(f"grep copyright {pformat(entry)}")
         if entry.isbn_normalized and not entry.title:
-            if google_book_info_by_isbn(entry.isbn_normalized,entry_google):
-                open_library_book_info_by_isbn(entry.isbn_normalized,entry_google)
- 
+            if google_book_info_by_isbn(entry.isbn_normalized, entry_google):
+                open_library_book_info_by_isbn(entry.isbn_normalized, entry_google)
+
             update_manifest_info_empty_fields(entry, entry_google)
             if print_values:
                 print(f"update_google {pformat(entry)}")
- 
+
     # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")
+
 
 # --------------------------------------------------------------------------
 # CLI
@@ -111,7 +112,12 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
 
 @click.command()
 @click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))
-@click.option("--print-values", is_flag=True, default=False, help="print values for debug",)
+@click.option(
+    "--print-values",
+    is_flag=True,
+    default=False,
+    help="print values for debug",
+)
 def main(pdf_path: str, print_values: bool) -> None:
     entry: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     single_pdf_action_with_path(pdf_path, entry, print_values=print_values)

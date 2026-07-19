@@ -13,13 +13,14 @@ ISBN_PATTERN = re.compile(r"(\bISBN)(?:-1[03])?[:\s]*((?:97[89][-\s]?)?\d(?:[-\s
 ISBN_PATTERN = re.compile(
     r"(\bISBN)(?:-1[03])?(?:\s*:\s*)?(?:\s*\([^)]*\))?\s*:?\s*"
     r"((?:97[89][-\s]?)?\d(?:[-\s]?\d){8,11}[-\s]?[\dXx]?)\s*",
-    re.IGNORECASE
+    re.IGNORECASE,
 )
 
 BY_PATTERN = re.compile(r"\bBy\s+(.*)$", re.IGNORECASE)
 # TODO   BY_PATTERN = re.compile(r"(\bBy\s+|[:\-—–]\s*)(.*$)", re.IGNORECASE)
 
 DOI_PATTERN = re.compile(r"\bdoi\.org.*")
+
 
 def normalize_isbn(isbn: str) -> str:
     """Strip hyphens/spaces and uppercase the trailing check digit ('x' -> 'X')."""
@@ -31,7 +32,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     # followed by a line containing the copyright symbol or word.
     doc = pymupdf.open(pdf_path)
     max_pages = min(max_search_pages, len(doc))
-    author = "" 
+    author = ""
     copyright_line = ""
     line_before = ""
     year = ""
@@ -39,7 +40,6 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     normalized_isbn = ""
     title = ""
     for page_num in range(max_pages):
-
         page = doc[page_num]
         page_text = page.get_text("text")
         if not page_text:
@@ -54,7 +54,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
                 author = m.group(1).strip()
             else:
                 print(f"by pattern not found {line_before}")
-                title = line_before    
+                title = line_before
             copyright_line = match.group(2).strip()
             m = YEAR_PATTERN.search(copyright_line)
             if m:
@@ -63,7 +63,6 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
             if m and not author:
                 print(f"by pattern  found in copyright line {line_before}")
                 author = m.group(1).strip()
- 
 
             m = ISBN_PATTERN.search(page_text)
             if m:
@@ -77,8 +76,8 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     entry.isbn_normalized = normalized_isbn
     if print_values:
         print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} normalized_isbn={normalized_isbn}")
-    
-    
+
+
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------
@@ -86,7 +85,12 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
 
 @click.command()
 @click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))
-@click.option("--print-values", is_flag=True, default=False, help="print values found",)
+@click.option(
+    "--print-values",
+    is_flag=True,
+    default=False,
+    help="print values found",
+)
 def main(pdf_path: str, print_values: bool) -> None:
     entry: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     grep_copyright_line_pdf(pdf_path, entry, print_values=print_values)
@@ -97,4 +101,3 @@ if __name__ == "__main__":
 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
-    
