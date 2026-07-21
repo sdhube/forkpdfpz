@@ -9,7 +9,7 @@ from pprint import pformat
 from pdf_names_conversion import path_linearized_sanitized
 from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
-from pdf_scan_info_pages import grep_copyright_line_pdf
+from pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
 from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn
 
 from PdfManifestEntry import PdfManifestEntry
@@ -72,12 +72,21 @@ def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_t
 
 
 def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=False):
+    if not Path(pdf_path).exists():
+        return f"pdf not found {str(pdf_path)}"
     entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_content: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_google: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
-    if not Path(pdf_path).exists():
-        return f"pdf not found {str(pdf_path)}"
+    entry_doi: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
+ 
+    grep_doi_line_pdf(pdf_path, entry_doi, print_values=print_values)
+    if entry_doi.isbn:
+        entry_doi.isbn_normalized = normalize_isbn(entry_doi.isbn)
+    update_manifest_info_empty_fields(entry, entry_doi)
+    if print_values:
+        print(f"doi: {pformat(entry)}")
+  
     with pikepdf.open(pdf_path) as pdf:
         doc_info_legacy(pdf, entry_doc)
         entry_doc.scan_blacklisted_values()

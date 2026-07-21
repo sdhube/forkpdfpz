@@ -2,6 +2,8 @@ import click
 import re
 import pymupdf
 from PdfManifestEntry import PdfManifestEntry
+from pdf_scan_info_google_books import doi_book_info_by_link
+
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
 YEAR_PATTERN = re.compile(r"\b20[12]\d\b")
@@ -19,7 +21,7 @@ ISBN_PATTERN = re.compile(
 BY_PATTERN = re.compile(r"\bBy\s+(.*)$", re.IGNORECASE)
 # TODO   BY_PATTERN = re.compile(r"(\bBy\s+|[:\-—–]\s*)(.*$)", re.IGNORECASE)
 
-DOI_PATTERN = re.compile(r"\bdoi\.org.*")
+DOI_PATTERN = re.compile(r"https?://doi\.org/\S+")
 
 
 def normalize_isbn(isbn: str) -> str:
@@ -76,6 +78,26 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     entry.isbn_normalized = normalized_isbn
     if print_values:
         print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} normalized_isbn={normalized_isbn}")
+
+
+def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = False, max_search_pages=5):
+    # Matches: (Any characters except newline) followed by a newline,
+    # followed by a line containing the copyright symbol or word.
+    doc = pymupdf.open(pdf_path)
+    max_pages = min(max_search_pages, len(doc))
+    for page_num in range(max_pages):
+        page = doc[page_num]
+        page_text = page.get_text("text")
+        if not page_text:
+            continue
+        match = DOI_PATTERN.search(page_text)
+        if match:
+            doi_link = match.group()
+            doi_book_info_by_link(doi_link, entry)
+    if print_values:
+        print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
+
+
 
 
 # --------------------------------------------------------------------------

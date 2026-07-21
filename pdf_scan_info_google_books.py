@@ -1,4 +1,6 @@
 import requests
+from urllib.parse import urlparse
+
 from PdfManifestEntry import PdfManifestEntry
 
 
@@ -39,3 +41,55 @@ def open_library_book_info_by_isbn(isbn, entry: PdfManifestEntry):
         entry.title = ", ".join(entry.title)
 
     entry.author = ", ".join(author["name"] for author in book.get("authors", []))
+
+
+def doi_book_info_by_link(doi_url: str, entry: PdfManifestEntry):
+    """
+    additional fields that entry dont have 
+    """
+
+    # Extract DOI from URL
+    # Example: https://doi.org/10.1007/978-3-030-28494-7
+    doi = urlparse(doi_url).path.lstrip("/")
+
+    response = requests.get(
+        f"https://api.crossref.org/works/{doi}",
+        headers={
+            "User-Agent": "doi-metadata-script/1.0 (mailto:your@email.com)"
+        },
+        timeout=5,
+    )
+    if response.status_code != 200:
+        return response.status_code
+
+    msg = response.json()["message"]
+
+    entry.title = msg.get("title", [""])[0]
+
+    # Subtitle
+    subtitle = msg.get("subtitle", [""])
+    subtitle = subtitle[0] if subtitle else ""
+
+    # Authors
+    authors = []
+    for author in msg.get("author", []):
+        given = author.get("given", "")
+        family = author.get("family", "")
+        name = f"{given} {family}".strip()
+
+        if name:
+            authors.append(name)
+    entry.author=", ".join(authors)
+    year = ""
+    for field in ("published-print", "published-online", "issued"):
+        if field in msg:
+            year = msg[field]["date-parts"][0][0]
+            break
+    entry.year = str(year)
+    isbn = msg.get("ISBN", [])
+    entry.isbn = isbn[0] if isbn else ""
+
+    publisher = msg.get("publisher", "")
+    subjects = msg.get("subject", [])
+    item_type = msg.get("type", "")
+    abstract = msg.get("abstract", "")
