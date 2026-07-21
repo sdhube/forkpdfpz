@@ -1,7 +1,7 @@
 from pathlib import Path, PurePosixPath, PurePath
 
 
-def path_linearized_sanitized(pdf_path: str, tmp_path: str) -> str:
+def path_linearized_sanitized(pdf_path: str, tmp_path: str = None) -> str:
     p = PurePosixPath(pdf_path)
     out_stem = "".join([p.stem, "-linearized-sanitized"])
     out = p.with_stem(out_stem)
