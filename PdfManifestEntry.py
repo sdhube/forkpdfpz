@@ -37,6 +37,23 @@ class PdfManifestEntry:
         if is_value_containing_blacklisted_terms(self.author):
             self.author = ""
 
+    def to_dict(self) -> dict:
+        return {
+            "valid_pdf": self.valid_pdf,
+            "input_file": self.input_file,
+            "file": self.file,
+            "title": self.title,
+            "author": self.author,
+            "size": self.size,
+            "Optimized": self.optimized,
+            "isbn": self.isbn,
+            "name": self.name,
+            "year": self.year,
+            "isbn_normalized": self.isbn_normalized,
+            "book_id": self.book_id,
+            "book_type": self.book_type,
+        }
+
     def to_yaml_dict(self) -> dict:
         """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
         return {
@@ -72,23 +89,6 @@ class PdfManifestEntry:
             book_id=d.get("book_id", ""),
             book_type=d.get("book_type", "pdf"),
         )
-
-    def to_dict(self) -> dict:
-        return {
-            "valid_pdf": self.valid_pdf,
-            "input_file": self.input_file,
-            "file": self.file,
-            "title": self.title,
-            "author": self.author,
-            "size": self.size,
-            "Optimized": self.optimized,
-            "isbn": self.isbn,
-            "name": self.name,
-            "year": self.year,
-            "isbn_normalized": self.isbn_normalized,
-            "book_id": self.book_id,
-            "book_type": self.book_type,
-        }
 
     @classmethod
     def new_empty_manifest_entry(cls) -> PdfManifestEntry:
@@ -135,69 +135,43 @@ class BooksLib:
         )
 
 
-pdf_manifest_schema = {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Book Metadata",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "properties": {
-      "valid_pdf": {
-        "type": "boolean"
-      },
-      "input_file": {
-        "type": "string"
-      },
-      "file": {
-        "type": "string"
-      },
-      "title": {
-        "type": "string"
-      },
-      "author": {
-        "type": "string"
-      },
-      "size": {
-        "type": "integer",
-        "minimum": 0
-      },
-      "Optimized": {
-        "type": "boolean"
-      },
-      "isbn": {
-        "type": "string"
-      },
-      "name": {
-        "type": "string"
-      },
-      "year": {
-        "type": "string"
-      },
-      "isbn_normalized": {
-        "type": "string"
-      },
-      "book_id": {
-        "type": "string"
-      },
-      "book_type": {
-        "type": "string"
-      }
+pdf_manifest_schema = """ {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "Book Metadata",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "valid_pdf": {"type": "boolean"},
+            "input_file": {"type": "string"},
+            "file": {"type": "string"},
+            "title": {"type": "string"},
+            "author": {"type": "string"},
+            "size": {"type": "integer", "minimum": 0},
+            "Optimized": {"type": "boolean"},
+            "isbn": {"type": "string"},
+            "name": {"type": "string"},
+            "year": {"type": "string"},
+            "isbn_normalized": {"type": "string"},
+            "book_id": {"type": "string"},
+            "book_type": {"type": "string"},
+        },
+        "required": [
+            "valid_pdf",
+            "input_file",
+            "file",
+            "title",
+            "author",
+            "size",
+            "Optimized",
+            "isbn",
+            "name",
+            "year",
+            "isbn_normalized",
+            "book_id",
+            "book_type",
+        ],
+        "additionalProperties": false,
     },
-    "required": [
-      "valid_pdf",
-      "input_file",
-      "file",
-      "title",
-      "author",
-      "size",
-      "Optimized",
-      "isbn",
-      "name",
-      "year",
-      "isbn_normalized",
-      "book_id",
-      "book_type"
-    ],
-    "additionalProperties": false
-  }
-}   
+}
+"""

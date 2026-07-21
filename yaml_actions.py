@@ -97,7 +97,8 @@ def load_books_lib(
 def copy_yaml_pdf(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
     for book in books_manifest.books:
-        copy_to_temp(books_lib, book)
+        if len(book.title)==0 and len(book.author)==0 and len(book.isbn)==0: 
+            copy_to_temp(books_lib, book)
     save_books_manifest(books_manifest, "copied.yaml")
 
 
