@@ -1,4 +1,5 @@
 from dataclasses import fields
+
 from pathlib import Path, PurePath
 
 import click
@@ -103,11 +104,19 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
         update_manifest_info_empty_fields(entry, entry_content)
         if print_values:
             print(f"grep copyright {pformat(entry)}")
-        if entry.isbn_normalized and not entry.title:
+        if entry.isbn_normalized and (not len(entry.title) or not len(entry.author)):
             if google_book_info_by_isbn(entry.isbn_normalized, entry_google):
+                print("google info failed")
                 open_library_book_info_by_isbn(entry.isbn_normalized, entry_google)
 
+            if (not entry_google.author  or not entry_google.title):
+                print(f"invalid google info {entry_google}")
             update_manifest_info_empty_fields(entry, entry_google)
+            if entry_google.title and entry.title != entry_google.title:
+                entry.title = entry_google.title
+            if entry_google.author and entry_google.author != entry.author:
+                entry.author = entry_google.author
+
             if print_values:
                 print(f"update_google {pformat(entry)}")
 
