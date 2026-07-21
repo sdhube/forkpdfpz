@@ -128,3 +128,4 @@ if __name__ == "__main__":
 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
+# /bin/python pdf_actions.py  /home/sd/tmp/1-sanitized2/Concise\ Guide\ to\ Software\ Testing\ by\ Gerard\ ORegan-y2019-linearized-sanitized.pdf    --print-values
