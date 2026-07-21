@@ -56,7 +56,8 @@ def sanitize_pdf(pdf_path: str) -> None:
     out_stem = "".join([p.stem, "-sanitized"])
     out = p.with_stem(out_stem)
     with pikepdf.open(pdf_path) as pdf:
-        scrubber.apply(pdf).save(str(out))
+        additional_removals(pdf)
+        scrubber.apply(pdf).save(str(out), object_stream_mode=pikepdf.ObjectStreamMode.generate)
 
 
 # --------------------------------------------------------------------------
