@@ -8,6 +8,7 @@ import click
 from PdfManifestEntry import PdfManifestEntry, BooksManifest, BooksLib
 from pdf_list_parallel_threads import threadpool_books_info
 from pdf_names_conversion import path_linearized_sanitized
+from pdf_list_parallel_threads import threadpool_books_sanitize 
 
 def tmp_dir() -> Path:
     flat_tmp_path = tempfile.mkdtemp()
@@ -76,6 +77,7 @@ def load_books_lib(
     update_yaml_info: bool = False,
     copy_pdfs: bool = False,
     move_no_info: bool = False,
+    sanitize_didier: bool = False,
     print_first: bool = False,
 ):
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
@@ -107,6 +109,9 @@ def load_books_lib(
         save_books_manifest(books_lib.books_manifest, "files_info.yaml")
     if move_no_info:
         move_to_no_info(books_lib)
+    if sanitize_didier:
+       threadpool_books_sanitize(books_lib) 
+            
 
 def copy_yaml_pdf(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
@@ -134,6 +139,7 @@ def move_to_no_info(books_lib: BooksLib):
 @click.option('--copy-pdfs', is_flag=True, default=False, help='copy pdf files from input_files to tmp')
 @click.option('--update-yaml-info', is_flag=True, default=False, help='copy pdf files from input_files to tmp')
 @click.option('--move-no-info', is_flag=True, default=False, help='move pdf files from tmp if no info')
+@click.option('--sanitize-didier', is_flag=True, default=False, help='sanitize and move pdf by didier finds')
 @click.option(
     "--print-first",
     "print_first",
@@ -141,7 +147,7 @@ def move_to_no_info(books_lib: BooksLib):
     default=False,
     help="Print first entry from yaml.",
 )
-def main(yaml_path: str, tmp_path: str, update_yaml_info: bool, copy_pdfs: bool, move_no_info:bool , print_first: bool) -> None:
+def main(yaml_path: str, tmp_path: str, update_yaml_info: bool, copy_pdfs: bool, move_no_info:bool , sanitize_didier:bool, print_first: bool) -> None:
     load_books_lib(
         yaml_path, tmp_path=tmp_path, update_yaml_info=update_yaml_info, copy_pdfs=copy_pdfs,
         move_no_info=move_no_info, print_first=print_first
