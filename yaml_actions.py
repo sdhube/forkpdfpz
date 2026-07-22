@@ -1,14 +1,14 @@
-from pprint import pformat
-from pathlib import Path, PurePosixPath
 import shutil
 import tempfile
-import yaml
-import click
+from pathlib import Path, PurePosixPath
+from pprint import pformat
 
-from PdfManifestEntry import PdfManifestEntry, BooksManifest, BooksLib
-from pdf_list_parallel_threads import threadpool_books_info
+import click
+import yaml
+
+from pdf_list_parallel_threads import threadpool_books_fitz_sanitize, threadpool_books_info, threadpool_books_sanitize
 from pdf_names_conversion import path_linearized_sanitized
-from pdf_list_parallel_threads import threadpool_books_sanitize
+from PdfManifestEntry import BooksLib, BooksManifest, PdfManifestEntry
 
 
 def tmp_dir() -> Path:
@@ -28,7 +28,7 @@ def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
     pdf_output_path = str(Path(books_lib.tmp_path).joinpath(pdf_name))
     entry.file = pdf_output_path
     print(f"copy {pdf_input_path} to {pdf_output_path}")
-    with open(pdf_input_path, 'rb') as src, open(pdf_output_path, 'wb') as dst:
+    with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
         shutil.copyfileobj(src, dst)
 
 
@@ -79,6 +79,7 @@ def load_books_lib(
     copy_pdfs: bool = False,
     move_no_info: bool = False,
     sanitize_didier: bool = False,
+    fitz_didier: bool = False,
     print_first: bool = False,
 ):
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
@@ -112,7 +113,8 @@ def load_books_lib(
         move_to_no_info(books_lib)
     if sanitize_didier:
         threadpool_books_sanitize(books_lib)
-
+    if fitz_didier:
+        threadpool_books_fitz_sanitize(books_lib)
 
 def copy_yaml_pdf(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
@@ -136,11 +138,12 @@ def move_to_no_info(books_lib: BooksLib):
 
 @click.command()
 @click.argument("yaml_path", type=click.Path(exists=True, dir_okay=False))
-@click.option('--tmp-path', type=click.Path(path_type=Path), help='Optional temporary path.')
-@click.option('--copy-pdfs', is_flag=True, default=False, help='copy pdf files from input_files to tmp')
-@click.option('--update-yaml-info', is_flag=True, default=False, help='copy pdf files from input_files to tmp')
-@click.option('--move-no-info', is_flag=True, default=False, help='move pdf files from tmp if no info')
-@click.option('--sanitize-didier', is_flag=True, default=False, help='sanitize and move pdf by didier finds')
+@click.option("--tmp-path", type=click.Path(path_type=Path), help="Optional temporary path.")
+@click.option("--copy-pdfs", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
+@click.option("--update-yaml-info", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
+@click.option("--move-no-info", is_flag=True, default=False, help="move pdf files from tmp if no info")
+@click.option("--sanitize-didier", is_flag=True, default=False, help="sanitize and move pdf by didier finds")
+@click.option("--fitz-didier", is_flag=True, default=False, help="fitz and move pdf by didier finds")
 @click.option(
     "--print-first",
     "print_first",
@@ -155,6 +158,7 @@ def main(
     copy_pdfs: bool,
     move_no_info: bool,
     sanitize_didier: bool,
+    fitz_didier: bool,
     print_first: bool,
 ) -> None:
     load_books_lib(
@@ -163,6 +167,8 @@ def main(
         update_yaml_info=update_yaml_info,
         copy_pdfs=copy_pdfs,
         move_no_info=move_no_info,
+        sanitize_didier=sanitize_didier,
+        fitz_didier=fitz_didier,
         print_first=print_first,
     )
 
