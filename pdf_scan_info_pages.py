@@ -98,8 +98,6 @@ def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = Fa
         print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
 
 
-
-
 # --------------------------------------------------------------------------
 # CLI
 # --------------------------------------------------------------------------

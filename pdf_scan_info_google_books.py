@@ -45,7 +45,7 @@ def open_library_book_info_by_isbn(isbn, entry: PdfManifestEntry):
 
 def doi_book_info_by_link(doi_url: str, entry: PdfManifestEntry):
     """
-    additional fields that entry dont have 
+    additional fields that entry dont have
     """
 
     # Extract DOI from URL
@@ -54,9 +54,7 @@ def doi_book_info_by_link(doi_url: str, entry: PdfManifestEntry):
 
     response = requests.get(
         f"https://api.crossref.org/works/{doi}",
-        headers={
-            "User-Agent": "doi-metadata-script/1.0 (mailto:your@email.com)"
-        },
+        headers={"User-Agent": "doi-metadata-script/1.0 (mailto:your@email.com)"},
         timeout=5,
     )
     if response.status_code != 200:
@@ -79,7 +77,7 @@ def doi_book_info_by_link(doi_url: str, entry: PdfManifestEntry):
 
         if name:
             authors.append(name)
-    entry.author=", ".join(authors)
+    entry.author = ", ".join(authors)
     year = ""
     for field in ("published-print", "published-online", "issued"):
         if field in msg:

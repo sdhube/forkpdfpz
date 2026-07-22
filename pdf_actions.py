@@ -80,14 +80,14 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
     entry_content: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_google: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_doi: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
- 
+
     grep_doi_line_pdf(pdf_path, entry_doi, print_values=print_values)
     if entry_doi.isbn:
         entry_doi.isbn_normalized = normalize_isbn(entry_doi.isbn)
     update_manifest_info_empty_fields(entry, entry_doi)
     if print_values:
         print(f"doi: {pformat(entry)}")
-  
+
     with pikepdf.open(pdf_path) as pdf:
         doc_info_legacy(pdf, entry_doc)
         entry_doc.scan_blacklisted_values()
@@ -109,7 +109,7 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
                 print("google info failed")
                 open_library_book_info_by_isbn(entry.isbn_normalized, entry_google)
 
-            if (not entry_google.author  or not entry_google.title):
+            if not entry_google.author or not entry_google.title:
                 print(f"invalid google info {entry_google}")
             update_manifest_info_empty_fields(entry, entry_google)
             if entry_google.title and entry.title != entry_google.title:

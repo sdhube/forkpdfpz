@@ -8,7 +8,8 @@ import click
 from PdfManifestEntry import PdfManifestEntry, BooksManifest, BooksLib
 from pdf_list_parallel_threads import threadpool_books_info
 from pdf_names_conversion import path_linearized_sanitized
-from pdf_list_parallel_threads import threadpool_books_sanitize 
+from pdf_list_parallel_threads import threadpool_books_sanitize
+
 
 def tmp_dir() -> Path:
     flat_tmp_path = tempfile.mkdtemp()
@@ -33,7 +34,7 @@ def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
 
 def move_temp_no_title_or_author(books_lib: BooksLib, entry: PdfManifestEntry):
     no_info_dir = "no_info"
-    pdf_path = path_linearized_sanitized(entry.file, books_lib.tmp_path)  
+    pdf_path = path_linearized_sanitized(entry.file, books_lib.tmp_path)
     file_path = Path(pdf_path)
     if not file_path.is_file():
         return
@@ -110,13 +111,13 @@ def load_books_lib(
     if move_no_info:
         move_to_no_info(books_lib)
     if sanitize_didier:
-       threadpool_books_sanitize(books_lib) 
-            
+        threadpool_books_sanitize(books_lib)
+
 
 def copy_yaml_pdf(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
     for book in books_manifest.books:
-        if len(book.title)==0 and len(book.author)==0 and len(book.isbn)==0: 
+        if len(book.title) == 0 and len(book.author) == 0 and len(book.isbn) == 0:
             copy_to_temp(books_lib, book)
     save_books_manifest(books_manifest, "copied.yaml")
 
@@ -124,8 +125,8 @@ def copy_yaml_pdf(books_lib: BooksLib) -> None:
 def move_to_no_info(books_lib: BooksLib):
     books_manifest: BooksManifest = books_lib.books_manifest
     for book in books_manifest.books:
-        if len(book.title)==0 and len(book.author)==0 and len(book.isbn)==0: 
-           move_temp_no_title_or_author(books_lib, book)
+        if len(book.title) == 0 and len(book.author) == 0 and len(book.isbn) == 0:
+            move_temp_no_title_or_author(books_lib, book)
 
 
 # --------------------------------------------------------------------------
@@ -147,10 +148,22 @@ def move_to_no_info(books_lib: BooksLib):
     default=False,
     help="Print first entry from yaml.",
 )
-def main(yaml_path: str, tmp_path: str, update_yaml_info: bool, copy_pdfs: bool, move_no_info:bool , sanitize_didier:bool, print_first: bool) -> None:
+def main(
+    yaml_path: str,
+    tmp_path: str,
+    update_yaml_info: bool,
+    copy_pdfs: bool,
+    move_no_info: bool,
+    sanitize_didier: bool,
+    print_first: bool,
+) -> None:
     load_books_lib(
-        yaml_path, tmp_path=tmp_path, update_yaml_info=update_yaml_info, copy_pdfs=copy_pdfs,
-        move_no_info=move_no_info, print_first=print_first
+        yaml_path,
+        tmp_path=tmp_path,
+        update_yaml_info=update_yaml_info,
+        copy_pdfs=copy_pdfs,
+        move_no_info=move_no_info,
+        print_first=print_first,
     )
 
 
