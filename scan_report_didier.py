@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import re
+import shutil
 import subprocess
 import sys
-import shutil
 from pathlib import Path
 
 KEYWORDS = [
@@ -62,8 +62,8 @@ def check_dider_move(pdf_file):
             print(f"{pdf_file}: SUSPICIOUS")
             for key, value in bad.items():
                 print(f"  {key}: {value}")
-            if len(bad.keys) == 1:
-                dest = bad.keys[0][1:]
+            if len(bad) == 1:
+                dest = list(bad)[0][1:]
                 file_path: Path = Path(pdf_file)
                 dest_dir = file_path.parent / dest
                 dest_dir.mkdir(exist_ok=True)

@@ -2,10 +2,12 @@
 # https://github.com/pikepdf/pikepdf/blob/main/docs/tutorial.md
 # https://pikepdf.readthedocs.io/en/stable/topics/sanitize.html
 # https://pikepdf.readthedocs.io/en/stable/topics/qpdf_json.html
+from pathlib import PurePosixPath
+
 import click
 import pikepdf
-from pathlib import Path, PurePosixPath
 
+from sanitize_second_pass import ultra_sanitize_pdf
 from scan_report_didier import check_dider_move
 
 
@@ -22,7 +24,7 @@ def additional_removals(pdf):
 
     if "/OpenAction" in pdf.Root:
         del pdf.Root.OpenAction
-
+    ultra_sanitize_pdf(pdf)
 
 def remove_unreferenced(pdf, out_path):
     """
@@ -65,6 +67,7 @@ def sanitize_pdf(pdf_path: str) -> None:
     p = PurePosixPath(pdf_path)
     out_stem = "".join([p.stem, "-sanitized"])
     out = p.with_stem(out_stem)
+    print(f"sanitizing {pdf_path}")
     with pikepdf.open(pdf_path) as pdf:
         additional_removals(pdf)
         scrubber.apply(pdf)
