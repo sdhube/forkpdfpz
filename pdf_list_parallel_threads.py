@@ -35,3 +35,6 @@ def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
                 print(f"finished thread{future.result()}")
             except Exception as exc:
                 print(f"exception thread thread {exc}")
+
+
+def threadpool_books_info(  

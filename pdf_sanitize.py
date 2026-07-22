@@ -6,6 +6,7 @@ import click
 import pikepdf
 from pathlib import Path, PurePosixPath
 
+from scan_report_didier import check_dider_move
 
 def additional_removals(pdf):
     """
@@ -33,6 +34,14 @@ def remove_unreferenced(pdf, out_path):
     pdf.close()
     print(f"saved: {out_path}")
 
+def remove_unreferenced_no_save(pdf):
+    """
+    TODO add call to remove_unreferenced(pdf)
+    """
+
+    pdf.remove_unreferenced_resources()
+
+
 
 # --------------------------------------------------------------------------
 # Public function
@@ -57,8 +66,10 @@ def sanitize_pdf(pdf_path: str) -> None:
     out = p.with_stem(out_stem)
     with pikepdf.open(pdf_path) as pdf:
         additional_removals(pdf)
-        scrubber.apply(pdf).save(str(out), object_stream_mode=pikepdf.ObjectStreamMode.generate)
-
+        scrubber.apply(pdf)
+        remove_unreferenced_no_save(pdf)
+        pdf.save(str(out), object_stream_mode=pikepdf.ObjectStreamMode.generate)
+    check_dider_move(str(out)) 
 
 # --------------------------------------------------------------------------
 # CLI
