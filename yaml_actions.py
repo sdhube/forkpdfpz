@@ -116,11 +116,19 @@ def load_books_lib(
     if fitz_didier:
         threadpool_books_fitz_sanitize(books_lib)
 
-def copy_yaml_pdf(books_lib: BooksLib) -> None:
+
+def copy_yaml_pdf_no_info(books_lib: BooksLib) -> None:
     books_manifest: BooksManifest = books_lib.books_manifest
     for book in books_manifest.books:
         if len(book.title) == 0 and len(book.author) == 0 and len(book.isbn) == 0:
             copy_to_temp(books_lib, book)
+    save_books_manifest(books_manifest, "copied.yaml")
+
+
+def copy_yaml_pdf(books_lib: BooksLib) -> None:
+    books_manifest: BooksManifest = books_lib.books_manifest
+    for book in books_manifest.books:
+        copy_to_temp(books_lib, book)
     save_books_manifest(books_manifest, "copied.yaml")
 
 

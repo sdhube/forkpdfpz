@@ -47,15 +47,14 @@ def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKER
         dir_path = books_lib.tmp_path
         pdf_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith(".pdf")]
 
-        future_to_manifest = {
-            executor.submit(sanitize_pdf, m): m for m in pdf_files
-        }
+        future_to_manifest = {executor.submit(sanitize_pdf, m): m for m in pdf_files}
 
         for future in concurrent.futures.as_completed(future_to_manifest):
             try:
                 print(f"finished thread{future.result()}")
             except Exception as exc:
                 print(f"exception thread thread {exc}")
+
 
 def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """ """
@@ -65,9 +64,7 @@ def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_W
         dir_path = books_lib.tmp_path
         pdf_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith(".pdf")]
         print(f"pdf_files={pdf_files}")
-        future_to_manifest = {
-            executor.submit(sanitize_fitz, m): m for m in pdf_files
-        }
+        future_to_manifest = {executor.submit(sanitize_fitz, m): m for m in pdf_files}
 
         for future in concurrent.futures.as_completed(future_to_manifest):
             try:

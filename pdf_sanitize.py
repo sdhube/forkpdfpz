@@ -2,13 +2,14 @@
 # https://github.com/pikepdf/pikepdf/blob/main/docs/tutorial.md
 # https://pikepdf.readthedocs.io/en/stable/topics/sanitize.html
 # https://pikepdf.readthedocs.io/en/stable/topics/qpdf_json.html
-from pathlib import PurePosixPath
+import subprocess
+from pathlib import Path, PurePosixPath
 
 import click
 import pikepdf
 
+from fitz_pages import sanitize_fitz
 from sanitize_second_pass import ultra_sanitize_pdf
-from scan_report_didier import check_dider_move
 
 
 def additional_removals(pdf):
@@ -25,6 +26,7 @@ def additional_removals(pdf):
     if "/OpenAction" in pdf.Root:
         del pdf.Root.OpenAction
     ultra_sanitize_pdf(pdf)
+
 
 def remove_unreferenced(pdf, out_path):
     """
@@ -73,7 +75,15 @@ def sanitize_pdf(pdf_path: str) -> None:
         scrubber.apply(pdf)
         remove_unreferenced_no_save(pdf)
         pdf.save(str(out), object_stream_mode=pikepdf.ObjectStreamMode.generate)
-    check_dider_move(str(out))
+        if Path(out).is_file():
+            result = subprocess.run(["/home/sd/.local/bin/sdpdf-scan.sh", str(out)], capture_output=True, text=True)
+            if result.stdout:
+                print(f"stdout: {result.stdout.strip()}")
+            if result.returncode:
+                print("sanitize_pike_pdf failed")
+                sanitize_fitz(str(out))
+
+    # check_dider_move(str(out))
 
 
 # --------------------------------------------------------------------------

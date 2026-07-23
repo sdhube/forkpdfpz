@@ -1,8 +1,7 @@
+import subprocess
 from pathlib import Path, PurePosixPath
 
 import fitz  # PyMuPDF
-
-from check_fitz_output import scan_fitz_sanitized
 
 
 def sanitize_fitz(pdf_path):
@@ -12,7 +11,6 @@ def sanitize_fitz(pdf_path):
     out_stem = "".join([p.stem, "-fitz"])
     out_path = p.with_stem(out_stem)
     print(f"out_path={out_path}")
-    dst = fitz.open()
 
     # Remove all annotations from every page — annotations aren't part
     # of the original content and are a common vector for /JS, /AA, /A actions
@@ -21,25 +19,31 @@ def sanitize_fitz(pdf_path):
         for annot in annots:
             pg.delete_annot(annot)
 
-    # Strip document-level /AA and /OpenAction on the catalog
-    catalog_xref = src.pdf_catalog()
-    for key in ("AA", "OpenAction"):
-        if src.xref_get_key(catalog_xref, key)[0] != "null":
-            src.xref_set_key(catalog_xref, key, "null")
-
     # Strip /Names/JavaScript name tree
+    catalog_xref = src.pdf_catalog()
     names_type, names_val = src.xref_get_key(catalog_xref, "Names")
     if names_type == "xref":
         names_xref = int(names_val.split()[0])
         if src.xref_get_key(names_xref, "JavaScript")[0] != "null":
             src.xref_set_key(names_xref, "JavaScript", "null")
 
-    # pdf_bytes = src.convert_to_pdf()
-    # dst.insert_pdf(fitz.open("pdf", pdf_bytes))
-    src.save(str(out_path), garbage=4, clean=True,deflate=True)
-    if Path(out_path).is_file():
-        scan_fitz_sanitized(str(out_path))
+    src.save(str(out_path), garbage=4, clean=True, deflate=True)
 
+    if Path(out_path).is_file():
+        result = subprocess.run(["/home/sd/.local/bin/sdpdf-scan.sh", str(out_path)], capture_output=True, text=True)
+        if result.stdout:
+            print(f"stdout: {result.stdout.strip()}")
+        if result.returncode:
+            print("sanitize_fitz failed")
+        # scan_fitz_sanitized(str(out_path))
+
+
+def fitz_remove_aa_open_action_from_catalog(src):
+    # Strip document-level /AA and /OpenAction on the catalog
+    catalog_xref = src.pdf_catalog()
+    for key in ("AA", "OpenAction"):
+        if src.xref_get_key(catalog_xref, key)[0] != "null":
+            src.xref_set_key(catalog_xref, key, "null")
 
 
 def sanitize_fitz_not_working(pdf_path):
@@ -55,7 +59,7 @@ def sanitize_fitz_not_working(pdf_path):
         for key in ("AA", "JS"):
             if src.xref_get_key(pg.xref, key)[0] != "null":
                 src.xref_set_key(pg.xref, key, "null")
-# Strip catalog-level /AA (document-level open/close/print actions)
+    # Strip catalog-level /AA (document-level open/close/print actions)
     catalog_xref = src.pdf_catalog()
     if src.xref_get_key(catalog_xref, "AA")[0] != "null":
         src.xref_set_key(catalog_xref, "AA", "null")
@@ -72,7 +76,7 @@ def sanitize_fitz_not_working(pdf_path):
     dst.insert_pdf(fitz.open("pdf", pdf_bytes))
 
     # not working take /AA too
-    #for page in src:
+    # for page in src:
     #    rect = page.rect
     #    new_page = dst.new_page(width=rect.width, height=rect.height)
     #    new_page.show_pdf_page(
@@ -80,7 +84,6 @@ def sanitize_fitz_not_working(pdf_path):
     #        src,
     #        page.number
     #    )
-
 
     print(f"saving {out_path}")
     dst.save(str(out_path))

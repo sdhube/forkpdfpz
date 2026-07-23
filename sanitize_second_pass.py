@@ -27,6 +27,7 @@ def deep_purge_aa(obj) -> int:
 
     return count
 
+
 def ultra_sanitize_pdf(pdf) -> None:
     """Scans all objects globally and cleanses nested dictionary/array layers."""
 
@@ -38,7 +39,7 @@ def ultra_sanitize_pdf(pdf) -> None:
             obj = pdf.get_object(obj_idx)
             total_purged += deep_purge_aa(obj)
         except Exception:
-            continue # Skip encrypted or broken raw bytes streams
+            continue  # Skip encrypted or broken raw bytes streams
 
     if total_purged > 0:
         # Drop unlinked structural fragments
@@ -47,4 +48,3 @@ def ultra_sanitize_pdf(pdf) -> None:
         print(f"Success! Recursively purged {total_purged} hidden '/AA' references.")
     else:
         print("No '/AA' references detected anywhere in the file structure.")
-
