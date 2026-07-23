@@ -9,10 +9,9 @@ def make_token_pattern(token):
     escaped = re.escape(token)
     return re.compile(escaped + r"(?=[\s/<>\[\]()]|$)")
 
-TOKEN_PATTERNS = {
-    t: make_token_pattern(t)
-    for t in ("/JS", "/JavaScript", "/AA", "/OpenAction", "/XFA")
-}
+
+TOKEN_PATTERNS = {t: make_token_pattern(t) for t in ("/JS", "/JavaScript", "/AA", "/OpenAction", "/XFA")}
+
 
 def find_tokens(text):
     found = []
@@ -21,15 +20,16 @@ def find_tokens(text):
             found.append(token)
     return found
 
+
 def build_xref_page_map(doc):
     """Map each xref number to the page number(s) (1-indexed) it belongs to."""
     xref_to_pages = {}
     for pno in range(doc.page_count):
         pg = doc[pno]
         related = {pg.xref}
-        for c in pg.get_contents():       # content stream xref(s)
+        for c in pg.get_contents():  # content stream xref(s)
             related.add(c)
-        for annot in pg.annots():          # annotation object xrefs
+        for annot in pg.annots():  # annotation object xrefs
             related.add(annot.xref)
         for xref in related:
             xref_to_pages.setdefault(xref, set()).add(pno + 1)

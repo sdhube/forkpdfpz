@@ -46,5 +46,3 @@ def ultra_sanitize_pdf(pdf) -> None:
         pdf.remove_unreferenced_resources()
         # Rewrite file entirely to break incremental logs
         print(f"Success! Recursively purged {total_purged} hidden '/AA' references.")
-    else:
-        print("No '/AA' references detected anywhere in the file structure.")
