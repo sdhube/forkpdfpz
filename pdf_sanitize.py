@@ -13,6 +13,7 @@ import fitz
 import pikepdf
 
 from fitz_pages import sanitize_fitz
+from pdf_names_conversion import PdfPath
 from sanitize_second_pass import ultra_sanitize_pdf
 
 
@@ -185,22 +186,20 @@ def sanitize_pdf(pdf_path: str) -> None:
     #  normalize_pdf_and_check_warnings(pdf_path)   # for  slatkin pdf
     pdf_stream_complete_rewrite(pdf_path)
     remove_annots_rewrite(pdf_path)
-    p = PurePosixPath(pdf_path)
-    out_stem = "".join([p.stem, "-sanitized"])
-    out = p.with_stem(out_stem)
+    pc: PdfPath = PdfPath.from_pdf_path(pdf_path)
     print(f"sanitizing {pdf_path}")
     with pikepdf.open(pdf_path) as pdf:
         additional_removals(pdf)
         scrubber.apply(pdf)
         remove_unreferenced_no_save(pdf)
-        pdf.save(str(out), object_stream_mode=pikepdf.ObjectStreamMode.generate)
-        if Path(out).is_file():
-            result = subprocess.run(["/home/sd/.local/bin/sdpdf-scan.sh", str(out)], capture_output=True, text=True)
+        pdf.save(pc.path_sanitized_tmp, object_stream_mode=pikepdf.ObjectStreamMode.generate)
+        if Path(pc.path_sanitized_tmp).is_file():
+            result = subprocess.run(["/home/sd/.local/bin/sdpdf-scan.sh", pc.path_sanitized_tmp], capture_output=True, text=True)
             if result.stdout:
                 print(f"stdout: {result.stdout.strip()}")
             if result.returncode:
                 print("sanitize_pike_pdf failed")
-                sanitize_fitz(str(out))
+                sanitize_fitz(pc.path_sanitized_tmp)
 
     # check_dider_move(str(out))
 

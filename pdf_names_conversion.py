@@ -1,4 +1,6 @@
-from pathlib import Path, PurePosixPath, PurePath
+from dataclasses import dataclass
+from pathlib import Path, PurePath, PurePosixPath
+from typing import ClassVar
 
 
 def path_linearized_sanitized(pdf_path: str, tmp_path: str = None) -> str:
@@ -17,13 +19,17 @@ def path_linearized_sanitized(pdf_path: str, tmp_path: str = None) -> str:
     return str(out_path)
 
 
-from dataclasses import dataclass
-from pathlib import Path
-
-
 @dataclass(slots=True)
 class PdfPath:
+    DIR_TMPS: ClassVar[Path] = Path("/tmp/sanitized")
+    DIR_TMPM: ClassVar[Path] = Path("/tmp/metadata")
     pdf_path: Path | str
+
+    @classmethod
+    def from_pdf_path(cls, pdf_path: Path | str) -> PdfPath:
+        cls.DIR_TMPS.mkdir(parents=True, exist_ok=True)
+        cls.DIR_TMPM.mkdir(parents=True, exist_ok=True)
+        return cls(pdf_path)
 
     @property
     def path(self) -> Path:
@@ -39,7 +45,7 @@ class PdfPath:
 
     @property
     def dir_tmp(self) -> Path:
-        return Path("/tmp/sanitized")
+        return self.DIR_TMPS
 
     @property
     def dir_sanitized(self) -> Path:
@@ -47,7 +53,7 @@ class PdfPath:
 
     @property
     def path_sanitized_tmp(self) -> Path:
-        return self.dir_tmp / self.name
+        return self.DIR_TMPS / self.name
 
     @property
     def path_sanitized(self) -> Path:
