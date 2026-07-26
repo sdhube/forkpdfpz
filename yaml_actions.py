@@ -188,3 +188,4 @@ if __name__ == "__main__":
 # /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml  --copy-pdfs
 # /bin/python yaml_actions.py copied.yml --tmp-path=/tmp/tmpijmg7hk2 --update-yaml-info
 # /bin/python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/1-sanitized2/ --move-no-info
+# python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-didier"
