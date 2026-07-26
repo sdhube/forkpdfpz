@@ -1,0 +1,20 @@
+[project]
+name = "pdfpz"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "certifi>=2026.7.22",
+    "charset-normalizer>=3.4.9",
+    "click>=8.4.2",
+    "idna>=3.18",
+    "lxml>=6.1.1",
+    "packaging>=26.2",
+    "pikepdf>=10.10.0",
+    "pillow>=12.3.0",
+    "pymupdf>=1.28.0",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    "urllib3>=2.7.0",
+]
