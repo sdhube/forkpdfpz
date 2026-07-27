@@ -4,7 +4,7 @@
 # https://pikepdf.readthedocs.io/en/stable/topics/qpdf_json.html
 # https://pikepdf.readthedocs.io/en/latest/api/main.html#pikepdf.Pdf.save
 
-import shutil
+
 import subprocess
 from pathlib import Path, PurePosixPath
 
@@ -13,6 +13,7 @@ import fitz
 import pikepdf
 
 from fitz_pages import sanitize_fitz
+from pdf_actions_file import save_tmp_mv_on_source
 from pdf_names_conversion import PdfPath
 from sanitize_second_pass import ultra_sanitize_pdf
 
@@ -53,12 +54,6 @@ def remove_unreferenced_no_save(pdf):
     pdf.remove_unreferenced_resources()
 
 
-def save_tmp_mv_on_source(src: pikepdf, pdf_path: str, **kwargs):
-    pname: PurePosixPath = PurePosixPath(pdf_path).name
-    tmpfile: Path = Path("/tmp/").joinpath(pname)
-    print(f"saving to {tmpfile}")
-    src.save(str(tmpfile), **kwargs)
-    shutil.move(str(tmpfile), str(pdf_path))
 
 
 def remove_annots_rewrite_fitz_misses_annots(pdf_path):

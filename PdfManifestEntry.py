@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
-from typing import Optional, List
+from typing import List, Optional
 
 from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
 
@@ -109,6 +109,8 @@ class PdfManifestEntry:
             book_type="pdf",
         )
 
+    def has_no_metadata_info(self):
+        return len(self.title) == 0 and len(self.author) == 0 and len(self.isbn) == 0
 
 @dataclass
 class BooksManifest:

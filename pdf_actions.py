@@ -1,20 +1,17 @@
 from dataclasses import fields
-
-from pathlib import Path, PurePath
+from pathlib import Path
+from pprint import pformat
 
 import click
 import pikepdf
 import yaml
 
-from pprint import pformat
-from pdf_names_conversion import path_linearized_sanitized
-from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
+from logger import logger
+from pdf_names_conversion import PdfPath
+from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
-from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn
-
 from PdfManifestEntry import PdfManifestEntry
-
 
 # --------------------------------------------
 # public functions
@@ -62,10 +59,8 @@ def update_manifest_info_empty_fields(
 
 
 def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_title_for_futures=True):
-    pdf_path = path_linearized_sanitized(entry.file, tmp_path)
-    if not entry.name:
-        entry.name = str(PurePath(pdf_path).name)
-    if res := single_pdf_action_with_path(pdf_path, entry):
+    p: PdfPath = PdfPath(entry.name)
+    if res := single_pdf_action_with_path(p.path_sanitized_tmp, entry):
         return res
 
     if do_return_title_for_futures:
@@ -74,6 +69,7 @@ def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_t
 
 def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=False):
     if not Path(pdf_path).exists():
+        logger.info(f"{pdf_path} not exist")
         return f"pdf not found {str(pdf_path)}"
     entry_doc: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
     entry_xmp: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
