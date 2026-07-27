@@ -1,5 +1,4 @@
-import fitz
-from lxml import etree
+import pikepdf
 
 from logger import logger
 from pdf_actions_file import save_tmp_mv_on_source
@@ -7,144 +6,48 @@ from pdf_names_conversion import PdfPath
 
 
 def del_info(p: PdfPath):
-    with fitz.open(p.path_sanitized_tmp) as doc:
+    with pikepdf.open(p.path_sanitized_tmp) as doc:
         # Remove legacy Document Information dictionary
-        doc.set_metadata({})
+        # NOTE: newer pikepdf requires /Info to be an indirect object, so a
+        # bare pikepdf.Dictionary() can no longer be assigned directly.
+        doc.docinfo = doc.make_indirect(pikepdf.Dictionary())
 
         # Remove XMP metadata stream
-        doc.del_xml_metadata()
+        # NOTE: pikepdf.Pdf no longer exposes `.catalog`; use `.Root` instead.
+        if "/Metadata" in doc.Root:
+            del doc.Root.Metadata
 
-        # Save with garbage collection to remove unreferenced objects
+        # Save with compression to remove unreferenced objects
         logger.info(f"saving pdf no info {p.path_sanitized_info_tmp}")
         doc.save(
             p.path_sanitized_info_tmp,
-            garbage=4,
-            clean=True,
+            compress_streams=True,
+            object_stream_mode=pikepdf.ObjectStreamMode.generate,
         )
 
 
-NS = {
-    "x": "adobe:ns:meta/",
-    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-    "dc": "http://purl.org/dc/elements/1.1/",
-}
-
-# Mapping of PdfManifestEntry fields to PDF metadata keys
-# Fields that support string values in both legacy and XMP formats
+# Mapping of PdfManifestEntry fields to legacy Document Information Dictionary
+# keys. NOTE: isbn->/Keywords and year->/CreationDate are a repurposing of
+# those legacy slots for this application's own use, not the standard
+# PDF/XMP meaning of "Keywords" or "CreationDate" — so they are written
+# straight to docinfo rather than through pikepdf's XMP<->docinfo autosync
+# (which pairs /Keywords with pdf:Keywords and /CreationDate with
+# xmp:CreateDate, not with dc:identifier/dc:date).
 MANIFEST_TO_PDF_FIELDS = {
-    "title": "title",
-    "author": "author",
-    "isbn": "keywords",
-    "year": "creationDate",
+    "title": "/Title",
+    "author": "/Author",
+    "isbn": "/Keywords",
+    "year": "/CreationDate",
 }
 
-
-def update_xmp(xmp, metadata_dict):
-    """Update XMP metadata with multiple fields from manifest.
-
-    Args:
-        xmp: XMP string to update
-        metadata_dict: Dictionary of field_name -> value pairs to set
-    """
-    root = etree.fromstring(xmp.encode("utf-8"))
-
-    # Find rdf:Description
-    desc = root.find(".//rdf:Description", NS)
-    if desc is None:
-        return xmp
-
-    # Update title (Alt structure)
-    if "title" in metadata_dict and metadata_dict["title"]:
-        title_node = desc.find("dc:title", NS)
-        if title_node is None:
-            title_node = etree.SubElement(desc, "{%s}title" % NS["dc"])
-            alt = etree.SubElement(title_node, "{%s}Alt" % NS["rdf"])
-            li = etree.SubElement(alt, "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}li")
-            li.set("{http://www.w3.org/XML/1998/namespace}lang", "x-default")
-        else:
-            li = title_node.find(".//rdf:li", NS)
-        li.text = metadata_dict["title"]
-
-    # Update author/creator (Seq structure)
-    if "author" in metadata_dict and metadata_dict["author"]:
-        creator = desc.find("dc:creator", NS)
-        if creator is None:
-            creator = etree.SubElement(desc, "{%s}creator" % NS["dc"])
-            seq = etree.SubElement(creator, "{%s}Seq" % NS["rdf"])
-            li = etree.SubElement(seq, "{%s}li" % NS["rdf"])
-        else:
-            li = creator.find(".//rdf:li", NS)
-        li.text = metadata_dict["author"]
-
-    # Update ISBN (simple string field)
-    if "isbn" in metadata_dict and metadata_dict["isbn"]:
-        isbn_node = desc.find("dc:identifier", NS)
-        if isbn_node is None:
-            isbn_node = etree.SubElement(desc, "{%s}identifier" % NS["dc"])
-        isbn_node.text = metadata_dict["isbn"]
-
-    # Update year/date (simple string field)
-    if "year" in metadata_dict and metadata_dict["year"]:
-        date_node = desc.find("dc:date", NS)
-        if date_node is None:
-            date_node = etree.SubElement(desc, "{%s}date" % NS["dc"])
-        date_node.text = metadata_dict["year"]
-
-    return etree.tostring(root, encoding="utf-8", xml_declaration=False).decode("utf-8")
-
-
-def create_xmp(metadata_dict):
-    """Create new XMP metadata with fields from manifest.
-
-    Args:
-        metadata_dict: Dictionary of field_name -> value pairs
-    """
-    title = metadata_dict.get("title", "")
-    author = metadata_dict.get("author", "")
-    isbn = metadata_dict.get("isbn", "")
-    year = metadata_dict.get("year", "")
-    name = metadata_dict.get("name", "")
-
-    xmp = """<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
-<x:xmpmeta xmlns:x="adobe:ns:meta/">
-<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-<rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/">"""
-
-    if title:
-        xmp += f"""
-<dc:title>
-<rdf:Alt>
-<rdf:li xml:lang="x-default">{title}</rdf:li>
-</rdf:Alt>
-</dc:title>"""
-
-    if author:
-        xmp += f"""
-<dc:creator>
-<rdf:Seq>
-<rdf:li>{author}</rdf:li>
-</rdf:Seq>
-</dc:creator>"""
-
-    if isbn:
-        xmp += f"""
-<dc:identifier>{isbn}</dc:identifier>"""
-
-    if year:
-        xmp += f"""
-<dc:date>{year}</dc:date>"""
-
-    if name:
-        xmp += f"""
-<dc:coverage>{name}</dc:coverage>"""
-
-    xmp += """
-</rdf:Description>
-</rdf:RDF>
-</x:xmpmeta>
-<?xpacket end="w"?>"""
-
-    return xmp
+# Mapping of PdfManifestEntry fields to XMP dc: fields
+MANIFEST_TO_XMP_FIELDS = {
+    "title": "dc:title",
+    "author": "dc:creator",
+    "isbn": "dc:identifier",
+    "year": "dc:date",
+    "name": "dc:coverage",
+}
 
 
 # ----------------------------------------------------------------------------
@@ -159,7 +62,7 @@ def pdf_update_metadata(p: PdfPath, ext_meta):
         p: PdfPath object with file paths
         ext_meta: PdfManifestEntry object with metadata to apply
     """
-    with fitz.open(p.path_sanitized_info_tmp) as doc:
+    with pikepdf.open(p.path_sanitized_info_tmp) as doc:
         # Build metadata dictionary from manifest fields
         metadata_dict = {}
         for field_name in ["title", "author", "isbn", "year", "name"]:
@@ -168,17 +71,36 @@ def pdf_update_metadata(p: PdfPath, ext_meta):
                 metadata_dict[field_name] = value
 
         # Update legacy Document Information Dictionary with all matching fields
-        meta = doc.metadata
-        for k in MANIFEST_TO_PDF_FIELDS:
-            meta[MANIFEST_TO_PDF_FIELDS[k]] = metadata_dict.get(k, "")
-        doc.set_metadata(meta)
+        # (accessing doc.docinfo auto-creates a proper indirect empty dict
+        # if one doesn't already exist, so no make_indirect() needed here)
+        for field_name, pdf_key in MANIFEST_TO_PDF_FIELDS.items():
+            if field_name in metadata_dict:
+                doc.docinfo[pdf_key] = metadata_dict[field_name]
+            else:
+                doc.docinfo[pdf_key] = ""
 
-        # Update XMP metadata
-        xmp = doc.get_xml_metadata()
+        # Update XMP metadata via pikepdf's native dict-like interface.
+        # open_metadata() returns a PdfMetadata mapping (there is no
+        # update_from_string()/whole-document XMP replace in current
+        # pikepdf). update_docinfo=False keeps this block from re-touching
+        # docinfo, since we already set the (repurposed) legacy fields above
+        # and don't want pikepdf's built-in autosync pairing to overwrite
+        # them with its own standard mapping.
+        with doc.open_metadata(update_docinfo=False) as meta:
+            for field_name, xmp_key in MANIFEST_TO_XMP_FIELDS.items():
+                value = metadata_dict.get(field_name)
+                if value:
+                    if field_name == "author":
+                        meta[xmp_key] = [value]  # dc:creator is an rdf:Seq
+                    else:
+                        meta[xmp_key] = value
+                elif xmp_key in meta:
+                    del meta[xmp_key]
 
-        if xmp:
-            doc.set_xml_metadata(update_xmp(xmp, metadata_dict))
-        else:
-            doc.set_xml_metadata(create_xmp(metadata_dict))
         logger.info(f"saving pdf clean updated info {p.path_sanitized_info_tmp}")
-        save_tmp_mv_on_source(doc, p.path_sanitized_info_tmp, garbage=4, clean=True)
+        save_tmp_mv_on_source(
+            doc,
+            p.path_sanitized_info_tmp,
+            compress_streams=True,
+            object_stream_mode=pikepdf.ObjectStreamMode.generate,
+        )
