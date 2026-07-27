@@ -112,6 +112,7 @@ class PdfManifestEntry:
     def has_no_metadata_info(self):
         return len(self.title) == 0 and len(self.author) == 0 and len(self.isbn) == 0
 
+
 @dataclass
 class BooksManifest:
     input_path: str

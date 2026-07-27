@@ -1,28 +1,14 @@
 from dataclasses import dataclass
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path, PurePosixPath
 from typing import ClassVar
-
-
-def path_linearized_sanitized(pdf_path: str, tmp_path: str = None) -> str:
-    p = PurePosixPath(pdf_path)
-    out_stem = "".join([p.stem, "-linearized-sanitized"])
-    out = p.with_stem(out_stem)
-    out_path_pure = PurePath(str(out))
-
-    name = out_path_pure.name
-    out_path = Path(str(out))
-    if not out_path.is_file():
-        if tmp_path:
-            out_path = Path(tmp_path).joinpath(name)
-        else:
-            out_path = Path(name)
-    return str(out_path)
 
 
 @dataclass(slots=True)
 class PdfPath:
-    DIR_TMPS: ClassVar[Path] = Path("/tmp/sanitized")
-    DIR_TMPM: ClassVar[Path] = Path("/tmp/metadata")
+    DIR_TMPS: ClassVar[Path] = Path("/tmp/tmp_meta/sanitized")
+    DIR_TMPM: ClassVar[Path] = Path("/tmp/tmp_meta/metadata")
+    DIR_TMPN: ClassVar[Path] = Path("/tmp/tmp_meta/no_info")
+    DIR_TMPR: ClassVar[Path] = Path("/tmp/tmp_meta/renamed")
     pdf_path: Path | str
 
     @classmethod
@@ -31,7 +17,7 @@ class PdfPath:
         cls.DIR_TMPM.mkdir(parents=True, exist_ok=True)
         p = PurePosixPath(pdf_path)
         name = p.name
-        return cls(name) 
+        return cls(name)
 
     @property
     def path(self) -> Path:
@@ -50,6 +36,10 @@ class PdfPath:
         return self.DIR_TMPS
 
     @property
+    def dir_no_info(self) -> Path:
+        return self.DIR_TMPN
+
+    @property
     def dir_sanitized(self) -> Path:
         return self.path_base / "sanitized"
 
@@ -59,6 +49,14 @@ class PdfPath:
 
     @property
     def path_sanitized_info_tmp(self) -> Path:
+        return self.DIR_TMPM / self.name
+
+    @property
+    def path_sanitized_no_info(self) -> Path:
+        return self.DIR_TMPM / self.name
+
+    @property
+    def path_sanitized_renamed(self) -> Path:
         return self.DIR_TMPM / self.name
 
     @property

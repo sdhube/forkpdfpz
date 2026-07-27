@@ -54,8 +54,6 @@ def remove_unreferenced_no_save(pdf):
     pdf.remove_unreferenced_resources()
 
 
-
-
 def remove_annots_rewrite_fitz_misses_annots(pdf_path):
     print("entring remove_annots_rewrite")
     print(f"pdf_path={pdf_path}")
@@ -189,7 +187,9 @@ def sanitize_pdf(pdf_path: str) -> None:
         remove_unreferenced_no_save(pdf)
         pdf.save(pc.path_sanitized_tmp, object_stream_mode=pikepdf.ObjectStreamMode.generate)
         if Path(pc.path_sanitized_tmp).is_file():
-            result = subprocess.run(["/home/sd/.local/bin/sdpdf-scan.sh", pc.path_sanitized_tmp], capture_output=True, text=True)
+            result = subprocess.run(
+                ["/home/sd/.local/bin/sdpdf-scan.sh", pc.path_sanitized_tmp], capture_output=True, text=True
+            )
             if result.stdout:
                 print(f"stdout: {result.stdout.strip()}")
             if result.returncode:

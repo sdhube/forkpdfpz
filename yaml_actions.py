@@ -13,7 +13,7 @@ from pdf_list_parallel_threads import (
     threadpool_books_sanitize,
     threadpool_embed_info,
 )
-from pdf_names_conversion import path_linearized_sanitized
+from pdf_names_conversion import PdfPath
 from PdfManifestEntry import BooksLib, BooksManifest, PdfManifestEntry
 
 
@@ -39,15 +39,13 @@ def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
 
 
 def move_temp_no_title_or_author(books_lib: BooksLib, entry: PdfManifestEntry):
-    no_info_dir = "no_info"
-    pdf_path = path_linearized_sanitized(entry.file, books_lib.tmp_path)
+    p: PdfPath = PdfPath(PdfManifestEntry.file)
+    pdf_path = p.path_sanitized_tmp
     file_path = Path(pdf_path)
     if not file_path.is_file():
         return
-    print(f"move {pdf_path} to {no_info_dir}")
-    dest_dir = file_path.parent / "no_info"
-    dest_dir.mkdir(exist_ok=True)
-    shutil.move(str(file_path), str(dest_dir / file_path.name))
+    print(f"move {pdf_path} to {p.dir_no_info}")
+    shutil.move(str(file_path), str(p.path_sanitized_no_info))
 
 
 def save_books_manifest(manifest: BooksManifest, yaml_path: str) -> None:
