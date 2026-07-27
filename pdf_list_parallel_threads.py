@@ -32,13 +32,13 @@ def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         for m in manifest.books:
-            if  m.has_no_metadata_info:
+            if  m.has_no_metadata_info():
                 logger.info(f"has no metadata info {m.name} ")
         for m in manifest.books:
-            if not m.has_no_metadata_info:
+            if not m.has_no_metadata_info():
                 logger.info(f"has metadata info {m.name} ")
 
-        future_to_manifest = {executor.submit(single_pdf_info_action_with_path, PdfPath(m.name), m, sanitize_info=True): m for m in manifest.books if not m.has_no_metadata_info}
+        future_to_manifest = {executor.submit(single_pdf_info_action_with_path, PdfPath(m.name).path_sanitized_tmp, m, sanitize_info=True): m for m in manifest.books if not m.has_no_metadata_info()}
 
         for future in concurrent.futures.as_completed(future_to_manifest):
             try:
