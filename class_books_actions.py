@@ -110,10 +110,18 @@ class BooksActions:
         print()
         self.books_lib.books_manifest = self.load_books_manifest(self.books_lib.yaml_path)
 
-    def update_yaml_info(self) -> None:
-        """Update YAML info for books using threadpool."""
+    def update_books_lib_info_and_save(self) -> None:
+        self.update_books_lib_info_no_save()
+        self.save_books_lib_yaml()
+
+    def update_books_lib_info_no_save(self) -> None:
+        """Update lib info for books using threadpool."""
         logger.info("updating yaml info for books")
         threadpool_books_info(self.books_lib)
+        self.save_books_manifest(self.books_lib.books_manifest, "files_info.yaml")
+
+    def save_books_lib_yaml(self) -> None:
+        logger.info("saving  yaml info for books")
         self.save_books_manifest(self.books_lib.books_manifest, "files_info.yaml")
 
     def sanitize_didier(self) -> None:

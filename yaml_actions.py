@@ -45,7 +45,7 @@ def load_books_lib(
         actions.copy_yaml_pdf()
 
     if update_yaml_info:
-        actions.update_yaml_info()
+        actions.update_books_lib_info_and_save()
 
     if move_no_info:
         actions.move_books_to_no_info()
