@@ -5,7 +5,7 @@ from pprint import pformat
 import yaml
 
 from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
-from class_pdf_path import PdfPath
+from class_book_manifest_file_actions import move_pdf_to_no_info
 from logger import logger
 from pdf_list_parallel_threads import (
     threadpool_books_fitz_sanitize,
@@ -31,15 +31,6 @@ class BooksActions:
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
 
-    def move_pdf_to_no_info(self, entry: PdfManifestEntry):
-        """Move a PDF from temp if it has no title or author."""
-        p: PdfPath = PdfPath(PdfManifestEntry.file)
-        pdf_path = p.path_sanitized_tmp
-        file_path = Path(pdf_path)
-        if not file_path.is_file():
-            return
-        print(f"move {pdf_path} to {p.dir_no_info}")
-        shutil.move(str(file_path), str(p.path_sanitized_no_info))
 
     def save_books_manifest(self, manifest: BooksManifest, yaml_path: str) -> None:
         """Save a BooksManifest to a YAML file."""
@@ -84,12 +75,12 @@ class BooksActions:
             self.copy_external_file_to_temp(book)
         self.save_books_manifest(books_manifest, "copied.yaml")
 
-    def move_to_no_info(self):
+    def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
         books_manifest: BooksManifest = self.books_lib.books_manifest
         for book in books_manifest.books:
             if book.has_no_metadata_info():
-                self.move_pdf_to_no_info(book)
+                move_pdf_to_no_info(book)
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""

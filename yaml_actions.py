@@ -3,9 +3,9 @@ from pprint import pformat
 
 import click
 
-from logger import logger
-from class_books_actions import BooksActions
 from class_book_manifest import BooksLib
+from class_books_actions import BooksActions
+from logger import logger
 
 
 def load_books_lib(
@@ -48,7 +48,7 @@ def load_books_lib(
         actions.update_yaml_info()
 
     if move_no_info:
-        actions.move_to_no_info()
+        actions.move_books_to_no_info()
 
     if sanitize_didier:
         actions.sanitize_didier()
