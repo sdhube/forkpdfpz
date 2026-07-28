@@ -7,8 +7,16 @@ from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import List, Optional
 
+import yaml
+
+from logger import logger
+
 # Compiled once upon module import
 BLACKLIST_REGEX = re.compile(r"www|https|\.pdf|\bnone\b", re.IGNORECASE)
+INVALID_FILENAME_CHARS_REGEX = re.compile(r"[^\w\s.-]|[\[\]{}()]")
+MULTIPLE_SPACES_REGEX = re.compile(r"\s+")
+SPACES_REGEX = re.compile(r"\s")
+MULTIPLE_DASHES_REGEX = re.compile(r"-{3,}")
 
 
 def is_value_containing_blacklisted_terms(text: str) -> bool:
@@ -35,6 +43,22 @@ class PdfManifestEntry:
     book_id: str = ""
     # Extra field beyond the Rust struct: source format, currently always "pdf"
     book_type: str = "pdf"
+
+    def get_normilized_name(self):
+        if not self.title:
+            return None
+        normalized = "--".join(str(p) for p in (self.title, self.author, self.year) if p)
+        normalized = INVALID_FILENAME_CHARS_REGEX.sub("-", normalized)
+
+        # Collapse multiple spaces
+        normalized = MULTIPLE_SPACES_REGEX.sub(" ", normalized).strip()
+        normalized = SPACES_REGEX.sub("-", normalized)
+        normalized=normalized.strip(" .-")
+        normalized = MULTIPLE_DASHES_REGEX.sub("--", normalized)
+
+        normalized = f"{normalized}.pdf"
+        # Remove trailing spaces and dots (Windows)
+        return normalized
 
     def scan_blacklisted_values(self):
         if is_value_containing_blacklisted_terms(self.title):
@@ -123,6 +147,21 @@ class PdfManifestEntry:
 class BooksManifest:
     input_path: str
     books: List[PdfManifestEntry] = field(default_factory=list)
+
+    def books_generator(self, predicate):
+        predicate = predicate or (lambda _: True)
+        yield from (book for book in self.books if predicate(book))
+
+    def save_books_manifest(self, yaml_path: str) -> None:
+        """Save a BooksManifest to a YAML file."""
+        logger.info(f"yaml_path={yaml_path}")
+        documents = [
+            {"input_path": self.input_path},
+            [book.to_dict() for book in self.books],
+        ]
+        with open(yaml_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
+        print(f"saved books manifest {yaml_path}")
 
 
 @dataclass

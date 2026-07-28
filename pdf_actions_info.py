@@ -3,10 +3,10 @@ from pathlib import Path
 import click
 import pikepdf
 
-from logger import logger
-from class_pdf_path import PdfPath
-from pdf_sanitize_info import del_info, pdf_update_metadata
 from class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
+from class_pdf_path import PdfPath
+from logger import logger
+from pdf_sanitize_info import del_info, pdf_update_metadata
 
 # --------------------------------------------
 # public functions
@@ -25,7 +25,7 @@ def single_pdf_info_action_with_path(pdf_path, entry: PdfManifestEntry, sanitize
         pdf_update_metadata(p, entry)
 
 
-def get_input_file(p: PdfPath) -> str:
+def get_input_file(pdf_path: str) -> str:
     """Read the custom info_file value back out of a PDF's XMP metadata.
 
     Args:
@@ -37,7 +37,7 @@ def get_input_file(p: PdfPath) -> str:
         or info_file wasn't set on the manifest entry at the time).
     """
     xmp_key = MANIFEST_TO_XMP_FIELDS["input_file"]
-    with pikepdf.open(p.path_sanitized_info_tmp) as doc:
+    with pikepdf.open(pdf_path) as doc:
         meta = doc.open_metadata()
         return meta.get(xmp_key, "")
 
@@ -63,7 +63,7 @@ def main(pdf_path: str, sanitize_info: bool) -> None:
     entry.input_file = "/tmp/test.pdf"
     single_pdf_info_action_with_path(pdf_path, entry, sanitize_info=sanitize_info)
     p: PdfPath = PdfPath(pdf_path)
-    print(f"input file field ={get_input_file(p)}")
+    print(f"input file field ={get_input_file(p.path_sanitized_info_tmp)}")
 
 
 if __name__ == "__main__":

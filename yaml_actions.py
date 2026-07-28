@@ -17,6 +17,7 @@ def load_books_lib(
     sanitize_didier: bool = False,
     fitz_didier: bool = False,
     sanitize_info: bool = False,
+    sanitize_normalize_name: bool = False,
     print_first: bool = False,
 ):
     """Load books library and perform requested operations."""
@@ -50,6 +51,9 @@ def load_books_lib(
     if sanitize_info:
         actions.sanitize_books_info()
 
+    if sanitize_normalize_name:
+        actions.update_normalized_info_and_move_rename_file()
+
     if print_first:
         actions.print_first_entry()
 
@@ -68,6 +72,7 @@ def load_books_lib(
 @click.option("--sanitize-didier", is_flag=True, default=False, help="sanitize and move pdf by didier finds")
 @click.option("--fitz-didier", is_flag=True, default=False, help="fitz and move pdf by didier finds")
 @click.option("--sanitize-info", is_flag=True, default=False, help="sanitize info into pdf")
+@click.option("--sanitize-normalize-name", is_flag=True, default=False, help="sanitize info into pdf")
 @click.option(
     "--print-first",
     "print_first",
@@ -84,6 +89,7 @@ def main(
     sanitize_didier: bool,
     fitz_didier: bool,
     sanitize_info: bool,
+    sanitize_normalize_name: bool,
     print_first: bool,
 ) -> None:
     load_books_lib(
@@ -95,6 +101,7 @@ def main(
         sanitize_didier=sanitize_didier,
         fitz_didier=fitz_didier,
         sanitize_info=sanitize_info,
+        sanitize_normalize_name=sanitize_normalize_name,
         print_first=print_first,
     )
 
@@ -108,3 +115,4 @@ if __name__ == "__main__":
 # /bin/python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/1-sanitized2/ --move-no-info
 # python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-didier"
 # python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/sanitized --sanitize-info"
+# python yaml_actions.py  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --sanitize-normalize-name"
