@@ -51,13 +51,13 @@ def load_books_lib(
         actions.move_books_to_no_info()
 
     if sanitize_didier:
-        actions.sanitize_didier()
+        actions.sanitize_books_didier()
 
     if fitz_didier:
-        actions.fitz_didier()
+        actions.sanitize_books_fitz_didier()
 
     if sanitize_info:
-        actions.sanitize_info()
+        actions.sanitize_books_info()
 
     if print_first:
         actions.print_first_entry()

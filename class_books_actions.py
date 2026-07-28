@@ -31,7 +31,6 @@ class BooksActions:
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
 
-
     def save_books_manifest(self, manifest: BooksManifest, yaml_path: str) -> None:
         """Save a BooksManifest to a YAML file."""
         logger.info(f"yaml_path={yaml_path}")
@@ -124,14 +123,14 @@ class BooksActions:
         logger.info("saving  yaml info for books")
         self.save_books_manifest(self.books_lib.books_manifest, "files_info.yaml")
 
-    def sanitize_didier(self) -> None:
+    def sanitize_books_didier(self) -> None:
         """Sanitize books using didier finds."""
         threadpool_books_sanitize(self.books_lib)
 
-    def fitz_didier(self) -> None:
+    def sanitize_books_fitz_didier(self) -> None:
         """Fitz and move books using didier finds."""
         threadpool_books_fitz_sanitize(self.books_lib)
 
-    def sanitize_info(self) -> None:
+    def sanitize_books_info(self) -> None:
         """Sanitize and embed info into PDFs."""
         threadpool_embed_info(self.books_lib)
