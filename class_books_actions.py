@@ -96,6 +96,7 @@ class BooksActions:
             print(f"source {PurePosixPath(path).name}")
             print(f"{self.books_lib.tmp_path}/{path.name} {info.st_size}")
 
+    # TODO this is actually set temp and load
     def load_manifest(self, tmp_path: str = None) -> None:
         """Load books manifest into books_lib."""
         if not tmp_path:

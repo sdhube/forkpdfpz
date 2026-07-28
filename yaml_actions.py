@@ -22,17 +22,8 @@ def load_books_lib(
     """Load books library and perform requested operations."""
     logger.info(f"sanitize_info={sanitize_info}")
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
-
-    # Normalize tmp_path to a string (click may provide a Path)
-    if tmp_path:
-        tmp_path = str(tmp_path)
-    else:
-        # allow BooksActions.load_manifest to create a temp dir when None
-        tmp_path = None
-
-    books_lib.tmp_path = tmp_path or ""
+    books_lib.tmp_path = str(tmp_path) or ""
     logger.info(f"loaded {pformat(books_lib)}")
-    print()
 
     # Create BooksActions instance and perform operations
     actions = BooksActions(books_lib)
