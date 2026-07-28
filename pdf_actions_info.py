@@ -4,7 +4,7 @@ import click
 import pikepdf
 
 from class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
-from class_tmp_path import PdfPath
+from class_tmp_path import TmpPath
 from logger import logger
 from pdf_sanitize_info import del_info, pdf_update_metadata
 
@@ -19,7 +19,7 @@ def single_pdf_info_action_with_path(pdf_path, entry: PdfManifestEntry, sanitize
     if not Path(pdf_path).exists():
         return f"pdf not found {str(pdf_path)}"
 
-    p: PdfPath = PdfPath(pdf_path)
+    p: TmpPath = TmpPath(pdf_path)
     if sanitize_info:
         del_info(p)
         pdf_update_metadata(p, entry)
@@ -62,7 +62,7 @@ def main(pdf_path: str, sanitize_info: bool) -> None:
     entry.title = "test title"
     entry.input_file = "/tmp/test.pdf"
     single_pdf_info_action_with_path(pdf_path, entry, sanitize_info=sanitize_info)
-    p: PdfPath = PdfPath(pdf_path)
+    p: TmpPath = TmpPath(pdf_path)
     print(f"input file field ={get_input_file(p.path_sanitized_info_tmp)}")
 
 

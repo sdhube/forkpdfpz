@@ -1,9 +1,9 @@
 import pikepdf
 
+from class_book_manifest import MANIFEST_TO_PDF_FIELDS, MANIFEST_TO_XMP_FIELDS, PDFSAN_XMP_PREFIX
+from class_tmp_path import TmpPath
 from logger import logger
 from pdf_actions_file import save_tmp_mv_on_source
-from class_tmp_path import PdfPath
-from class_book_manifest import MANIFEST_TO_PDF_FIELDS, MANIFEST_TO_XMP_FIELDS, PDFSAN_XMP_PREFIX
 
 # Custom XMP namespace for application-specific fields that have no
 # standard dc:/pdf:/xmp: equivalent (e.g. info_file). Must be registered
@@ -12,7 +12,7 @@ PDFSAN_XMP_NS = "https://ns.example.org/pdf-sanitizer/1.0/"
 pikepdf.models.PdfMetadata.register_xml_namespace(PDFSAN_XMP_NS, PDFSAN_XMP_PREFIX)
 
 
-def del_info(p: PdfPath):
+def del_info(p: TmpPath):
     with pikepdf.open(p.path_sanitized_tmp) as doc:
         # Remove legacy Document Information dictionary
         # NOTE: newer pikepdf requires /Info to be an indirect object, so a
@@ -38,7 +38,7 @@ def del_info(p: PdfPath):
 # ----------------------------------------------------------------------------
 
 
-def pdf_update_metadata(p: PdfPath, ext_meta):
+def pdf_update_metadata(p: TmpPath, ext_meta):
     """Update PDF metadata with all matching fields from PdfManifestEntry.
 
     Args:

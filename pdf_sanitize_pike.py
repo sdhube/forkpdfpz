@@ -12,9 +12,9 @@ import click
 import fitz
 import pikepdf
 
-from pdf_sanitize_fitz import sanitize_fitz
+from class_tmp_path import TmpPath
 from pdf_actions_file import save_tmp_mv_on_source
-from class_tmp_path import PdfPath
+from pdf_sanitize_fitz import sanitize_fitz
 
 
 # --- moved from sanitize_second_pass.py -------------------------------------------------
@@ -229,7 +229,7 @@ def sanitize_pdf(pdf_path: str) -> None:
     #  normalize_pdf_and_check_warnings(pdf_path)   # for  slatkin pdf
     pdf_stream_complete_rewrite(pdf_path)
     remove_annots_rewrite(pdf_path)
-    pc: PdfPath = PdfPath.from_pdf_path(pdf_path)
+    pc: TmpPath = TmpPath.from_pdf_path(pdf_path)
     print(f"sanitizing {pdf_path}")
     with pikepdf.open(pdf_path) as pdf:
         additional_removals(pdf)

@@ -6,12 +6,12 @@ import click
 import pikepdf
 import yaml
 
+from class_book_manifest import PdfManifestEntry
+from class_tmp_path import TmpPath
 from logger import logger
-from class_tmp_path import PdfPath
-from pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
-from class_book_manifest import PdfManifestEntry
+from pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
 
 # --------------------------------------------
 # public functions
@@ -59,7 +59,7 @@ def update_manifest_info_empty_fields(
 
 
 def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_title_for_futures=True):
-    p: PdfPath = PdfPath(entry.name)
+    p: TmpPath = TmpPath(entry.name)
     if res := single_pdf_action_with_path(p.path_sanitized_tmp, entry):
         return res
 

@@ -3,13 +3,13 @@ import os
 import sys
 from typing import List
 
-from pdf_sanitize_fitz import sanitize_fitz
-from logger import logger
-from pdf_manifest_actions import single_pdf_action
-from pdf_actions_info import single_pdf_info_action_with_path
-from class_tmp_path import PdfPath
-from pdf_sanitize_pike import sanitize_pdf
 from class_book_manifest import BooksLib, PdfManifestEntry
+from class_tmp_path import TmpPath
+from logger import logger
+from pdf_actions_info import single_pdf_info_action_with_path
+from pdf_manifest_actions import single_pdf_action
+from pdf_sanitize_fitz import sanitize_fitz
+from pdf_sanitize_pike import sanitize_pdf
 
 
 def get_max_workers() -> int:
@@ -41,7 +41,7 @@ def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
 
         future_to_manifest = {
             executor.submit(
-                single_pdf_info_action_with_path, PdfPath(m.name).path_sanitized_tmp, m, sanitize_info=True
+                single_pdf_info_action_with_path, TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True
             ): m
             for m in manifest.books
             if not m.has_no_metadata_info()

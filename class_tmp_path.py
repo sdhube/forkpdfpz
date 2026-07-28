@@ -4,7 +4,7 @@ from typing import ClassVar
 
 
 @dataclass(slots=True)
-class PdfPath:
+class TmpPath:
     DIR_TMPS: ClassVar[Path] = Path("/tmp/tmp_meta/sanitized")
     DIR_TMPM: ClassVar[Path] = Path("/tmp/tmp_meta/metadata")
     DIR_TMPN: ClassVar[Path] = Path("/tmp/tmp_meta/no_info")
@@ -12,7 +12,7 @@ class PdfPath:
     pdf_path: Path | str
 
     @classmethod
-    def from_pdf_path(cls, pdf_path: Path | str) -> PdfPath:
+    def from_pdf_path(cls, pdf_path: Path | str) -> TmpPath:
         cls.DIR_TMPS.mkdir(parents=True, exist_ok=True)
         cls.DIR_TMPM.mkdir(parents=True, exist_ok=True)
         p = PurePosixPath(pdf_path)
