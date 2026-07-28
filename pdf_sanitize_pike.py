@@ -14,7 +14,7 @@ import pikepdf
 
 from pdf_sanitize_fitz import sanitize_fitz
 from pdf_actions_file import save_tmp_mv_on_source
-from pdf_path import PdfPath
+from class_pdf_path import PdfPath
 
 
 # --- moved from sanitize_second_pass.py -------------------------------------------------

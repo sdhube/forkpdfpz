@@ -2,7 +2,7 @@ import pikepdf
 
 from logger import logger
 from pdf_actions_file import save_tmp_mv_on_source
-from pdf_path import PdfPath
+from class_pdf_path import PdfPath
 from PdfManifestEntry import MANIFEST_TO_PDF_FIELDS, MANIFEST_TO_XMP_FIELDS, PDFSAN_XMP_PREFIX
 
 # Custom XMP namespace for application-specific fields that have no
