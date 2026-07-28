@@ -4,7 +4,7 @@ import click
 import pikepdf
 
 from class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
-from class_pdf_path import PdfPath
+from class_tmp_path import PdfPath
 from logger import logger
 from pdf_sanitize_info import del_info, pdf_update_metadata
 

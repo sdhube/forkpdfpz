@@ -53,7 +53,7 @@ class PdfManifestEntry:
         # Collapse multiple spaces
         normalized = MULTIPLE_SPACES_REGEX.sub(" ", normalized).strip()
         normalized = SPACES_REGEX.sub("-", normalized)
-        normalized=normalized.strip(" .-")
+        normalized = normalized.strip(" .-")
         normalized = MULTIPLE_DASHES_REGEX.sub("--", normalized)
 
         normalized = f"{normalized}.pdf"
