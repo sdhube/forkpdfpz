@@ -2,7 +2,7 @@ import click
 import re
 import pymupdf
 from class_book_manifest import PdfManifestEntry
-from pdf_scan_info_google_books import doi_book_info_by_link
+from pdf_scan_info_web import doi_book_info_by_link
 
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)

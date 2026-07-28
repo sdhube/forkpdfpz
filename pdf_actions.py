@@ -8,7 +8,7 @@ import yaml
 
 from logger import logger
 from class_pdf_path import PdfPath
-from pdf_scan_info_google_books import google_book_info_by_isbn, open_library_book_info_by_isbn
+from pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
 from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
 from class_book_manifest import PdfManifestEntry
