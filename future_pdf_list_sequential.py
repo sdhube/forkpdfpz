@@ -7,7 +7,7 @@ about — at the cost of total runtime = sum of every entry's processing time.
 """
 
 from PdfManifestEntry import PdfManifestEntry, BooksLib, BooksManifest
-from pdf_list_common import enrich_entry_data, manifest_to_entry_dict, write_header, append_entry
+from future_pdf_list_common import enrich_entry_data, manifest_to_entry_dict, write_header, append_entry
 
 
 def copy_all(books_lib: BooksLib) -> None:
