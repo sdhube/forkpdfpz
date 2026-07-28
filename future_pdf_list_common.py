@@ -25,7 +25,7 @@ import yaml
 # renaming, or removing fields here needs no other code changes.
 # =========================================================================
 
-from PdfManifestEntry import PdfManifestEntry
+from class_book_manifest import PdfManifestEntry
 
 # =========================================================================
 # Load

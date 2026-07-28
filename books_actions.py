@@ -10,7 +10,7 @@ from pdf_list_parallel_threads import (
     threadpool_embed_info,
 )
 from class_pdf_path import PdfPath
-from PdfManifestEntry import BooksLib, BooksManifest, PdfManifestEntry
+from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
 import yaml
 
 

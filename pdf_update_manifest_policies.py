@@ -1,7 +1,7 @@
 from dataclasses import fields, replace
 from typing import Any
 
-from PdfManifestEntry import PdfManifestEntry
+from class_book_manifest import PdfManifestEntry
 
 
 def _is_empty(value: Any) -> bool:

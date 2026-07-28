@@ -1,7 +1,7 @@
 import requests
 from urllib.parse import urlparse
 
-from PdfManifestEntry import PdfManifestEntry
+from class_book_manifest import PdfManifestEntry
 
 
 def google_book_info_by_isbn(isbn: str, entry: PdfManifestEntry):

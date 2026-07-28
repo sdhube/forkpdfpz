@@ -6,7 +6,7 @@ disk-write ordering (matches input order exactly), no concurrency to reason
 about — at the cost of total runtime = sum of every entry's processing time.
 """
 
-from PdfManifestEntry import PdfManifestEntry, BooksLib, BooksManifest
+from class_book_manifest import PdfManifestEntry, BooksLib, BooksManifest
 from future_pdf_list_common import enrich_entry_data, manifest_to_entry_dict, write_header, append_entry
 
 

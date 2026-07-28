@@ -6,7 +6,7 @@ import pikepdf
 from logger import logger
 from class_pdf_path import PdfPath
 from pdf_sanitize_info import del_info, pdf_update_metadata
-from PdfManifestEntry import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
+from class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
 
 # --------------------------------------------
 # public functions

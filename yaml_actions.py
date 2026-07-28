@@ -5,7 +5,7 @@ import click
 
 from logger import logger
 from books_actions import BooksActions
-from PdfManifestEntry import BooksLib
+from class_book_manifest import BooksLib
 
 
 def load_books_lib(

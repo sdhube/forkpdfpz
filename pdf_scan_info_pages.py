@@ -1,7 +1,7 @@
 import click
 import re
 import pymupdf
-from PdfManifestEntry import PdfManifestEntry
+from class_book_manifest import PdfManifestEntry
 from pdf_scan_info_google_books import doi_book_info_by_link
 
 

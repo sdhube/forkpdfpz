@@ -9,7 +9,7 @@ from pdf_actions import single_pdf_action
 from pdf_actions_info import single_pdf_info_action_with_path
 from class_pdf_path import PdfPath
 from pdf_sanitize_pike import sanitize_pdf
-from PdfManifestEntry import BooksLib, PdfManifestEntry
+from class_book_manifest import BooksLib, PdfManifestEntry
 
 
 def get_max_workers() -> int:
