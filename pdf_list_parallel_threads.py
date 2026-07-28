@@ -5,7 +5,7 @@ from typing import List
 
 from pdf_sanitize_fitz import sanitize_fitz
 from logger import logger
-from pdf_actions import single_pdf_action
+from pdf_manifest_actions import single_pdf_action
 from pdf_actions_info import single_pdf_info_action_with_path
 from class_pdf_path import PdfPath
 from pdf_sanitize_pike import sanitize_pdf
