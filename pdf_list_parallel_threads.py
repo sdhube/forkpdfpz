@@ -25,6 +25,18 @@ def get_max_workers() -> int:
 MAX_WORKERS = get_max_workers()
 
 
+def run_and_report(future_to_item: dict) -> None:
+    """Wait for futures and log results or exceptions.
+
+    This consolidates the repeated pattern used in the threadpool helper functions.
+    """
+    for future in concurrent.futures.as_completed(future_to_item):
+        try:
+            logger.info(f"finished thread: {future.result()}")
+        except Exception as exc:
+            logger.warning(f"exception in thread: {exc}")
+
+
 def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """
     updates books lib with books info in parallel using threadpool
@@ -47,11 +59,7 @@ def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
             if not m.has_no_metadata_info()
         }
 
-        for future in concurrent.futures.as_completed(future_to_manifest):
-            try:
-                print(f"finished thread{future.result()}")
-            except Exception as exc:
-                print(f"exception thread thread {exc}")
+        run_and_report(future_to_manifest)
 
 
 def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
@@ -64,11 +72,7 @@ def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_manifest = {executor.submit(single_pdf_action, m, books_lib.tmp_path): m for m in manifest.books}
 
-        for future in concurrent.futures.as_completed(future_to_manifest):
-            try:
-                print(f"finished thread{future.result()}")
-            except Exception as exc:
-                print(f"exception thread thread {exc}")
+        run_and_report(future_to_manifest)
 
 
 def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
@@ -81,11 +85,7 @@ def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKER
 
         future_to_manifest = {executor.submit(sanitize_pdf, m): m for m in pdf_files}
 
-        for future in concurrent.futures.as_completed(future_to_manifest):
-            try:
-                print(f"finished thread{future.result()}")
-            except Exception as exc:
-                print(f"exception thread thread {exc}")
+        run_and_report(future_to_manifest)
 
 
 def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
@@ -98,8 +98,4 @@ def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_W
         print(f"pdf_files={pdf_files}")
         future_to_manifest = {executor.submit(sanitize_fitz, m): m for m in pdf_files}
 
-        for future in concurrent.futures.as_completed(future_to_manifest):
-            try:
-                print(f"finished thread{future.result()}")
-            except Exception as exc:
-                print(f"exception thread thread {exc}")
+        run_and_report(future_to_manifest)
