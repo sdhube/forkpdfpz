@@ -2,6 +2,10 @@ import shutil
 from pathlib import Path, PurePosixPath
 from pprint import pformat
 
+import yaml
+
+from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
+from class_pdf_path import PdfPath
 from logger import logger
 from pdf_list_parallel_threads import (
     threadpool_books_fitz_sanitize,
@@ -9,9 +13,6 @@ from pdf_list_parallel_threads import (
     threadpool_books_sanitize,
     threadpool_embed_info,
 )
-from class_pdf_path import PdfPath
-from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
-import yaml
 
 
 class BooksActions:
@@ -87,7 +88,7 @@ class BooksActions:
         """Move PDFs with no metadata info to designated directory."""
         books_manifest: BooksManifest = self.books_lib.books_manifest
         for book in books_manifest.books:
-            if len(book.title) == 0 and len(book.author) == 0 and len(book.isbn) == 0:
+            if book.has_no_metadata_info():
                 self.move_pdf_to_no_info(book)
 
     def print_first_entry(self):
