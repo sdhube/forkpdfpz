@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import PurePosixPath
 from typing import List, Optional
 
@@ -67,40 +67,47 @@ class PdfManifestEntry:
         if is_value_containing_blacklisted_terms(self.author):
             self.author = ""
 
+    def _asdict_with_optimized_rename(self) -> dict:
+        """Return a dict built from the dataclass with `optimized` renamed to `Optimized`.
+
+        The dict is constructed in a stable, explicit key order to preserve the
+        same ordering used previously when writing YAML (useful for diffs/readability).
+        """
+        raw = asdict(self)
+        ordered_keys = [
+            "valid_pdf",
+            "input_file",
+            "file",
+            "title",
+            "author",
+            "size",
+            "Optimized",
+            "isbn",
+            "name",
+            "year",
+            "isbn_normalized",
+            "book_id",
+            "book_type",
+        ]
+        out = {}
+        for k in ordered_keys:
+            if k == "Optimized":
+                out[k] = raw.get("optimized")
+            else:
+                out[k] = raw.get(k)
+        return out
+
     def to_dict(self) -> dict:
-        return {
-            "valid_pdf": self.valid_pdf,
-            "input_file": self.input_file,
-            "file": self.file,
-            "title": self.title,
-            "author": self.author,
-            "size": self.size,
-            "Optimized": self.optimized,
-            "isbn": self.isbn,
-            "name": self.name,
-            "year": self.year,
-            "isbn_normalized": self.isbn_normalized,
-            "book_id": self.book_id,
-            "book_type": self.book_type,
-        }
+        """Return a plain dict representation of the entry.
+
+        Uses dataclasses.asdict() under the hood and performs a small key rename
+        so callers continue to see `Optimized` (capital O) rather than `optimized`.
+        """
+        return self._asdict_with_optimized_rename()
 
     def to_yaml_dict(self) -> dict:
         """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
-        return {
-            "valid_pdf": self.valid_pdf,
-            "input_file": self.input_file,
-            "file": self.file,
-            "title": self.title,
-            "author": self.author,
-            "size": self.size,
-            "Optimized": self.optimized,
-            "isbn": self.isbn,
-            "name": self.name,
-            "year": self.year,
-            "isbn_normalized": self.isbn_normalized,
-            "book_id": self.book_id,
-            "book_type": self.book_type,
-        }
+        return self._asdict_with_optimized_rename()
 
     @classmethod
     def from_dict(cls, d: dict) -> "PdfManifestEntry":
