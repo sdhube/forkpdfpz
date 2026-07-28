@@ -2,11 +2,17 @@
 # Data class matching the Rust `PdfManifestEntry` struct
 # --------------------------------------------------------------------------
 
+import re
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import List, Optional
 
-from pdf_scan_info_blacklist_values import is_value_containing_blacklisted_terms
+# Compiled once upon module import
+BLACKLIST_REGEX = re.compile(r"www|https|\.pdf|\bnone\b", re.IGNORECASE)
+
+
+def is_value_containing_blacklisted_terms(text: str) -> bool:
+    return bool(BLACKLIST_REGEX.search(text))
 
 
 @dataclass
