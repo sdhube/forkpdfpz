@@ -1,79 +1,11 @@
-import shutil
-import tempfile
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from pprint import pformat
 
 import click
-import yaml
 
 from logger import logger
-from pdf_list_parallel_threads import (
-    threadpool_books_fitz_sanitize,
-    threadpool_books_info,
-    threadpool_books_sanitize,
-    threadpool_embed_info,
-)
-from pdf_names_conversion import PdfPath
-from PdfManifestEntry import BooksLib, BooksManifest, PdfManifestEntry
-
-
-def tmp_dir() -> Path:
-    flat_tmp_path = tempfile.mkdtemp()
-    shallow_tmp = Path(flat_tmp_path)
-    return shallow_tmp
-
-
-# -----------------------------------------
-# public functions
-# ------------------------------------------
-
-
-def copy_to_temp(books_lib: BooksLib, entry: PdfManifestEntry):
-    pdf_input_path = str(Path(books_lib.yaml_base_path).joinpath(entry.input_file))
-    pdf_name = str(PurePosixPath(entry.input_file).name)
-    pdf_output_path = str(Path(books_lib.tmp_path).joinpath(pdf_name))
-    entry.file = pdf_output_path
-    print(f"copy {pdf_input_path} to {pdf_output_path}")
-    with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
-        shutil.copyfileobj(src, dst)
-
-
-def move_temp_no_title_or_author(books_lib: BooksLib, entry: PdfManifestEntry):
-    p: PdfPath = PdfPath(PdfManifestEntry.file)
-    pdf_path = p.path_sanitized_tmp
-    file_path = Path(pdf_path)
-    if not file_path.is_file():
-        return
-    print(f"move {pdf_path} to {p.dir_no_info}")
-    shutil.move(str(file_path), str(p.path_sanitized_no_info))
-
-
-def save_books_manifest(manifest: BooksManifest, yaml_path: str) -> None:
-    logger.info(f"yaml_path={yaml_path}")
-    documents = [
-        {"input_path": manifest.input_path},
-        [book.to_dict() for book in manifest.books],
-    ]
-    with open(yaml_path, "w", encoding="utf-8") as f:
-        yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
-    print(f"saved books manifest {yaml_path}")
-
-
-def load_books_manifest(yaml_path: str) -> BooksManifest:
-    p: Path = Path(yaml_path)
-    if not p.is_file():
-        print(f"{yaml_path} is not a file")
-        return None
-    logger.info(f"yaml_path={yaml_path}")
-    with open(yaml_path, "r", encoding="utf-8") as f:
-        # safe_load_all handles the document separator (---) safely
-        documents = list(yaml.safe_load_all(f))
-        list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
-        books_list = documents[1]  # Contains your array of PDF dictionaries
-
-        parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
-        logger.info(f"loaded books manifest {yaml_path}")
-        return BooksManifest(input_path=list_path.get("input_path", ""), books=parsed_books)
+from books_actions import BooksActions
+from PdfManifestEntry import BooksLib
 
 
 def load_books_lib(
@@ -87,67 +19,48 @@ def load_books_lib(
     sanitize_info: bool = False,
     print_first: bool = False,
 ):
+    """Load books library and perform requested operations."""
     logger.info(f"sanitize_info={sanitize_info}")
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
-    if not tmp_path:
-        tmp_path = tmp_dir()
-    books_lib.tmp_path = tmp_path
+
+    # Normalize tmp_path to a string (click may provide a Path)
+    if tmp_path:
+        tmp_path = str(tmp_path)
+    else:
+        # allow BooksActions.load_manifest to create a temp dir when None
+        tmp_path = None
+
+    books_lib.tmp_path = tmp_path or ""
     logger.info(f"loaded {pformat(books_lib)}")
     print()
-    books_lib.books_manifest = load_books_manifest(books_lib.yaml_path)
-    books_manifest: BooksManifest = books_lib.books_manifest
+
+    # Create BooksActions instance and perform operations
+    actions = BooksActions(books_lib)
+
+    # Ensure manifest is loaded (this will set up tmp dir if needed)
+    actions.load_manifest(tmp_path=tmp_path)
+
+    # Perform requested operations by calling the appropriate BooksActions methods
     if copy_pdfs:
-        copy_yaml_pdf(books_lib)
-    if print_first:
-        print(f"books_lib.books_manifest = {type(books_lib.books_manifest)}")
-        print(f"books_manifest = {type(books_manifest)}")
-        books_count = len(books_manifest.books)
-        print(f"count={books_count}")
-        first_entry: PdfManifestEntry | None = next(iter(books_manifest.books), None)
-        first_entry: PdfManifestEntry = books_manifest.books[2]
-        print(f"first entry: {pformat(first_entry)}")
-        if copy_pdfs:
-            copy_to_temp(books_lib, first_entry)
-        for path in books_lib.tmp_path.iterdir():
-            info = path.stat()
-            print(f"source {PurePosixPath(path).name}")
-            print(f"{books_lib.tmp_path}/{path.name} {info.st_size}")
+        actions.copy_yaml_pdf()
+
     if update_yaml_info:
-        logger.info("updating yaml info for books")
-        threadpool_books_info(books_lib)
-        save_books_manifest(books_lib.books_manifest, "files_info.yaml")
+        actions.update_yaml_info()
+
     if move_no_info:
-        move_to_no_info(books_lib)
+        actions.move_to_no_info()
+
     if sanitize_didier:
-        threadpool_books_sanitize(books_lib)
+        actions.sanitize_didier()
+
     if fitz_didier:
-        threadpool_books_fitz_sanitize(books_lib)
+        actions.fitz_didier()
+
     if sanitize_info:
-        threadpool_embed_info(books_lib)
-    else:
-        logger.info("not doing sanitize_info")
+        actions.sanitize_info()
 
-
-def copy_yaml_pdf_no_info(books_lib: BooksLib) -> None:
-    books_manifest: BooksManifest = books_lib.books_manifest
-    for book in books_manifest.books:
-        if book.has_no_metadata_info():
-            copy_to_temp(books_lib, book)
-    save_books_manifest(books_manifest, "copied.yaml")
-
-
-def copy_yaml_pdf(books_lib: BooksLib) -> None:
-    books_manifest: BooksManifest = books_lib.books_manifest
-    for book in books_manifest.books:
-        copy_to_temp(books_lib, book)
-    save_books_manifest(books_manifest, "copied.yaml")
-
-
-def move_to_no_info(books_lib: BooksLib):
-    books_manifest: BooksManifest = books_lib.books_manifest
-    for book in books_manifest.books:
-        if len(book.title) == 0 and len(book.author) == 0 and len(book.isbn) == 0:
-            move_temp_no_title_or_author(books_lib, book)
+    if print_first:
+        actions.print_first_entry()
 
 
 # --------------------------------------------------------------------------
@@ -173,7 +86,7 @@ def move_to_no_info(books_lib: BooksLib):
 )
 def main(
     yaml_path: str,
-    tmp_path: str,
+    tmp_path: Path,
     update_yaml_info: bool,
     copy_pdfs: bool,
     move_no_info: bool,
