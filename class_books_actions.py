@@ -20,7 +20,7 @@ class BooksActions:
     def __init__(self, books_lib: BooksLib):
         self.books_lib = books_lib
 
-    def copy_to_temp(self, entry: PdfManifestEntry):
+    def copy_external_file_to_temp(self, entry: PdfManifestEntry):
         """Copy a PDF file to the temporary directory."""
         pdf_input_path = str(Path(self.books_lib.yaml_base_path).joinpath(entry.input_file))
         pdf_name = str(PurePosixPath(entry.input_file).name)
@@ -30,7 +30,7 @@ class BooksActions:
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
 
-    def move_temp_no_title_or_author(self, entry: PdfManifestEntry):
+    def move_pdf_to_no_info(self, entry: PdfManifestEntry):
         """Move a PDF from temp if it has no title or author."""
         p: PdfPath = PdfPath(PdfManifestEntry.file)
         pdf_path = p.path_sanitized_tmp
@@ -73,14 +73,14 @@ class BooksActions:
         books_manifest: BooksManifest = self.books_lib.books_manifest
         for book in books_manifest.books:
             if book.has_no_metadata_info():
-                self.copy_to_temp(book)
+                self.copy_external_file_to_temp(book)
         self.save_books_manifest(books_manifest, "copied.yaml")
 
     def copy_yaml_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
         books_manifest: BooksManifest = self.books_lib.books_manifest
         for book in books_manifest.books:
-            self.copy_to_temp(book)
+            self.copy_external_file_to_temp(book)
         self.save_books_manifest(books_manifest, "copied.yaml")
 
     def move_to_no_info(self):
@@ -88,7 +88,7 @@ class BooksActions:
         books_manifest: BooksManifest = self.books_lib.books_manifest
         for book in books_manifest.books:
             if len(book.title) == 0 and len(book.author) == 0 and len(book.isbn) == 0:
-                self.move_temp_no_title_or_author(book)
+                self.move_pdf_to_no_info(book)
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
