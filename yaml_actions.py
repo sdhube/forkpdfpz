@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from pprint import pformat
+from typing import Optional
 
 import click
 
@@ -33,9 +34,9 @@ class BookOperations:
 
 def load_books_lib(
     yaml_path: str,
-    tmp_path: str = None,
-    operations: BookOperations = None,
-):
+    tmp_path: Optional[str] = None,
+    operations: Optional[BookOperations] = None,
+) -> None:
     """Load books library and perform requested operations.
     
     Args:
@@ -47,7 +48,7 @@ def load_books_lib(
     
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
-    books_lib.tmp_path = str(tmp_path) or ""
+    books_lib.tmp_path = str(tmp_path) if tmp_path else ""
     logger.info(f"loaded {pformat(books_lib)}")
 
     # Create BooksActions instance
@@ -81,8 +82,8 @@ def load_books_lib(
 
 
 @click.command()
-@click.argument("yaml_path", type=click.Path(exists=True, dir_okay=False))
-@click.option("--tmp-path", type=click.Path(path_type=Path), help="Optional temporary path.")
+@click.argument("yaml_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.option("--tmp-path", type=click.Path(path_type=Path), default=None, help="Optional temporary path.")
 @click.option("--copy-pdfs", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
 @click.option("--update-yaml-info", is_flag=True, default=False, help="update yaml with pdf metadata")
 @click.option("--move-no-info", is_flag=True, default=False, help="move pdf files from tmp if no info")
@@ -97,30 +98,20 @@ def load_books_lib(
     default=False,
     help="Print first entry from yaml.",
 )
-def main(
-    yaml_path: str,
-    tmp_path: Path,
-    update_yaml_info: bool,
-    copy_pdfs: bool,
-    move_no_info: bool,
-    sanitize_didier: bool,
-    fitz_didier: bool,
-    sanitize_info: bool,
-    sanitize_normalize_name: bool,
-    print_first: bool,
-) -> None:
-    """Process books library with specified operations."""
-    operations = BookOperations(
-        copy_pdfs=copy_pdfs,
-        update_yaml_info=update_yaml_info,
-        move_no_info=move_no_info,
-        sanitize_didier=sanitize_didier,
-        fitz_didier=fitz_didier,
-        sanitize_info=sanitize_info,
-        sanitize_normalize_name=sanitize_normalize_name,
-        print_first=print_first,
-    )
-    load_books_lib(yaml_path, tmp_path=tmp_path, operations=operations)
+def main(**kwargs) -> None:
+    """Process books library with specified operations.
+    
+    Uses **kwargs to handle all click parameters, reducing boilerplate and making
+    it easier to add new operations without modifying the main signature.
+    """
+    # Extract positional and optional arguments
+    yaml_path: Path = kwargs.pop("yaml_path")
+    tmp_path: Optional[Path] = kwargs.pop("tmp_path")
+    
+    # Create BookOperations from remaining kwargs (operation flags)
+    operations = BookOperations(**kwargs)
+    
+    load_books_lib(str(yaml_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations)
 
 
 if __name__ == "__main__":
