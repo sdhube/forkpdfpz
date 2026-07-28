@@ -178,3 +178,33 @@ pdf_manifest_schema = """ {
     },
 }
 """
+
+# Mapping of PdfManifestEntry fields to legacy Document Information Dictionary
+# keys. NOTE: isbn->/Keywords, year->/CreationDate, and info_file->/InfoFile
+# are a repurposing/extension of docinfo for this application's own use, not
+# the standard PDF/XMP meaning of those keys — so they are written straight
+# to docinfo rather than through pikepdf's XMP<->docinfo autosync (which
+# pairs /Keywords with pdf:Keywords and /CreationDate with xmp:CreateDate,
+# not with dc:identifier/dc:date, and has no mapping at all for a custom key
+# like /InfoFile).
+MANIFEST_TO_PDF_FIELDS = {
+    "title": "/Title",
+    "author": "/Author",
+    "isbn": "/Keywords",
+    "year": "/CreationDate",
+    "input_file": "/InputFile",
+}
+
+# Mapping of PdfManifestEntry fields to XMP fields. info_file has no
+# standard dc:/pdf:/xmp: equivalent, so it's stored under the custom
+# pdfsan: namespace registered above.
+
+PDFSAN_XMP_PREFIX = "pdfsan"
+MANIFEST_TO_XMP_FIELDS = {
+    "title": "dc:title",
+    "author": "dc:creator",
+    "isbn": "dc:identifier",
+    "year": "dc:date",
+    "name": "dc:coverage",
+    "input_file": f"{PDFSAN_XMP_PREFIX}:InputFile",
+}

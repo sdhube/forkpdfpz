@@ -3,6 +3,13 @@ import pikepdf
 from logger import logger
 from pdf_actions_file import save_tmp_mv_on_source
 from pdf_names_conversion import PdfPath
+from PdfManifestEntry import MANIFEST_TO_PDF_FIELDS, MANIFEST_TO_XMP_FIELDS, PDFSAN_XMP_PREFIX
+
+# Custom XMP namespace for application-specific fields that have no
+# standard dc:/pdf:/xmp: equivalent (e.g. info_file). Must be registered
+# before the "pdfsan:" prefix can be used as an XMP metadata key.
+PDFSAN_XMP_NS = "https://ns.example.org/pdf-sanitizer/1.0/"
+pikepdf.models.PdfMetadata.register_xml_namespace(PDFSAN_XMP_NS, PDFSAN_XMP_PREFIX)
 
 
 def del_info(p: PdfPath):
@@ -26,30 +33,6 @@ def del_info(p: PdfPath):
         )
 
 
-# Mapping of PdfManifestEntry fields to legacy Document Information Dictionary
-# keys. NOTE: isbn->/Keywords and year->/CreationDate are a repurposing of
-# those legacy slots for this application's own use, not the standard
-# PDF/XMP meaning of "Keywords" or "CreationDate" — so they are written
-# straight to docinfo rather than through pikepdf's XMP<->docinfo autosync
-# (which pairs /Keywords with pdf:Keywords and /CreationDate with
-# xmp:CreateDate, not with dc:identifier/dc:date).
-MANIFEST_TO_PDF_FIELDS = {
-    "title": "/Title",
-    "author": "/Author",
-    "isbn": "/Keywords",
-    "year": "/CreationDate",
-}
-
-# Mapping of PdfManifestEntry fields to XMP dc: fields
-MANIFEST_TO_XMP_FIELDS = {
-    "title": "dc:title",
-    "author": "dc:creator",
-    "isbn": "dc:identifier",
-    "year": "dc:date",
-    "name": "dc:coverage",
-}
-
-
 # ----------------------------------------------------------------------------
 # public functions
 # ----------------------------------------------------------------------------
@@ -65,7 +48,7 @@ def pdf_update_metadata(p: PdfPath, ext_meta):
     with pikepdf.open(p.path_sanitized_info_tmp) as doc:
         # Build metadata dictionary from manifest fields
         metadata_dict = {}
-        for field_name in ["title", "author", "isbn", "year", "name"]:
+        for field_name in ["title", "author", "isbn", "year", "name", "input_file"]:
             value = getattr(ext_meta, field_name, "")
             if value:
                 metadata_dict[field_name] = value
