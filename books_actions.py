@@ -9,7 +9,7 @@ from pdf_list_parallel_threads import (
     threadpool_books_sanitize,
     threadpool_embed_info,
 )
-from pdf_names_conversion import PdfPath
+from pdf_path import PdfPath
 from PdfManifestEntry import BooksLib, BooksManifest, PdfManifestEntry
 import yaml
 
