@@ -7,7 +7,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from pdf_sanitize import sanitize_pdf
+from pdf_sanitize_pike import sanitize_pdf
 
 
 @pytest.fixture
