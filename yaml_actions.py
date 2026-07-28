@@ -4,7 +4,7 @@ from pprint import pformat
 import click
 
 from logger import logger
-from books_actions import BooksActions
+from class_books_actions import BooksActions
 from class_book_manifest import BooksLib
 
 
