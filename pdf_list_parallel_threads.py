@@ -2,6 +2,7 @@ import concurrent.futures
 import os
 import sys
 from typing import List
+from pathlib import Path
 
 from class_book_manifest import BooksLib, PdfManifestEntry
 from class_tmp_path import TmpPath
@@ -23,6 +24,11 @@ def get_max_workers() -> int:
 
 
 MAX_WORKERS = get_max_workers()
+
+
+def list_pdf_files(dir_path: Path) -> List[Path]:
+    """Return a sorted list of PDF Path objects in dir_path."""
+    return sorted(Path(dir_path).glob("*.pdf"))
 
 
 def run_and_report(future_to_item: dict) -> None:
@@ -81,7 +87,8 @@ def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKER
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         dir_path = books_lib.tmp_path
-        pdf_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith(".pdf")]
+        pdf_paths = list_pdf_files(dir_path)
+        pdf_files = [str(p) for p in pdf_paths]
 
         future_to_manifest = {executor.submit(sanitize_pdf, m): m for m in pdf_files}
 
@@ -94,8 +101,9 @@ def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_W
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         dir_path = books_lib.tmp_path
-        pdf_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith(".pdf")]
-        print(f"pdf_files={pdf_files}")
+        pdf_paths = list_pdf_files(dir_path)
+        print(f"pdf_files={[str(p) for p in pdf_paths]}")
+        pdf_files = [str(p) for p in pdf_paths]
         future_to_manifest = {executor.submit(sanitize_fitz, m): m for m in pdf_files}
 
         run_and_report(future_to_manifest)
