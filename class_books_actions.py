@@ -110,8 +110,9 @@ class BooksActions:
         if not tmp_path:
             # Create a temporary directory if needed
             import tempfile
+
             tmp_path = tempfile.mkdtemp()
-        
+
         self.books_lib.tmp_path = tmp_path
         logger.info(f"loaded {pformat(self.books_lib)}")
         print()
