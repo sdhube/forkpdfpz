@@ -1,7 +1,7 @@
 import concurrent.futures
 import os
 import sys
-from typing import List
+from typing import List, Callable, Any
 from pathlib import Path
 
 from class_book_manifest import BooksLib, PdfManifestEntry
@@ -41,6 +41,18 @@ def run_and_report(future_to_item: dict) -> None:
             logger.info(f"finished thread: {future.result()}")
         except Exception as exc:
             logger.warning(f"exception in thread: {exc}")
+
+
+def run_threads_predicate(items: List[Any], func: Callable[[Any], Any], max_workers: int = MAX_WORKERS) -> None:
+    """Run `func(item)` for each item in `items` in parallel using a ThreadPoolExecutor.
+
+    - items: iterable of inputs to pass to func
+    - func: callable that accepts a single argument
+    - max_workers: number of worker threads to use
+    """
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_item = {executor.submit(func, item): item for item in items}
+        run_and_report(future_to_item)
 
 
 def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
@@ -85,25 +97,22 @@ def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKER
     """ """
     manifest: List[PdfManifestEntry] = books_lib.books_manifest
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        dir_path = books_lib.tmp_path
-        pdf_paths = list_pdf_files(dir_path)
-        pdf_files = [str(p) for p in pdf_paths]
+    dir_path = books_lib.tmp_path
+    pdf_paths = list_pdf_files(dir_path)
+    pdf_files = [str(p) for p in pdf_paths]
 
-        future_to_manifest = {executor.submit(sanitize_pdf, m): m for m in pdf_files}
-
-        run_and_report(future_to_manifest)
+    # Use the generic thread runner helper
+    run_threads_predicate(pdf_files, sanitize_pdf, max_workers=max_workers)
 
 
 def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """ """
     manifest: List[PdfManifestEntry] = books_lib.books_manifest
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        dir_path = books_lib.tmp_path
-        pdf_paths = list_pdf_files(dir_path)
-        print(f"pdf_files={[str(p) for p in pdf_paths]}")
-        pdf_files = [str(p) for p in pdf_paths]
-        future_to_manifest = {executor.submit(sanitize_fitz, m): m for m in pdf_files}
+    dir_path = books_lib.tmp_path
+    pdf_paths = list_pdf_files(dir_path)
+    print(f"pdf_files={[str(p) for p in pdf_paths]}")
+    pdf_files = [str(p) for p in pdf_paths]
 
-        run_and_report(future_to_manifest)
+    # Use the same generic helper for the fitz-based sanitizer
+    run_threads_predicate(pdf_files, sanitize_fitz, max_workers=max_workers)
