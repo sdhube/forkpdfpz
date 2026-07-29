@@ -23,9 +23,9 @@ class BookOperations:
     sanitize_normalize_name: bool = False
     print_first: bool = False
 
+    # pythonic replacing repited if statements with dictionary
     def get_enabled_operations(self) -> dict:
         """Return a mapping of enabled operation names to their methods.
-        
         Allows callers to iterate over only the enabled operations without
         repeating if-statement chains.
         """
@@ -38,14 +38,14 @@ def load_books_lib(
     operations: Optional[BookOperations] = None,
 ) -> None:
     """Load books library and perform requested operations.
-    
+
     Args:
         yaml_path: Path to the YAML manifest file
         tmp_path: Optional temporary directory path
         operations: BookOperations instance defining which operations to perform
     """
     operations = operations or BookOperations()
-    
+
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
     books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
     books_lib.tmp_path = str(tmp_path) if tmp_path else ""
@@ -100,17 +100,17 @@ def load_books_lib(
 )
 def main(**kwargs) -> None:
     """Process books library with specified operations.
-    
+
     Uses **kwargs to handle all click parameters, reducing boilerplate and making
     it easier to add new operations without modifying the main signature.
     """
     # Extract positional and optional arguments
     yaml_path: Path = kwargs.pop("yaml_path")
     tmp_path: Optional[Path] = kwargs.pop("tmp_path")
-    
+
     # Create BookOperations from remaining kwargs (operation flags)
     operations = BookOperations(**kwargs)
-    
+
     load_books_lib(str(yaml_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations)
 
 

@@ -46,12 +46,12 @@ def pdf_update_metadata(p: TmpPath, ext_meta):
         ext_meta: PdfManifestEntry object with metadata to apply
     """
     with pikepdf.open(p.path_sanitized_info_tmp) as doc:
-        # Build metadata dictionary from manifest fields
-        metadata_dict = {}
-        for field_name in ["title", "author", "isbn", "year", "name", "input_file"]:
-            value = getattr(ext_meta, field_name, "")
-            if value:
-                metadata_dict[field_name] = value
+        # python walrus operator in dict comprehension,  the last value can be access afterwards
+        metadata_dict = {
+            field_name: value
+            for field_name in ("title", "author", "isbn", "year", "name", "input_file")
+            if (value := getattr(ext_meta, field_name, ""))
+        }
 
         # Update legacy Document Information Dictionary with all matching fields
         # (accessing doc.docinfo auto-creates a proper indirect empty dict

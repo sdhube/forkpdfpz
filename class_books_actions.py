@@ -10,7 +10,7 @@ from class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized,
 from class_tmp_path import TmpPath
 from logger import logger
 from pdf_actions_info import single_pdf_info_action_with_path
-from pdf_list_parallel_threads import manifest_items, run_threads_books_lib_pdf_path, run_threads_predicate
+from pdf_list_parallel_threads import generate_manifest_items, run_threaded_action, run_threads_books_lib_pdf_path
 from pdf_manifest_actions import single_pdf_action
 from pdf_sanitize_fitz import sanitize_fitz
 from pdf_sanitize_pike import sanitize_pdf
@@ -117,7 +117,10 @@ class BooksActions:
     def update_books_lib_info_no_save(self) -> None:
         """Update lib info for books using threadpool."""
         logger.info("updating yaml info for books")
-        run_threads_predicate(manifest_items(self.books_lib.books_manifest), partial(single_pdf_action, tmp_path=self.books_lib.tmp_path))
+        run_threaded_action(
+            generate_manifest_items(self.books_lib.books_manifest),
+            partial(single_pdf_action, tmp_path=self.books_lib.tmp_path),
+        )
 
     def save_books_lib_yaml(self) -> None:
         logger.info("saving  yaml info for books")
@@ -133,4 +136,7 @@ class BooksActions:
 
     def sanitize_books_info(self) -> None:
         """Sanitize and embed info into PDFs."""
-        run_threads_predicate(manifest_items(self.books_lib.books_manifest, predicate=lambda m: not m.has_no_metadata_info()), lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True))
+        run_threaded_action(
+            generate_manifest_items(self.books_lib.books_manifest, predicate=lambda m: not m.has_no_metadata_info()),
+            lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True),
+        )

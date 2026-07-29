@@ -9,7 +9,7 @@ import yaml
 from class_book_manifest import PdfManifestEntry
 from class_tmp_path import TmpPath
 from logger import logger
-from pdf_scan_info_metadata import doc_info_legacy, doc_info_xmp
+from pdf_scan_info_metadata import fill_entry_by_doc_info_legacy, fill_entry_by_doc_info_xmp
 from pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
 from pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
 
@@ -67,6 +67,7 @@ def single_pdf_action(entry: PdfManifestEntry, tmp_path: str = None, do_return_t
         return entry.file, entry.title
 
 
+# TODO TO move this function PdfInfoExtractor
 def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=False):
     if not Path(pdf_path).exists():
         logger.info(f"{pdf_path} not exist")
@@ -82,31 +83,32 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
         entry_doi.isbn_normalized = normalize_isbn(entry_doi.isbn)
     update_manifest_info_empty_fields(entry, entry_doi)
     if print_values:
-        print(f"doi: {pformat(entry)}")
+        logger.info(f"doi: {pformat(entry)}")
 
+    # TODO no need to continue if entry is filled
     with pikepdf.open(pdf_path) as pdf:
-        doc_info_legacy(pdf, entry_doc)
+        fill_entry_by_doc_info_legacy(pdf, entry_doc)
         entry_doc.scan_blacklisted_values()
         update_manifest_info_empty_fields(entry, entry_doc)
         if print_values:
-            print(f"legacy: {pformat(entry)}")
-        doc_info_xmp(pdf, entry_xmp)
+            logger.info(f"legacy: {pformat(entry)}")
+        fill_entry_by_doc_info_xmp(pdf, entry_xmp)
         entry_xmp.scan_blacklisted_values()
         update_manifest_info_empty_fields(entry, entry_xmp)
         if print_values:
-            print(f"xmp: {pformat(entry)}")
+            logger.info(f"xmp: {pformat(entry)}")
         grep_copyright_line_pdf(pdf_path, entry_content, print_values)
         entry_content.scan_blacklisted_values()
         update_manifest_info_empty_fields(entry, entry_content)
         if print_values:
-            print(f"grep copyright {pformat(entry)}")
+            logger.info(f"grep copyright {pformat(entry)}")
         if entry.isbn_normalized and (not len(entry.title) or not len(entry.author)):
             if google_book_info_by_isbn(entry.isbn_normalized, entry_google):
-                print("google info failed")
+                logger.info("google info failed")
                 open_library_book_info_by_isbn(entry.isbn_normalized, entry_google)
 
             if not entry_google.author or not entry_google.title:
-                print(f"invalid google info {entry_google}")
+                logger.info(f"invalid google info {entry_google}")
             update_manifest_info_empty_fields(entry, entry_google)
             if entry_google.title and entry.title != entry_google.title:
                 entry.title = entry_google.title
@@ -114,7 +116,7 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
                 entry.author = entry_google.author
 
             if print_values:
-                print(f"update_google {pformat(entry)}")
+                logger.info(f"update_google {pformat(entry)}")
 
     # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")
 

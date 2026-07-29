@@ -36,10 +36,8 @@ def get_input_file(pdf_path: str) -> str:
         present (e.g. the PDF was never processed by pdf_update_metadata,
         or info_file wasn't set on the manifest entry at the time).
     """
-    xmp_key = MANIFEST_TO_XMP_FIELDS["input_file"]
     with pikepdf.open(pdf_path) as doc:
-        meta = doc.open_metadata()
-        return meta.get(xmp_key, "")
+        return doc.open_metadata().get(MANIFEST_TO_XMP_FIELDS["input_file"], "")
 
 
 # --------------------------------------------------------------------------

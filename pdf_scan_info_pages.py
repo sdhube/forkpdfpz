@@ -1,9 +1,10 @@
-import click
 import re
+
+import click
 import pymupdf
+
 from class_book_manifest import PdfManifestEntry
 from pdf_scan_info_web import doi_book_info_by_link
-
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
 YEAR_PATTERN = re.compile(r"\b20[12]\d\b")
@@ -11,7 +12,6 @@ YEAR_PATTERN = re.compile(r"\b20[12]\d\b")
 COPYRIGHT_PATTERN = re.compile(r"(^[^\n]+)\n([^\n]*©[^\n]*)$", re.M)
 
 # ISBN_PATTERN = re.compile(r"ISBN[^\n]*$", re.M)
-ISBN_PATTERN = re.compile(r"(\bISBN)(?:-1[03])?[:\s]*((?:97[89][-\s]?)?\d(?:[-\s]?\d){8}[-\s]?[\dXx])", re.IGNORECASE)
 ISBN_PATTERN = re.compile(
     r"(\bISBN)(?:-1[03])?(?:\s*:\s*)?(?:\s*\([^)]*\))?\s*:?\s*"
     r"((?:97[89][-\s]?)?\d(?:[-\s]?\d){8,11}[-\s]?[\dXx]?)\s*",
@@ -34,43 +34,33 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     # followed by a line containing the copyright symbol or word.
     doc = pymupdf.open(pdf_path)
     max_pages = min(max_search_pages, len(doc))
-    author = ""
-    copyright_line = ""
-    line_before = ""
-    year = ""
-    isbn = ""
-    normalized_isbn = ""
-    title = ""
-    for page_num in range(max_pages):
-        page = doc[page_num]
-        page_text = page.get_text("text")
-        if not page_text:
-            continue
-        match = COPYRIGHT_PATTERN.search(page_text)
-        if match:
-            line_before = match.group(1).strip()
-            print(f"line before={line_before}")
-            m = BY_PATTERN.search(line_before)
-            if m:
-                print(f"by pattern  found {line_before}")
-                author = m.group(1).strip()
-            else:
-                print(f"by pattern not found {line_before}")
-                title = line_before
-            copyright_line = match.group(2).strip()
-            m = YEAR_PATTERN.search(copyright_line)
-            if m:
-                year = m.group(0)
-            m = BY_PATTERN.search(copyright_line)
-            if m and not author:
-                print(f"by pattern  found in copyright line {line_before}")
-                author = m.group(1).strip()
 
-            m = ISBN_PATTERN.search(page_text)
-            if m:
-                isbn = m.group(2)
-                normalized_isbn = normalize_isbn(isbn)
-            break
+    # one liner initialization
+    author = year = isbn = normalized_isbn = title = ""
+
+    for page_num in range(max_pages):
+        page_text = doc[page_num].get_text("text")
+
+        # python collapsing if by walrus , or, continue
+        if not page_text or not (match := COPYRIGHT_PATTERN.search(page_text)):
+            continue
+        # python multiple assingment, tuple unpacking
+        line_before, copyright_line = match.group(1).strip(), match.group(2).strip()
+        by_before, by_copyright = BY_PATTERN.search(line_before), BY_PATTERN.search(copyright_line)
+
+        # python terenary expression, fallback of values and values extraction , fallback to emty string ""
+        author = (by_before or by_copyright).group(1).strip() if (by_before or by_copyright) else ""
+        title = line_before if not by_before else ""
+
+        # python walrus save assinment + if
+        if my := YEAR_PATTERN.search(copyright_line):
+            year = my.group(0)
+
+        # python walrus
+        if m := ISBN_PATTERN.search(page_text):
+            # python multiple assingment, tuple packing
+            isbn, normalized_isbn = m.group(2), normalize_isbn(m.group(2))
+        break
     entry.author = author
     entry.year = year
     entry.title = title
@@ -86,14 +76,12 @@ def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = Fa
     doc = pymupdf.open(pdf_path)
     max_pages = min(max_search_pages, len(doc))
     for page_num in range(max_pages):
-        page = doc[page_num]
-        page_text = page.get_text("text")
-        if not page_text:
-            continue
-        match = DOI_PATTERN.search(page_text)
-        if match:
-            doi_link = match.group()
-            doi_book_info_by_link(doi_link, entry)
+        page_text = doc[page_num].get_text("text")
+
+        # python and + walrus for simple find/break condition in page loop
+        if page_text and (match := DOI_PATTERN.search(page_text)):
+            doi_book_info_by_link(match.group(), entry)
+            break  # python save searches on pages
     if print_values:
         print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
 
