@@ -110,15 +110,11 @@ def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -
 
 def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """ """
-    manifest: List[PdfManifestEntry] = books_lib.books_manifest
-
     # Delegate PDF-path-based threading to the helper
     run_threads_books_lib_pdf_path(books_lib, sanitize_pdf, max_workers=max_workers)
 
 
 def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """ """
-    manifest: List[PdfManifestEntry] = books_lib.books_manifest
-
     # Delegate PDF-path-based threading to the helper
     run_threads_books_lib_pdf_path(books_lib, sanitize_fitz, max_workers=max_workers)
