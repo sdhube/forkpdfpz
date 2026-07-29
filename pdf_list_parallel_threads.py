@@ -11,6 +11,9 @@ from pdf_actions_info import single_pdf_info_action_with_path
 from pdf_manifest_actions import single_pdf_action
 from pdf_sanitize_fitz import sanitize_fitz
 from pdf_sanitize_pike import sanitize_pdf
+# ------------------------------------------------------------------------------
+# helpers functions
+# ------------------------------------------------------------------------------
 
 
 def get_max_workers() -> int:
@@ -69,8 +72,9 @@ def run_threads_books_lib_pdf_path(
     pdf_files = [str(p) for p in pdf_paths]
 
     run_threads_predicate(pdf_files, predicate, max_workers=max_workers)
-
-
+# ------------------------------------------------------------------------------
+# public functions
+# ------------------------------------------------------------------------------
 def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
       """
       updates books lib with books info in parallel using threadpool
