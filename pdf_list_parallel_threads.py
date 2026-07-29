@@ -72,28 +72,19 @@ def run_threads_books_lib_pdf_path(
 
 
 def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """
-    updates books lib with books info in parallel using threadpool
-    """
-    manifest: List[PdfManifestEntry] = books_lib.books_manifest
+      """
+      updates books lib with books info in parallel using threadpool
+      """
+      manifest = books_lib.books_manifest
+      needs_info = [m for m in manifest.books if not m.has_no_metadata_info()]
+      for m in manifest.books:
+          logger.info(f"has {'no ' if m.has_no_metadata_info() else ''}metadata info {m.name} ")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        for m in manifest.books:
-            if m.has_no_metadata_info():
-                logger.info(f"has no metadata info {m.name} ")
-        for m in manifest.books:
-            if not m.has_no_metadata_info():
-                logger.info(f"has metadata info {m.name} ")
-
-        future_to_manifest = {
-            executor.submit(
-                single_pdf_info_action_with_path, TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True
-            ): m
-            for m in manifest.books
-            if not m.has_no_metadata_info()
-        }
-
-        run_and_report(future_to_manifest)
+      run_threads_predicate(
+          needs_info,
+          lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True),
+          max_workers=max_workers,
+      )
 
 
 def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
