@@ -1,9 +1,10 @@
-import click
 import re
+
+import click
 import pymupdf
+
 from class_book_manifest import PdfManifestEntry
 from pdf_scan_info_web import doi_book_info_by_link
-
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
 YEAR_PATTERN = re.compile(r"\b20[12]\d\b")
@@ -33,20 +34,31 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     # followed by a line containing the copyright symbol or word.
     doc = pymupdf.open(pdf_path)
     max_pages = min(max_search_pages, len(doc))
+
+    # one liner initialization
     author = year = isbn = normalized_isbn = title = ""
+
     for page_num in range(max_pages):
         page_text = doc[page_num].get_text("text")
+
+        # python collapsing if by walrus , or, continue
         if not page_text or not (match := COPYRIGHT_PATTERN.search(page_text)):
             continue
-
+        # python multiple assingment, tuple unpacking
         line_before, copyright_line = match.group(1).strip(), match.group(2).strip()
         by_before, by_copyright = BY_PATTERN.search(line_before), BY_PATTERN.search(copyright_line)
+
+        # python terenary expression, fallback of values and values extraction , fallback to emty string ""
         author = (by_before or by_copyright).group(1).strip() if (by_before or by_copyright) else ""
         title = line_before if not by_before else ""
 
+        # python walrus save assinment + if
         if my := YEAR_PATTERN.search(copyright_line):
             year = my.group(0)
+
+        # python walrus
         if m := ISBN_PATTERN.search(page_text):
+            # python multiple assingment, tuple packing
             isbn, normalized_isbn = m.group(2), normalize_isbn(m.group(2))
         break
     entry.author = author
@@ -65,8 +77,11 @@ def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = Fa
     max_pages = min(max_search_pages, len(doc))
     for page_num in range(max_pages):
         page_text = doc[page_num].get_text("text")
+
+        # python and + walrus for simple find/break condition in page loop
         if page_text and (match := DOI_PATTERN.search(page_text)):
             doi_book_info_by_link(match.group(), entry)
+            break  # python save searches on pages
     if print_values:
         print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
 
