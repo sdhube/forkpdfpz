@@ -1,10 +1,11 @@
 import concurrent.futures
 import os
-from typing import List, Callable, Any, Iterable, Iterator
 from pathlib import Path
+from typing import Any, Callable, Iterable, Iterator, List
 
 from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
 from logger import logger
+
 # ------------------------------------------------------------------------------
 # helpers functions
 # ------------------------------------------------------------------------------
@@ -40,21 +41,28 @@ def run_and_report(future_to_item: dict) -> None:
             logger.warning(f"exception in thread: {exc}")
 
 
-def run_threads_predicate(
-    items: Iterable[Any], func: Callable[[Any], Any], max_workers: int = MAX_WORKERS
+# ------------------------------
+# public functions
+# ------------------------------
+
+
+# python threaded action_function on list of items
+def run_threaded_action(
+    items: Iterable[Any], action_func: Callable[[Any], Any], max_workers: int = MAX_WORKERS
 ) -> None:
-    """Run `func(item)` for each item in `items` in parallel using a ThreadPoolExecutor.
+    """Run `action_func(item)` for each item in `items` in parallel using a ThreadPoolExecutor.
 
     - items: iterable of inputs to pass to func (a list or a generator both work)
-    - func: callable that accepts a single argument
+    - action_func: callable that accepts a single argument
     - max_workers: number of worker threads to use
     """
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_item = {executor.submit(func, item): item for item in items}
+        future_to_item = {executor.submit(action_func, item): item for item in items}
         run_and_report(future_to_item)
 
 
-def manifest_items(
+# python  createing generator with optional if condition over items
+def generate_manifest_items(
     manifest: BooksManifest,
     predicate: Callable[[PdfManifestEntry], bool] = lambda m: True,
 ) -> Iterator[PdfManifestEntry]:
@@ -62,17 +70,18 @@ def manifest_items(
     return (m for m in manifest.books if predicate(m))
 
 
+# python running function over books_lib with direct path files
 def run_threads_books_lib_pdf_path(
-    books_lib: BooksLib, predicate: Callable[[str], Any], max_workers: int = MAX_WORKERS
+    books_lib: BooksLib, action_function: Callable[[str], Any], max_workers: int = MAX_WORKERS
 ) -> None:
-    """Run `predicate` on every PDF file path found in books_lib.tmp_path using the generic thread runner.
+    """Run `action_function` on every PDF file path found in books_lib.tmp_path using the generic thread runner.
 
     - books_lib: BooksLib instance containing the tmp_path where PDFs reside
-    - predicate: callable that accepts a single argument (file path as str)
+    - action_function: callable that accepts a single argument (file path as str)
     - max_workers: number of worker threads to use
     """
     dir_path = books_lib.tmp_path
     pdf_paths = list_pdf_files(dir_path)
     pdf_files = [str(p) for p in pdf_paths]
 
-    run_threads_predicate(pdf_files, predicate, max_workers=max_workers)
+    run_threaded_action(pdf_files, action_function, max_workers=max_workers)
