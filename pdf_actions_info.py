@@ -14,7 +14,9 @@ from pdf_sanitize_info import del_info, pdf_update_metadata
 # --------------------------------------------
 
 
-def single_pdf_info_action_with_path(pdf_path, entry: PdfManifestEntry, sanitize_info=False):
+def single_pdf_info_action_with_path(
+    pdf_path, entry: PdfManifestEntry, sanitize_info=False
+):
     logger.info("enter single_pdf_info_action_with_path")
     if not Path(pdf_path).exists():
         return f"pdf not found {str(pdf_path)}"
@@ -68,6 +70,6 @@ if __name__ == "__main__":
     main()
 
 
-# pythonic pdf_actions_info.py  /home/sd/tmp/one-file/orig/socket_cpp_.pdf --sanitize-info
+# python pdf_actions_info.py  /home/sd/tmp/one-file/orig/socket_cpp_.pdf --sanitize-info
 # exiftool -a -G1  /tmp/metadata/socket_cpp_.pdf
 # pdfinfo /tmp/metadata/socket_cpp_.pdf
