@@ -23,7 +23,7 @@ class BookOperations:
     sanitize_normalize_name: bool = False
     print_first: bool = False
 
-    # pythonic replacing repited if statements with dictionary
+
     def get_enabled_operations(self) -> dict:
         """Return a mapping of enabled operation names to their methods.
         Allows callers to iterate over only the enabled operations without
