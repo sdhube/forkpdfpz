@@ -55,6 +55,22 @@ def run_threads_predicate(items: List[Any], func: Callable[[Any], Any], max_work
         run_and_report(future_to_item)
 
 
+def run_threads_books_lib_pdf_path(
+    books_lib: BooksLib, predicate: Callable[[str], Any], max_workers: int = MAX_WORKERS
+) -> None:
+    """Run `predicate` on every PDF file path found in books_lib.tmp_path using the generic thread runner.
+
+    - books_lib: BooksLib instance containing the tmp_path where PDFs reside
+    - predicate: callable that accepts a single argument (file path as str)
+    - max_workers: number of worker threads to use
+    """
+    dir_path = books_lib.tmp_path
+    pdf_paths = list_pdf_files(dir_path)
+    pdf_files = [str(p) for p in pdf_paths]
+
+    run_threads_predicate(pdf_files, predicate, max_workers=max_workers)
+
+
 def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """
     updates books lib with books info in parallel using threadpool
@@ -96,21 +112,13 @@ def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKER
     """ """
     manifest: List[PdfManifestEntry] = books_lib.books_manifest
 
-    dir_path = books_lib.tmp_path
-    pdf_paths = list_pdf_files(dir_path)
-    pdf_files = [str(p) for p in pdf_paths]
-
-    # Use the generic thread runner helper
-    run_threads_predicate(pdf_files, sanitize_pdf, max_workers=max_workers)
+    # Delegate PDF-path-based threading to the helper
+    run_threads_books_lib_pdf_path(books_lib, sanitize_pdf, max_workers=max_workers)
 
 
 def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
     """ """
     manifest: List[PdfManifestEntry] = books_lib.books_manifest
 
-    dir_path = books_lib.tmp_path
-    pdf_paths = list_pdf_files(dir_path)
-    pdf_files = [str(p) for p in pdf_paths]
-
-    # Use the same generic helper for the fitz-based sanitizer
-    run_threads_predicate(pdf_files, sanitize_fitz, max_workers=max_workers)
+    # Delegate PDF-path-based threading to the helper
+    run_threads_books_lib_pdf_path(books_lib, sanitize_fitz, max_workers=max_workers)
