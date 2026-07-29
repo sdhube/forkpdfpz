@@ -5,41 +5,32 @@ from class_book_manifest import PdfManifestEntry
 
 
 def google_book_info_by_isbn(isbn: str, entry: PdfManifestEntry):
-    url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
-
-    response = requests.get(url, timeout=5)
+    response = requests.get(f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}", timeout=5)
     if response.status_code != 200:
         return response.status_code
-    items = data.get("items", [])
+
+    items = response.json().get("items", [])
     if not items:
         return
 
     volume_info = items[0].get("volumeInfo", {})
-
-    entry.title = (volume_info.get("title", ""),)
-    if isinstance(entry.title, tuple):
-        entry.title = ", ".join(entry.title)
-
+    entry.title = volume_info.get("title", "")
     entry.author = ", ".join(volume_info.get("authors", []))
 
 
 def open_library_book_info_by_isbn(isbn, entry: PdfManifestEntry):
-    url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
-
-    response = requests.get(url, timeout=5)
+    response = requests.get(
+        f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data", timeout=5
+    )
     if response.status_code != 200:
         return response.status_code
+
     data = response.json()
-    book_key = f"ISBN:{isbn}"
-    if book_key not in data:
+    book = data.get(f"ISBN:{isbn}")
+    if not book:
         return None
 
-    book = data[book_key]
-
-    entry.title = (book.get("title"),)
-    if isinstance(entry.title, tuple):
-        entry.title = ", ".join(entry.title)
-
+    entry.title = book.get("title", "")
     entry.author = ", ".join(author["name"] for author in book.get("authors", []))
 
 
@@ -47,9 +38,7 @@ def doi_book_info_by_link(doi_url: str, entry: PdfManifestEntry):
     """
     additional fields that entry dont have
     """
-
-    # Extract DOI from URL
-    # Example: https://doi.org/10.1007/978-3-030-28494-7
+    # Extract DOI from URL, e.g. https://doi.org/10.1007/978-3-030-28494-7
     doi = urlparse(doi_url).path.lstrip("/")
 
     response = requests.get(
@@ -63,31 +52,8 @@ def doi_book_info_by_link(doi_url: str, entry: PdfManifestEntry):
     msg = response.json()["message"]
 
     entry.title = msg.get("title", [""])[0]
-
-    # Subtitle
-    subtitle = msg.get("subtitle", [""])
-    subtitle = subtitle[0] if subtitle else ""
-
-    # Authors
-    authors = []
-    for author in msg.get("author", []):
-        given = author.get("given", "")
-        family = author.get("family", "")
-        name = f"{given} {family}".strip()
-
-        if name:
-            authors.append(name)
-    entry.author = ", ".join(authors)
-    year = ""
-    for field in ("published-print", "published-online", "issued"):
-        if field in msg:
-            year = msg[field]["date-parts"][0][0]
-            break
-    entry.year = str(year)
-    isbn = msg.get("ISBN", [])
-    entry.isbn = isbn[0] if isbn else ""
-
-    publisher = msg.get("publisher", "")
-    subjects = msg.get("subject", [])
-    item_type = msg.get("type", "")
-    abstract = msg.get("abstract", "")
+    entry.author = ", ".join(
+        name for a in msg.get("author", []) if (name := f"{a.get('given', '')} {a.get('family', '')}".strip())
+    )
+    entry.year = str(next((msg[f]["date-parts"][0][0] for f in ("published-print", "published-online", "issued") if f in msg), ""))
+    entry.isbn = next(iter(msg.get("ISBN", [])), "")
