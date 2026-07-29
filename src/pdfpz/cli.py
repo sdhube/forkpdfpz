@@ -5,9 +5,9 @@ from typing import Optional
 
 import click
 
-from class_book_manifest import BooksLib
-from class_books_actions import BooksActions
-from logger import logger
+from pdfpz.core.class_book_manifest import BooksLib
+from pdfpz.actions.class_books_actions import BooksActions
+from pdfpz.core.logger import logger
 
 
 @dataclass
@@ -116,11 +116,11 @@ def main(**kwargs) -> None:
 
 if __name__ == "__main__":
     main()
-# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --print-first
-# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml --tmp-path=/tmp/stam
-# /bin/python yaml_actions.py ~/shared/gitlab_books/output.yaml  --copy-pdfs
-# /bin/python yaml_actions.py copied.yml --tmp-path=/tmp/tmpijmg7hk2 --update-yaml-info
-# /bin/python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/1-sanitized2/ --move-no-info
-# python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-didier"
-# python yaml_actions.py  files_info.yaml --tmp-path=/home/sd/tmp/sanitized --sanitize-info"
-# python yaml_actions.py  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --sanitize-normalize-name"
+# pdfpz ~/shared/gitlab_books/output.yaml --print-first
+# pdfpz ~/shared/gitlab_books/output.yaml --tmp-path=/tmp/stam
+# pdfpz ~/shared/gitlab_books/output.yaml  --copy-pdfs
+# pdfpz copied.yml --tmp-path=/tmp/tmpijmg7hk2 --update-yaml-info
+# pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/1-sanitized2/ --move-no-info
+# pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-didier"
+# pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/sanitized --sanitize-info"
+# pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --sanitize-normalize-name"
