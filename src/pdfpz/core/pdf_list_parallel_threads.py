@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, List
 
-from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
-from logger import logger
+from pdfpz.core.class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
+from pdfpz.core.logger import logger
 
 # ------------------------------------------------------------------------------
 # helpers functions

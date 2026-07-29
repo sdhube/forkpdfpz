@@ -5,15 +5,15 @@ from pprint import pformat
 
 import yaml
 
-from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
-from class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
-from class_tmp_path import TmpPath
-from logger import logger
-from pdf_actions_info import single_pdf_info_action_with_path
-from pdf_list_parallel_threads import generate_manifest_items, run_threaded_action, run_threads_books_lib_pdf_path
-from pdf_manifest_actions import single_pdf_action
-from pdf_sanitize_fitz import sanitize_fitz
-from pdf_sanitize_pike import sanitize_pdf
+from pdfpz.core.class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
+from pdfpz.actions.class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
+from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
+from pdfpz.core.pdf_list_parallel_threads import generate_manifest_items, run_threaded_action, run_threads_books_lib_pdf_path
+from pdfpz.actions.pdf_manifest_actions import single_pdf_action
+from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
+from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
 
 
 class BooksActions:

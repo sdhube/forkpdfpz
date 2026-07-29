@@ -6,12 +6,12 @@ import click
 import pikepdf
 import yaml
 
-from class_book_manifest import PdfManifestEntry
-from class_tmp_path import TmpPath
-from logger import logger
-from pdf_scan_info_metadata import fill_entry_by_doc_info_legacy, fill_entry_by_doc_info_xmp
-from pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
-from pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
+from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
+from pdfpz.actions.pdf_scan_info_metadata import fill_entry_by_doc_info_legacy, fill_entry_by_doc_info_xmp
+from pdfpz.actions.pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
+from pdfpz.actions.pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
 
 # --------------------------------------------
 # public functions

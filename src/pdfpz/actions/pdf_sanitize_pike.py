@@ -12,9 +12,9 @@ import click
 import fitz
 import pikepdf
 
-from class_tmp_path import TmpPath
-from pdf_actions_file import save_tmp_mv_on_source
-from pdf_sanitize_fitz import sanitize_fitz
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.actions.pdf_actions_file import save_tmp_mv_on_source
+from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 
 
 # --- moved from sanitize_second_pass.py -------------------------------------------------

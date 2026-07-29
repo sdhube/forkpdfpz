@@ -1,9 +1,9 @@
 import pikepdf
 
-from class_book_manifest import MANIFEST_TO_PDF_FIELDS, MANIFEST_TO_XMP_FIELDS, PDFSAN_XMP_PREFIX
-from class_tmp_path import TmpPath
-from logger import logger
-from pdf_actions_file import save_tmp_mv_on_source
+from pdfpz.core.class_book_manifest import MANIFEST_TO_PDF_FIELDS, MANIFEST_TO_XMP_FIELDS, PDFSAN_XMP_PREFIX
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
+from pdfpz.actions.pdf_actions_file import save_tmp_mv_on_source
 
 # Custom XMP namespace for application-specific fields that have no
 # standard dc:/pdf:/xmp: equivalent (e.g. info_file). Must be registered

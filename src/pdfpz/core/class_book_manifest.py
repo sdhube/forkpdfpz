@@ -9,7 +9,7 @@ from typing import List, Optional
 
 import yaml
 
-from logger import logger
+from pdfpz.core.logger import logger
 
 # Compiled once upon module import
 BLACKLIST_REGEX = re.compile(r"www|https|\.pdf|\bnone\b", re.IGNORECASE)

@@ -1,9 +1,9 @@
 import shutil
 from pathlib import Path
 
-from class_book_manifest import PdfManifestEntry
+from pdfpz.core.class_book_manifest import PdfManifestEntry
 from class_pdf_path import PdfPath
-from logger import logger
+from pdfpz.core.logger import logger
 
 
 def move_pdf_to_no_info(entry: PdfManifestEntry):
