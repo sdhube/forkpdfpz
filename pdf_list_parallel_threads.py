@@ -1,16 +1,10 @@
 import concurrent.futures
 import os
-import sys
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Iterable, Iterator
 from pathlib import Path
 
-from class_book_manifest import BooksLib, PdfManifestEntry
-from class_tmp_path import TmpPath
+from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
 from logger import logger
-from pdf_actions_info import single_pdf_info_action_with_path
-from pdf_manifest_actions import single_pdf_action
-from pdf_sanitize_fitz import sanitize_fitz
-from pdf_sanitize_pike import sanitize_pdf
 # ------------------------------------------------------------------------------
 # helpers functions
 # ------------------------------------------------------------------------------
@@ -46,16 +40,26 @@ def run_and_report(future_to_item: dict) -> None:
             logger.warning(f"exception in thread: {exc}")
 
 
-def run_threads_predicate(items: List[Any], func: Callable[[Any], Any], max_workers: int = MAX_WORKERS) -> None:
+def run_threads_predicate(
+    items: Iterable[Any], func: Callable[[Any], Any], max_workers: int = MAX_WORKERS
+) -> None:
     """Run `func(item)` for each item in `items` in parallel using a ThreadPoolExecutor.
 
-    - items: iterable of inputs to pass to func
+    - items: iterable of inputs to pass to func (a list or a generator both work)
     - func: callable that accepts a single argument
     - max_workers: number of worker threads to use
     """
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_item = {executor.submit(func, item): item for item in items}
         run_and_report(future_to_item)
+
+
+def manifest_items(
+    manifest: BooksManifest,
+    predicate: Callable[[PdfManifestEntry], bool] = lambda m: True,
+) -> Iterator[PdfManifestEntry]:
+    """Yield manifest entries matching `predicate` (default: every entry, unfiltered)."""
+    return (m for m in manifest.books if predicate(m))
 
 
 def run_threads_books_lib_pdf_path(
@@ -72,44 +76,3 @@ def run_threads_books_lib_pdf_path(
     pdf_files = [str(p) for p in pdf_paths]
 
     run_threads_predicate(pdf_files, predicate, max_workers=max_workers)
-# ------------------------------------------------------------------------------
-# public functions
-# ------------------------------------------------------------------------------
-def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-      """
-      updates books lib with books info in parallel using threadpool
-      """
-      manifest = books_lib.books_manifest
-      needs_info = [m for m in manifest.books if not m.has_no_metadata_info()]
-      for m in manifest.books:
-          logger.info(f"has {'no ' if m.has_no_metadata_info() else ''}metadata info {m.name} ")
-
-      run_threads_predicate(
-          needs_info,
-          lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True),
-          max_workers=max_workers,
-      )
-
-
-def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """
-    updates books lib with books info in parallel using threadpool
-    """
-    manifest: List[PdfManifestEntry] = books_lib.books_manifest
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        future_to_manifest = {executor.submit(single_pdf_action, m, books_lib.tmp_path): m for m in manifest.books}
-
-        run_and_report(future_to_manifest)
-
-
-def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """ """
-    # Delegate PDF-path-based threading to the helper
-    run_threads_books_lib_pdf_path(books_lib, sanitize_pdf, max_workers=max_workers)
-
-
-def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """ """
-    # Delegate PDF-path-based threading to the helper
-    run_threads_books_lib_pdf_path(books_lib, sanitize_fitz, max_workers=max_workers)
