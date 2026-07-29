@@ -46,7 +46,7 @@ def run_and_report(future_to_item: dict) -> None:
 # ------------------------------
 
 
-
+# pythonic threaded action_function on list of items
 def run_threaded_action(
     items: Iterable[Any], action_func: Callable[[Any], Any], max_workers: int = MAX_WORKERS
 ) -> None:
@@ -61,7 +61,7 @@ def run_threaded_action(
         run_and_report(future_to_item)
 
 
-
+# pythonic  createing generator with optional if condition over items
 def generate_manifest_items(
     manifest: BooksManifest,
     predicate: Callable[[PdfManifestEntry], bool] = lambda m: True,
@@ -70,7 +70,7 @@ def generate_manifest_items(
     return (m for m in manifest.books if predicate(m))
 
 
-
+# pythonic running function over books_lib with direct path files
 def run_threads_books_lib_pdf_path(
     books_lib: BooksLib, action_function: Callable[[str], Any], max_workers: int = MAX_WORKERS
 ) -> None:
