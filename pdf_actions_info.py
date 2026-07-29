@@ -68,6 +68,6 @@ if __name__ == "__main__":
     main()
 
 
-# python pdf_actions_info.py  /home/sd/tmp/one-file/orig/socket_cpp_.pdf --sanitize-info
+# pythonic pdf_actions_info.py  /home/sd/tmp/one-file/orig/socket_cpp_.pdf --sanitize-info
 # exiftool -a -G1  /tmp/metadata/socket_cpp_.pdf
 # pdfinfo /tmp/metadata/socket_cpp_.pdf

@@ -46,7 +46,7 @@ def pdf_update_metadata(p: TmpPath, ext_meta):
         ext_meta: PdfManifestEntry object with metadata to apply
     """
     with pikepdf.open(p.path_sanitized_info_tmp) as doc:
-        # python walrus operator in dict comprehension,  the last value can be access afterwards
+        # pythonic walrus operator in dict comprehension,  the last value can be access afterwards
         metadata_dict = {
             field_name: value
             for field_name in ("title", "author", "isbn", "year", "name", "input_file")
