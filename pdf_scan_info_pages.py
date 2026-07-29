@@ -41,24 +41,24 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     for page_num in range(max_pages):
         page_text = doc[page_num].get_text("text")
 
-        # python collapsing if by walrus , or, continue
+        # pythonic collapsing if by walrus , or, continue
         if not page_text or not (match := COPYRIGHT_PATTERN.search(page_text)):
             continue
-        # python multiple assingment, tuple unpacking
+        # pythonic multiple assingment, tuple unpacking
         line_before, copyright_line = match.group(1).strip(), match.group(2).strip()
         by_before, by_copyright = BY_PATTERN.search(line_before), BY_PATTERN.search(copyright_line)
 
-        # python terenary expression, fallback of values and values extraction , fallback to emty string ""
+        # pythonic terenary expression, fallback of values and values extraction , fallback to emty string ""
         author = (by_before or by_copyright).group(1).strip() if (by_before or by_copyright) else ""
         title = line_before if not by_before else ""
 
-        # python walrus save assinment + if
+        # pythonic walrus save assinment + if
         if my := YEAR_PATTERN.search(copyright_line):
             year = my.group(0)
 
-        # python walrus
+        # pythonic walrus
         if m := ISBN_PATTERN.search(page_text):
-            # python multiple assingment, tuple packing
+            # pythonic multiple assingment, tuple packing
             isbn, normalized_isbn = m.group(2), normalize_isbn(m.group(2))
         break
     entry.author = author
@@ -78,10 +78,10 @@ def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = Fa
     for page_num in range(max_pages):
         page_text = doc[page_num].get_text("text")
 
-        # python and + walrus for simple find/break condition in page loop
+        # pythonic and + walrus for simple find/break condition in page loop
         if page_text and (match := DOI_PATTERN.search(page_text)):
             doi_book_info_by_link(match.group(), entry)
-            break  # python save searches on pages
+            break  # pythonic break on first find, cpu save, stop to search on pages
     if print_values:
         print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
 
