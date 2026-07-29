@@ -12,7 +12,7 @@ from pdf_scan_info_pages import YEAR_PATTERN
 COPYRIGHT_WORD_PATTERN = re.compile(r"(?:©|copyright)\s*(.*)", re.IGNORECASE)
 
 
-class PdfInfo:
+class PdfInfoExtractor:
     """Extracts bibliographic metadata (title/author/year/isbn/...) from a PDF's
     legacy DocInfo dict and XMP stream, writing the results onto a bound
     ``PdfManifestEntry``.
@@ -32,12 +32,12 @@ class PdfInfo:
         self.entry = entry
 
     @classmethod
-    def for_entry(cls, entry: PdfManifestEntry) -> "PdfInfo":
+    def for_entry(cls, entry: PdfManifestEntry) -> "PdfInfoExtractor":
         """Creational: bind a PdfInfo to an existing manifest entry."""
         return cls(entry)
 
     @classmethod
-    def blank(cls) -> "PdfInfo":
+    def blank(cls) -> "PdfInfoExtractor":
         """Creational: bind a PdfInfo to a fresh, empty manifest entry."""
         return cls(PdfManifestEntry.new_empty_manifest_entry())
 
@@ -83,12 +83,12 @@ class PdfInfo:
 # --------------------------------------------------------------------------
 
 
-def doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry) -> None:
-    PdfInfo.for_entry(entry).from_legacy_docinfo(pdf)
+def fill_entry_by_doc_info_legacy(pdf: pikepdf.Pdf, entry: PdfManifestEntry) -> None:
+    PdfInfoExtractor.for_entry(entry).from_legacy_docinfo(pdf)
 
 
-def doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry) -> None:
-    PdfInfo.for_entry(entry).from_xmp(pdf)
+def fill_entry_by_doc_info_xmp(pdf: pikepdf.Pdf, entry: PdfManifestEntry) -> None:
+    PdfInfoExtractor.for_entry(entry).from_xmp(pdf)
 
 
 # python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
