@@ -1,4 +1,5 @@
 import shutil
+from functools import partial
 from pathlib import Path, PurePosixPath
 from pprint import pformat
 
@@ -6,13 +7,13 @@ import yaml
 
 from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
 from class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
+from class_tmp_path import TmpPath
 from logger import logger
-from pdf_list_parallel_threads import (
-    threadpool_books_fitz_sanitize,
-    threadpool_books_info,
-    threadpool_books_sanitize,
-    threadpool_embed_info,
-)
+from pdf_actions_info import single_pdf_info_action_with_path
+from pdf_list_parallel_threads import manifest_items, run_threads_books_lib_pdf_path, run_threads_predicate
+from pdf_manifest_actions import single_pdf_action
+from pdf_sanitize_fitz import sanitize_fitz
+from pdf_sanitize_pike import sanitize_pdf
 
 
 class BooksActions:
@@ -116,7 +117,7 @@ class BooksActions:
     def update_books_lib_info_no_save(self) -> None:
         """Update lib info for books using threadpool."""
         logger.info("updating yaml info for books")
-        threadpool_books_info(self.books_lib)
+        run_threads_predicate(manifest_items(self.books_lib.books_manifest), partial(single_pdf_action, tmp_path=self.books_lib.tmp_path))
 
     def save_books_lib_yaml(self) -> None:
         logger.info("saving  yaml info for books")
@@ -124,12 +125,12 @@ class BooksActions:
 
     def sanitize_books_didier(self) -> None:
         """Sanitize books using didier finds."""
-        threadpool_books_sanitize(self.books_lib)
+        run_threads_books_lib_pdf_path(self.books_lib, sanitize_pdf)
 
     def sanitize_books_fitz_didier(self) -> None:
         """Fitz and move books using didier finds."""
-        threadpool_books_fitz_sanitize(self.books_lib)
+        run_threads_books_lib_pdf_path(self.books_lib, sanitize_fitz)
 
     def sanitize_books_info(self) -> None:
         """Sanitize and embed info into PDFs."""
-        threadpool_embed_info(self.books_lib)
+        run_threads_predicate(manifest_items(self.books_lib.books_manifest, predicate=lambda m: not m.has_no_metadata_info()), lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True))

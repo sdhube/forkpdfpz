@@ -1,17 +1,10 @@
 import concurrent.futures
 import os
-import sys
-from functools import partial
 from typing import List, Callable, Any, Iterable, Iterator
 from pathlib import Path
 
 from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
-from class_tmp_path import TmpPath
 from logger import logger
-from pdf_actions_info import single_pdf_info_action_with_path
-from pdf_manifest_actions import single_pdf_action
-from pdf_sanitize_fitz import sanitize_fitz
-from pdf_sanitize_pike import sanitize_pdf
 # ------------------------------------------------------------------------------
 # helpers functions
 # ------------------------------------------------------------------------------
@@ -83,42 +76,3 @@ def run_threads_books_lib_pdf_path(
     pdf_files = [str(p) for p in pdf_paths]
 
     run_threads_predicate(pdf_files, predicate, max_workers=max_workers)
-# ------------------------------------------------------------------------------
-# public functions
-# ------------------------------------------------------------------------------
-def threadpool_embed_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-      """
-      updates books lib with books info in parallel using threadpool
-      """
-      manifest = books_lib.books_manifest
-      for m in manifest.books:
-          logger.info(f"has {'no ' if m.has_no_metadata_info() else ''}metadata info {m.name} ")
-
-      run_threads_predicate(
-          manifest_items(manifest, predicate=lambda m: not m.has_no_metadata_info()),
-          lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True),
-          max_workers=max_workers,
-      )
-
-
-def threadpool_books_info(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """
-    updates books lib with books info in parallel using threadpool
-    """
-    run_threads_predicate(
-        manifest_items(books_lib.books_manifest),
-        partial(single_pdf_action, tmp_path=books_lib.tmp_path),
-        max_workers=max_workers,
-    )
-
-
-def threadpool_books_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """ """
-    # Delegate PDF-path-based threading to the helper
-    run_threads_books_lib_pdf_path(books_lib, sanitize_pdf, max_workers=max_workers)
-
-
-def threadpool_books_fitz_sanitize(books_lib: BooksLib, max_workers: int = MAX_WORKERS) -> None:
-    """ """
-    # Delegate PDF-path-based threading to the helper
-    run_threads_books_lib_pdf_path(books_lib, sanitize_fitz, max_workers=max_workers)
