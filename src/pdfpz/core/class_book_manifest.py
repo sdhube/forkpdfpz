@@ -151,7 +151,7 @@ class PdfManifestEntry:
 
 
 @dataclass
-class BooksManifest:
+class BooksShelf:
     input_path: str
     books: List[PdfManifestEntry] = field(default_factory=list)
 
@@ -160,7 +160,7 @@ class BooksManifest:
         yield from (book for book in self.books if predicate(book))
 
     def save_books_manifest(self, yaml_path: str) -> None:
-        """Save a BooksManifest to a YAML file."""
+        """Save a BooksShelf to a YAML file."""
         logger.info(f"yaml_path={yaml_path}")
         documents = [
             {"input_path": self.input_path},
@@ -172,16 +172,16 @@ class BooksManifest:
 
 
 @dataclass
-class BooksLib:
+class BooksCollection:
     yaml_path: str
     yaml_base_path: str
     sqlite_path: str
     yaml_name: str
-    books_manifest: Optional[BooksManifest]
+    books_manifest: Optional[BooksShelf]
     tmp_path: str
 
     @classmethod
-    def from_yaml_path(cls, _yaml_path: str) -> BooksLib:
+    def from_yaml_path(cls, _yaml_path: str) -> BooksCollection:
         py = PurePosixPath(_yaml_path)
         dy = py.parent
         db = py.name

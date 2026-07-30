@@ -5,7 +5,7 @@ from typing import Optional
 
 import click
 
-from pdfpz.core.class_book_manifest import BooksLib
+from pdfpz.core.class_book_manifest import BooksCollection
 from pdfpz.actions.class_books_actions import BooksActions
 from pdfpz.core.logger import logger
 
@@ -47,7 +47,7 @@ def load_books_lib(
     operations = operations or BookOperations()
 
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
-    books_lib: BooksLib = BooksLib.from_yaml_path(yaml_path)
+    books_lib: BooksCollection = BooksCollection.from_yaml_path(yaml_path)
     books_lib.tmp_path = str(tmp_path) if tmp_path else ""
     logger.info(f"loaded {pformat(books_lib)}")
 

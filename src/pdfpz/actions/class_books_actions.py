@@ -5,7 +5,7 @@ from pprint import pformat
 
 import yaml
 
-from pdfpz.core.class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
+from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
 from pdfpz.actions.class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
@@ -17,9 +17,9 @@ from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
 
 
 class BooksActions:
-    """Encapsulates operations on BooksLib and PDF manifest entries."""
+    """Encapsulates operations on BooksCollection and PDF manifest entries."""
 
-    def __init__(self, books_lib: BooksLib):
+    def __init__(self, books_lib: BooksCollection):
         self.books_lib = books_lib
 
     def copy_external_file_to_temp(self, entry: PdfManifestEntry):
@@ -33,12 +33,12 @@ class BooksActions:
             shutil.copyfileobj(src, dst)
 
     @staticmethod
-    def load_books_manifest(yaml_path: str) -> BooksManifest:
-        """Load a BooksManifest from a YAML file.
+    def load_books_manifest(yaml_path: str) -> BooksShelf:
+        """Load a BooksShelf from a YAML file.
 
         Doesn't touch instance state, so it's a staticmethod -- callable as
-        BooksActions.load_books_manifest(path) without needing a BooksLib.
-        Kept on BooksActions (rather than moved to BooksManifest, which
+        BooksActions.load_books_manifest(path) without needing a BooksCollection.
+        Kept on BooksActions (rather than moved to BooksShelf, which
         already has the matching save_books_manifest) because self.books_lib
         below still calls it the same way it always has.
         """
@@ -55,31 +55,31 @@ class BooksActions:
 
             parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
             logger.info(f"loaded books manifest {yaml_path}")
-            return BooksManifest(input_path=list_path.get("input_path", ""), books=parsed_books)
+            return BooksShelf(input_path=list_path.get("input_path", ""), books=parsed_books)
 
     def copy_yaml_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             self.copy_external_file_to_temp(book)
         self.save_books_lib_yaml()
 
     def copy_yaml_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         for book in books_manifest.books_generator():
             self.copy_external_file_to_temp(book)
         self.save_books_lib_yaml()
 
     def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             move_pdf_to_no_info(book)
 
     def update_normalized_info_and_move_rename_file(self):
         """update"""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         book: PdfManifestEntry = None
         for book in books_manifest.books_generator(lambda e: not e.has_no_metadata_info()):
             normalized_name = book.get_normilized_name()
@@ -91,7 +91,7 @@ class BooksActions:
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         print(f"books_lib.books_manifest = {type(self.books_lib.books_manifest)}")
         print(f"books_manifest = {type(books_manifest)}")
         books_count = len(books_manifest.books)

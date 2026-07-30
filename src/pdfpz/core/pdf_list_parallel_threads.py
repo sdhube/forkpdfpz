@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, List
 
-from pdfpz.core.class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
+from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
 from pdfpz.core.logger import logger
 
 # ------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ def run_threaded_action(
 
 # pythonic  createing generator with optional if condition over items
 def generate_manifest_items(
-    manifest: BooksManifest,
+    manifest: BooksShelf,
     predicate: Callable[[PdfManifestEntry], bool] = lambda m: True,
 ) -> Iterator[PdfManifestEntry]:
     """Yield manifest entries matching `predicate` (default: every entry, unfiltered)."""
@@ -72,11 +72,11 @@ def generate_manifest_items(
 
 # pythonic running function over books_lib with direct path files
 def run_threads_books_lib_pdf_path(
-    books_lib: BooksLib, action_function: Callable[[str], Any], max_workers: int = MAX_WORKERS
+    books_lib: BooksCollection, action_function: Callable[[str], Any], max_workers: int = MAX_WORKERS
 ) -> None:
     """Run `action_function` on every PDF file path found in books_lib.tmp_path using the generic thread runner.
 
-    - books_lib: BooksLib instance containing the tmp_path where PDFs reside
+    - books_lib: BooksCollection instance containing the tmp_path where PDFs reside
     - action_function: callable that accepts a single argument (file path as str)
     - max_workers: number of worker threads to use
     """
