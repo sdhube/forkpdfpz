@@ -32,8 +32,16 @@ class BooksActions:
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
 
-    def load_books_manifest(self, yaml_path: str) -> BooksManifest:
-        """Load a BooksManifest from a YAML file."""
+    @staticmethod
+    def load_books_manifest(yaml_path: str) -> BooksManifest:
+        """Load a BooksManifest from a YAML file.
+
+        Doesn't touch instance state, so it's a staticmethod -- callable as
+        BooksActions.load_books_manifest(path) without needing a BooksLib.
+        Kept on BooksActions (rather than moved to BooksManifest, which
+        already has the matching save_books_manifest) because self.books_lib
+        below still calls it the same way it always has.
+        """
         p: Path = Path(yaml_path)
         if not p.is_file():
             print(f"{yaml_path} is not a file")
