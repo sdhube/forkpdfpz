@@ -38,9 +38,11 @@ class BooksActions:
 
         Doesn't touch instance state, so it's a staticmethod -- callable as
         BooksActions.load_books_manifest(path) without needing a BooksCollection.
-        Kept on BooksActions (rather than moved to BooksShelf, which
-        already has the matching save_books_manifest) because self.books_lib
-        below still calls it the same way it always has.
+        save_books_manifest now lives on BooksCollection (not BooksShelf), so
+        this and BooksCollection.save_books_manifest are no longer a matched
+        pair on the same class -- self.books_lib below still assigns this
+        method's result to self.books_lib.books_manifest the same way it
+        always has, though.
         """
         p: Path = Path(yaml_path)
         if not p.is_file():
@@ -55,7 +57,11 @@ class BooksActions:
 
             parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
             logger.info(f"loaded books manifest {yaml_path}")
-            return BooksShelf(input_path=list_path.get("input_path", ""), books=parsed_books)
+            # list_path['input_path'] is read but not threaded anywhere yet --
+            # BooksShelf no longer carries input_path (it moved to
+            # BooksCollection), and wiring it onto self.books_lib.input_path
+            # here is a separate "load" phase, not done in this change.
+            return BooksShelf(books=parsed_books)
 
     def copy_yaml_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
@@ -132,7 +138,7 @@ class BooksActions:
 
     def save_books_lib_yaml(self) -> None:
         logger.info("saving  yaml info for books")
-        self.books_lib.books_manifest.save_books_manifest("files_info.yaml")
+        self.books_lib.save_books_manifest()
 
     def sanitize_books_didier(self) -> None:
         """Sanitize books using didier finds."""
