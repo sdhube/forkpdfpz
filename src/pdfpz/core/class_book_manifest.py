@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------------
 
 import re
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import PurePosixPath
 from typing import List, Optional
 
@@ -195,7 +195,7 @@ class BooksCollection:
         ]
         with open(self.yaml_path, "w", encoding="utf-8") as f:
             yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
-        print(f"saved books manifest {self.yaml_path}")
+        logger.info(f"saved books manifest {self.yaml_path}")
 
 
 pdf_manifest_schema = """ {

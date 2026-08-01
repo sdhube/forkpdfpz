@@ -111,7 +111,9 @@ def main(**kwargs) -> None:
     # Create BookOperations from remaining kwargs (operation flags)
     operations = BookOperations(**kwargs)
 
-    load_books_collection_and_operate(str(yaml_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations)
+    load_books_collection_and_operate(
+        str(yaml_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations
+    )
 
 
 if __name__ == "__main__":

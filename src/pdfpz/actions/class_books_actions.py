@@ -32,7 +32,7 @@ class BooksActions:
         pdf_name = str(PurePosixPath(entry.input_file).name)
         pdf_output_path = str(Path(self.books_collection.tmp_path).joinpath(pdf_name))
         entry.file = pdf_output_path
-        print(f"copy {pdf_input_path} to {pdf_output_path}")
+        logger.info(f"copy {pdf_input_path} to {pdf_output_path}")
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
 
@@ -50,7 +50,7 @@ class BooksActions:
         """
         p: Path = Path(yaml_path)
         if not p.is_file():
-            print(f"{yaml_path} is not a file")
+            logger.info(f"{yaml_path} is not a file")
             return None
         logger.info(f"yaml_path={yaml_path}")
         with open(yaml_path, "r", encoding="utf-8") as f:
@@ -101,17 +101,17 @@ class BooksActions:
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
         books_manifest: BooksShelf = self.books_collection.books_manifest
-        print(f"books_collection.books_manifest = {type(self.books_collection.books_manifest)}")
-        print(f"books_manifest = {type(books_manifest)}")
+        logger.info(f"books_collection.books_manifest = {type(self.books_collection.books_manifest)}")
+        logger.info(f"books_manifest = {type(books_manifest)}")
         books_count = len(books_manifest.books)
-        print(f"count={books_count}")
+        logger.info(f"count={books_count}")
         first_entry: PdfManifestEntry | None = next(iter(books_manifest.books), None)
         first_entry: PdfManifestEntry = books_manifest.books[2]
-        print(f"first entry: {pformat(first_entry)}")
+        logger.info(f"first entry: {pformat(first_entry)}")
         for path in Path(self.books_collection.tmp_path).iterdir():
             info = path.stat()
-            print(f"source {PurePosixPath(path).name}")
-            print(f"{self.books_collection.tmp_path}/{path.name} {info.st_size}")
+            logger.info(f"source {PurePosixPath(path).name}")
+            logger.info(f"{self.books_collection.tmp_path}/{path.name} {info.st_size}")
 
     # TODO this is actually set temp and load
     def load_manifest(self, tmp_path: str = None) -> None:
@@ -153,6 +153,8 @@ class BooksActions:
     def sanitize_books_info(self) -> None:
         """Sanitize and embed info into PDFs."""
         run_threaded_action(
-            generate_manifest_items(self.books_collection.books_manifest, predicate=lambda m: not m.has_no_metadata_info()),
+            generate_manifest_items(
+                self.books_collection.books_manifest, predicate=lambda m: not m.has_no_metadata_info()
+            ),
             lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True),
         )
