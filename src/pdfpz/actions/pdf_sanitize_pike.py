@@ -167,47 +167,6 @@ def pdf_stream_complete_rewrite(pdf_path: str) -> None:
             logger.info(f"{pdf_path} PDF streams fixed successfully!")
 
 
-def normalize_pdf_and_check_warnings__NOT_WORKING(pdf_path: str):
-    pname: PurePosixPath = PurePosixPath(pdf_path).name
-    tmpfile: Path = Path("/tmp/").joinpath(pname)
-
-    command = ["qpdf", "--qdf", "--object-streams=disable", str(pdf_path), str(tmpfile)]
-
-    logger.info(f"[*] Inflating streams: {' '.join(command)}")
-
-    # Run qpdf and capture both standard output and structural errors
-    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    # qpdf Exit Codes: 0 = Success, 3 = Completed with warnings, Other = Fatal error
-    if result.returncode == 3:
-        logger.info("\n[!] Warning: qpdf completed structural extraction but found issues:")
-        logger.info(result.stderr)
-    elif result.returncode != 0:
-        logger.info(f"\n[X] Fatal Error (Exit Code {result.returncode}):")
-        logger.info(result.stderr)
-        return False
-    else:
-        logger.info("\n[+] Success: Streams inflated cleanly with zero warnings.")
-
-    # Check if specific deflate/inflate indicators are hidden in stderr
-    if "inflate" in result.stderr.lower() or "stream" in result.stderr.lower():
-        logger.info("[!] Detected specific compression anomalies during extraction.")
-        command = [
-            "qpdf",
-            "--stream_data=compress",
-            str(tmpfile),
-            str(pdf_path),
-        ]
-
-        logger.info(f"[*] recompress: {' '.join(command)}")
-
-        # Run qpdf and capture both standard output and structural errors
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-    # tmpfile.unlink(missing_ok=True)
-
-    return True
-
-
 # --------------------------------------------------------------------------
 # Public function
 # --------------------------------------------------------------------------
