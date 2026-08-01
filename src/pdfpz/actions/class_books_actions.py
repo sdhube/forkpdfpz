@@ -5,21 +5,21 @@ from pprint import pformat
 
 import yaml
 
-from class_book_manifest import BooksLib, BooksManifest, PdfManifestEntry
-from class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
-from class_tmp_path import TmpPath
-from logger import logger
-from pdf_actions_info import single_pdf_info_action_with_path
-from pdf_list_parallel_threads import generate_manifest_items, run_threaded_action, run_threads_books_lib_pdf_path
-from pdf_manifest_actions import single_pdf_action
-from pdf_sanitize_fitz import sanitize_fitz
-from pdf_sanitize_pike import sanitize_pdf
+from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
+from pdfpz.actions.class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
+from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
+from pdfpz.core.pdf_list_parallel_threads import generate_manifest_items, run_threaded_action, run_threads_books_lib_pdf_path
+from pdfpz.actions.pdf_manifest_actions import single_pdf_action
+from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
+from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
 
 
 class BooksActions:
-    """Encapsulates operations on BooksLib and PDF manifest entries."""
+    """Encapsulates operations on BooksCollection and PDF manifest entries."""
 
-    def __init__(self, books_lib: BooksLib):
+    def __init__(self, books_lib: BooksCollection):
         self.books_lib = books_lib
 
     def copy_external_file_to_temp(self, entry: PdfManifestEntry):
@@ -32,8 +32,18 @@ class BooksActions:
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
 
-    def load_books_manifest(self, yaml_path: str) -> BooksManifest:
-        """Load a BooksManifest from a YAML file."""
+    @staticmethod
+    def load_books_manifest(yaml_path: str) -> BooksShelf:
+        """Load a BooksShelf from a YAML file.
+
+        Doesn't touch instance state, so it's a staticmethod -- callable as
+        BooksActions.load_books_manifest(path) without needing a BooksCollection.
+        save_books_manifest now lives on BooksCollection (not BooksShelf), so
+        this and BooksCollection.save_books_manifest are no longer a matched
+        pair on the same class -- self.books_lib below still assigns this
+        method's result to self.books_lib.books_manifest the same way it
+        always has, though.
+        """
         p: Path = Path(yaml_path)
         if not p.is_file():
             print(f"{yaml_path} is not a file")
@@ -47,31 +57,35 @@ class BooksActions:
 
             parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
             logger.info(f"loaded books manifest {yaml_path}")
-            return BooksManifest(input_path=list_path.get("input_path", ""), books=parsed_books)
+            # list_path['input_path'] is read but not threaded anywhere yet --
+            # BooksShelf no longer carries input_path (it moved to
+            # BooksCollection), and wiring it onto self.books_lib.input_path
+            # here is a separate "load" phase, not done in this change.
+            return BooksShelf(books=parsed_books)
 
     def copy_yaml_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             self.copy_external_file_to_temp(book)
         self.save_books_lib_yaml()
 
     def copy_yaml_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         for book in books_manifest.books_generator():
             self.copy_external_file_to_temp(book)
         self.save_books_lib_yaml()
 
     def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             move_pdf_to_no_info(book)
 
     def update_normalized_info_and_move_rename_file(self):
         """update"""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         book: PdfManifestEntry = None
         for book in books_manifest.books_generator(lambda e: not e.has_no_metadata_info()):
             normalized_name = book.get_normilized_name()
@@ -83,7 +97,7 @@ class BooksActions:
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
-        books_manifest: BooksManifest = self.books_lib.books_manifest
+        books_manifest: BooksShelf = self.books_lib.books_manifest
         print(f"books_lib.books_manifest = {type(self.books_lib.books_manifest)}")
         print(f"books_manifest = {type(books_manifest)}")
         books_count = len(books_manifest.books)
@@ -124,7 +138,7 @@ class BooksActions:
 
     def save_books_lib_yaml(self) -> None:
         logger.info("saving  yaml info for books")
-        self.books_lib.books_manifest.save_books_manifest("files_info.yaml")
+        self.books_lib.save_books_manifest()
 
     def sanitize_books_didier(self) -> None:
         """Sanitize books using didier finds."""

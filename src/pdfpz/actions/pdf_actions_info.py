@@ -3,10 +3,10 @@ from pathlib import Path
 import click
 import pikepdf
 
-from class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
-from class_tmp_path import TmpPath
-from logger import logger
-from pdf_sanitize_info import del_info, pdf_update_metadata
+from pdfpz.core.class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
+from pdfpz.actions.pdf_sanitize_info import del_info, pdf_update_metadata
 
 # --------------------------------------------
 # public functions

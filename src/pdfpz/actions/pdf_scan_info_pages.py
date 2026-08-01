@@ -3,8 +3,8 @@ import re
 import click
 import pymupdf
 
-from class_book_manifest import PdfManifestEntry
-from pdf_scan_info_web import doi_book_info_by_link
+from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.actions.pdf_scan_info_web import doi_book_info_by_link
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
 YEAR_PATTERN = re.compile(r"\b20[12]\d\b")

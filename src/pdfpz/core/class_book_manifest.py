@@ -9,7 +9,7 @@ from typing import List, Optional
 
 import yaml
 
-from logger import logger
+from pdfpz.core.logger import logger
 
 # Compiled once upon module import
 BLACKLIST_REGEX = re.compile(r"www|https|\.pdf|\bnone\b", re.IGNORECASE)
@@ -151,43 +151,51 @@ class PdfManifestEntry:
 
 
 @dataclass
-class BooksManifest:
-    input_path: str
+class BooksShelf:
     books: List[PdfManifestEntry] = field(default_factory=list)
 
     def books_generator(self, predicate):
         predicate = predicate or (lambda _: True)
         yield from (book for book in self.books if predicate(book))
 
-    def save_books_manifest(self, yaml_path: str) -> None:
-        """Save a BooksManifest to a YAML file."""
-        logger.info(f"yaml_path={yaml_path}")
-        documents = [
-            {"input_path": self.input_path},
-            [book.to_dict() for book in self.books],
-        ]
-        with open(yaml_path, "w", encoding="utf-8") as f:
-            yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
-        print(f"saved books manifest {yaml_path}")
-
 
 @dataclass
-class BooksLib:
+class BooksCollection:
     yaml_path: str
+    input_path: str
     yaml_base_path: str
     sqlite_path: str
     yaml_name: str
-    books_manifest: Optional[BooksManifest]
+    books_manifest: Optional[BooksShelf]
     tmp_path: str
 
     @classmethod
-    def from_yaml_path(cls, _yaml_path: str) -> BooksLib:
+    def from_yaml_path(cls, _yaml_path: str) -> BooksCollection:
         py = PurePosixPath(_yaml_path)
         dy = py.parent
         db = py.name
         return cls(
-            yaml_path=str(py), yaml_base_path=str(dy), sqlite_path="", yaml_name=db, books_manifest=None, tmp_path=""
+            yaml_path=str(py),
+            input_path="",
+            yaml_base_path=str(dy),
+            sqlite_path="",
+            yaml_name=db,
+            books_manifest=None,
+            tmp_path="",
         )
+
+    def save_books_manifest(self) -> None:
+        """Save this collection's books_manifest to self.yaml_path."""
+        if self.books_manifest is None:
+            raise ValueError("BooksCollection.save_books_manifest: no books_manifest to save")
+        logger.info(f"yaml_path={self.yaml_path}")
+        documents = [
+            {"input_path": self.input_path},
+            [book.to_dict() for book in self.books_manifest.books],
+        ]
+        with open(self.yaml_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
+        print(f"saved books manifest {self.yaml_path}")
 
 
 pdf_manifest_schema = """ {
