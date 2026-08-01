@@ -128,7 +128,7 @@ class BooksActions:
         print()
         self.books_collection.books_manifest = self.load_books_manifest(self.books_collection.yaml_path)
 
-    def update_books_lib_info_and_save(self) -> None:
+    def update_books_collection_info_and_save(self) -> None:
         self.update_books_lib_info_no_save()
         self.save_books_lib_yaml()
 
