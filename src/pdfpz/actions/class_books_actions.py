@@ -72,14 +72,14 @@ class BooksActions:
         books_manifest: BooksShelf = self.books_collection.books_manifest
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             self.copy_external_file_to_temp(book)
-        self.save_books_lib_yaml()
+        self.save_books_collection_yaml()
 
     def copy_yaml_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
         books_manifest: BooksShelf = self.books_collection.books_manifest
         for book in books_manifest.books_generator():
             self.copy_external_file_to_temp(book)
-        self.save_books_lib_yaml()
+        self.save_books_collection_yaml()
 
     def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
@@ -97,7 +97,6 @@ class BooksActions:
                 continue
             cp_pdf_from_metadata_to_normalized(book, normalized_name)
             book.name = normalized_name
-        # self.save_books_lib_yaml()
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
@@ -130,7 +129,7 @@ class BooksActions:
 
     def update_books_collection_info_and_save(self) -> None:
         self.update_books_lib_info_no_save()
-        self.save_books_lib_yaml()
+        self.save_books_collection_yaml()
 
     def update_books_lib_info_no_save(self) -> None:
         """Update lib info for books using threadpool."""
@@ -140,7 +139,7 @@ class BooksActions:
             partial(single_pdf_action, tmp_path=self.books_collection.tmp_path),
         )
 
-    def save_books_lib_yaml(self) -> None:
+    def save_books_collection_yaml(self) -> None:
         logger.info("saving  yaml info for books")
         self.books_collection.save_books_manifest()
 
