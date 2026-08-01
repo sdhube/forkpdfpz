@@ -44,8 +44,8 @@ class BooksActions:
         BooksActions.load_books_manifest(path) without needing a BooksCollection.
         save_books_manifest now lives on BooksCollection (not BooksShelf), so
         this and BooksCollection.save_books_manifest are no longer a matched
-        pair on the same class -- self.books_lib below still assigns this
-        method's result to self.books_lib.books_manifest the same way it
+        pair on the same class -- self.books_collection below still assigns this
+        method's result to self.books_collection.books_manifest the same way it
         always has, though.
         """
         p: Path = Path(yaml_path)
@@ -63,7 +63,7 @@ class BooksActions:
             logger.info(f"loaded books manifest {yaml_path}")
             # list_path['input_path'] is read but not threaded anywhere yet --
             # BooksShelf no longer carries input_path (it moved to
-            # BooksCollection), and wiring it onto self.books_lib.input_path
+            # BooksCollection), and wiring it onto self.books_collection.input_path
             # here is a separate "load" phase, not done in this change.
             return BooksShelf(books=parsed_books)
 
@@ -101,7 +101,7 @@ class BooksActions:
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
         books_manifest: BooksShelf = self.books_collection.books_manifest
-        print(f"books_lib.books_manifest = {type(self.books_collection.books_manifest)}")
+        print(f"books_collection.books_manifest = {type(self.books_collection.books_manifest)}")
         print(f"books_manifest = {type(books_manifest)}")
         books_count = len(books_manifest.books)
         print(f"count={books_count}")
@@ -115,7 +115,7 @@ class BooksActions:
 
     # TODO this is actually set temp and load
     def load_manifest(self, tmp_path: str = None) -> None:
-        """Load books manifest into books_lib."""
+        """Load books manifest into books_collection."""
         if not tmp_path:
             # Create a temporary directory if needed
             import tempfile
@@ -124,14 +124,13 @@ class BooksActions:
 
         self.books_collection.tmp_path = tmp_path
         logger.info(f"loaded {pformat(self.books_collection)}")
-        print()
         self.books_collection.books_manifest = self.load_books_manifest(self.books_collection.yaml_path)
 
     def update_books_collection_info_and_save(self) -> None:
-        self.update_books_lib_info_no_save()
+        self.update_books_collection_info_no_save()
         self.save_books_collection_yaml()
 
-    def update_books_lib_info_no_save(self) -> None:
+    def update_books_collection_info_no_save(self) -> None:
         """Update lib info for books using threadpool."""
         logger.info("updating yaml info for books")
         run_threaded_action(
