@@ -5,8 +5,8 @@ from typing import Optional
 
 import click
 
-from pdfpz.core.class_book_manifest import BooksCollection
 from pdfpz.actions.class_books_actions import BooksActions
+from pdfpz.core.class_book_manifest import BooksCollection
 from pdfpz.core.logger import logger
 
 
@@ -32,7 +32,7 @@ class BookOperations:
         return {name: getattr(self, name) for name, value in self.__dict__.items() if value}
 
 
-def load_books_lib(
+def load_books_collection_and_operate(
     yaml_path: str,
     tmp_path: Optional[str] = None,
     operations: Optional[BookOperations] = None,
@@ -47,12 +47,12 @@ def load_books_lib(
     operations = operations or BookOperations()
 
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
-    books_lib: BooksCollection = BooksCollection.from_yaml_path(yaml_path)
-    books_lib.tmp_path = str(tmp_path) if tmp_path else ""
-    logger.info(f"loaded {pformat(books_lib)}")
+    books_collection: BooksCollection = BooksCollection.from_yaml_path(yaml_path)
+    books_collection.tmp_path = str(tmp_path) if tmp_path else ""
+    logger.info(f"loaded {pformat(books_collection)}")
 
     # Create BooksActions instance
-    actions = BooksActions(books_lib)
+    actions = BooksActions(books_collection)
 
     # Ensure manifest is loaded (this will set up tmp dir if needed)
     actions.load_manifest(tmp_path=tmp_path)
@@ -60,7 +60,7 @@ def load_books_lib(
     # Map operation flags to BooksActions methods
     operation_map = {
         "copy_pdfs": actions.copy_yaml_pdf,
-        "update_yaml_info": actions.update_books_lib_info_and_save,
+        "update_yaml_info": actions.update_books_collection_info_and_save,
         "move_no_info": actions.move_books_to_no_info,
         "sanitize_didier": actions.sanitize_books_didier,
         "fitz_didier": actions.sanitize_books_fitz_didier,
@@ -111,7 +111,7 @@ def main(**kwargs) -> None:
     # Create BookOperations from remaining kwargs (operation flags)
     operations = BookOperations(**kwargs)
 
-    load_books_lib(str(yaml_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations)
+    load_books_collection_and_operate(str(yaml_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations)
 
 
 if __name__ == "__main__":

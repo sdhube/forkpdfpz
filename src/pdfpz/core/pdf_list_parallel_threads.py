@@ -70,17 +70,17 @@ def generate_manifest_items(
     return (m for m in manifest.books if predicate(m))
 
 
-# pythonic running function over books_lib with direct path files
-def run_threads_books_lib_pdf_path(
-    books_lib: BooksCollection, action_function: Callable[[str], Any], max_workers: int = MAX_WORKERS
+# pythonic running function over books_collection with direct path files
+def run_threads_books_collection_pdf_path(
+    books_collection: BooksCollection, action_function: Callable[[str], Any], max_workers: int = MAX_WORKERS
 ) -> None:
-    """Run `action_function` on every PDF file path found in books_lib.tmp_path using the generic thread runner.
+    """Run `action_function` on every PDF file path found in books_collection.tmp_path using the generic thread runner.
 
-    - books_lib: BooksCollection instance containing the tmp_path where PDFs reside
+    - books_collection: BooksCollection instance containing the tmp_path where PDFs reside
     - action_function: callable that accepts a single argument (file path as str)
     - max_workers: number of worker threads to use
     """
-    dir_path = books_lib.tmp_path
+    dir_path = books_collection.tmp_path
     pdf_paths = list_pdf_files(dir_path)
     pdf_files = [str(p) for p in pdf_paths]
 
