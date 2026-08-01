@@ -2,16 +2,15 @@ from dataclasses import fields
 from pathlib import Path
 from pprint import pformat
 
-import click
 import pikepdf
 import yaml
 
-from pdfpz.core.class_book_manifest import PdfManifestEntry
-from pdfpz.core.class_tmp_path import TmpPath
-from pdfpz.core.logger import logger
 from pdfpz.actions.pdf_scan_info_metadata import fill_entry_by_doc_info_legacy, fill_entry_by_doc_info_xmp
 from pdfpz.actions.pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
 from pdfpz.actions.pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
+from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
 
 # --------------------------------------------
 # public functions
@@ -119,29 +118,3 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
                 logger.info(f"update_google {pformat(entry)}")
 
     # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")
-
-
-# --------------------------------------------------------------------------
-# CLI
-# --------------------------------------------------------------------------
-
-
-@click.command()
-@click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))
-@click.option(
-    "--print-values",
-    is_flag=True,
-    default=False,
-    help="print values for debug",
-)
-def main(pdf_path: str, print_values: bool) -> None:
-    entry: PdfManifestEntry = PdfManifestEntry.new_empty_manifest_entry()
-    single_pdf_action_with_path(pdf_path, entry, print_values=print_values)
-
-
-if __name__ == "__main__":
-    main()
-
-
-# python pdf_actions.py /tmp/tmp80tnmer3/ml-linearized-sanitized.pdf --legacy-info
-# /bin/python pdf_actions.py  /home/sd/tmp/1-sanitized2/Concise\ Guide\ to\ Software\ Testing\ by\ Gerard\ ORegan-y2019-linearized-sanitized.pdf    --print-values
