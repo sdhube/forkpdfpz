@@ -16,7 +16,7 @@ from pdfpz.core.logger import logger
 from pdfpz.core.pdf_list_parallel_threads import (
     generate_manifest_items,
     run_threaded_action,
-    run_threads_books_lib_pdf_path,
+    run_threads_books_collection_pdf_path,
 )
 
 
@@ -146,11 +146,11 @@ class BooksActions:
 
     def sanitize_books_didier(self) -> None:
         """Sanitize books using didier finds."""
-        run_threads_books_lib_pdf_path(self.books_lib, sanitize_pdf)
+        run_threads_books_collection_pdf_path(self.books_lib, sanitize_pdf)
 
     def sanitize_books_fitz_didier(self) -> None:
         """Fitz and move books using didier finds."""
-        run_threads_books_lib_pdf_path(self.books_lib, sanitize_fitz)
+        run_threads_books_collection_pdf_path(self.books_lib, sanitize_fitz)
 
     def sanitize_books_info(self) -> None:
         """Sanitize and embed info into PDFs."""
