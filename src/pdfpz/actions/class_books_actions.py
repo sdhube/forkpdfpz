@@ -7,7 +7,7 @@ import yaml
 
 from pdfpz.actions.class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
 from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
-from pdfpz.actions.pdf_manifest_actions import single_pdf_action
+from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
 from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
