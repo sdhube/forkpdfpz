@@ -12,17 +12,17 @@ class Asset(ABC):
 
     def __init__(self, *assets):
         self.assets = list(assets)
-        self.yaml_path = None
+        self.legacy_path = None
 
-    def set_yaml_path(self, yaml_path: str) -> None:
-        self.yaml_path = yaml_path
+    def set_legacy_path(self, legacy_path: str) -> None:
+        self.legacy_path = legacy_path
 
     @abstractmethod
     def load_assets(self):
-        """Load this asset's data from self.yaml_path and return it."""
+        """Load this asset's data"""
         raise NotImplementedError
 
     @abstractmethod
     def save_assets(self) -> None:
-        """Save this asset's current data to self.yaml_path."""
+        """Save this asset's current data"""
         raise NotImplementedError

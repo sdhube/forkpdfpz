@@ -3,7 +3,7 @@ import yaml
 from pdfpz.core.assets import Asset
 
 
-class AssetsYaml(Asset):
+class AssetsLegacy(Asset):
     """A YAML-backed asset.
 
     Construct with the document(s) to save: a single positional argument

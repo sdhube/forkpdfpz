@@ -27,7 +27,7 @@ class BooksActions:
 
     def copy_external_file_to_temp(self, entry: PdfManifestEntry):
         """Copy a PDF file to the temporary directory."""
-        pdf_input_path = str(Path(self.books_collection.yaml_base_path).joinpath(entry.input_file))
+        pdf_input_path = str(Path(self.books_collection.legacy_base_path).joinpath(entry.input_file))
         pdf_name = str(PurePosixPath(entry.input_file).name)
         pdf_output_path = str(Path(self.books_collection.tmp_path).joinpath(pdf_name))
         entry.file = pdf_output_path
@@ -37,7 +37,7 @@ class BooksActions:
 
     @staticmethod
     def load_books_manifest(yaml_path: str) -> BooksShelf:
-        """Load a BooksShelf from a YAML file.
+        """Load a BooksShelf from a legacy file.
 
         Doesn't touch instance state, so it's a staticmethod -- callable as
         BooksActions.load_books_manifest(path) without needing a BooksCollection.
@@ -66,19 +66,19 @@ class BooksActions:
         # here is a separate "load" phase, not done in this change.
         return BooksShelf(books=parsed_books)
 
-    def copy_yaml_pdf_no_info(self) -> None:
+    def copy_assets_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
         books_manifest: BooksShelf = self.books_collection.books_manifest
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             self.copy_external_file_to_temp(book)
-        self.save_books_collection_yaml()
+        self.save_books_collection()
 
-    def copy_yaml_pdf(self) -> None:
+    def copy_assets_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
         books_manifest: BooksShelf = self.books_collection.books_manifest
         for book in books_manifest.books_generator():
             self.copy_external_file_to_temp(book)
-        self.save_books_collection_yaml()
+        self.save_books_collection()
 
     def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
@@ -127,18 +127,18 @@ class BooksActions:
 
     def update_books_collection_info_and_save(self) -> None:
         self.update_books_collection_info_no_save()
-        self.save_books_collection_yaml()
+        self.save_books_collection()
 
     def update_books_collection_info_no_save(self) -> None:
         """Update lib info for books using threadpool."""
-        logger.info("updating yaml info for books")
+        logger.info("updating assets info for books")
         run_threaded_action(
             generate_manifest_items(self.books_collection.books_manifest),
             partial(single_pdf_action, tmp_path=self.books_collection.tmp_path),
         )
 
-    def save_books_collection_yaml(self) -> None:
-        logger.info("saving  yaml info for books")
+    def save_books_collection(self) -> None:
+        logger.info("saving  assets info for books")
         self.books_collection.save_books_manifest()
 
     def sanitize_books_didier(self) -> None:

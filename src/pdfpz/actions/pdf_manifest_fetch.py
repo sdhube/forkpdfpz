@@ -18,7 +18,7 @@ from pdfpz.core.logger import logger
 # --------------------------------------------
 
 
-def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
+def write_entry_to_assets(entry: PdfManifestEntry, yaml_path: str) -> None:
     """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
     path = Path(yaml_path)
 
@@ -34,7 +34,7 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
     # in its correct alphabetical slot by title, rather than tacking it on
     # at the end of the list.
     manifest = [e for e in manifest if e.get("file") != entry.file]
-    manifest.append(entry.to_yaml_dict())
+    manifest.append(entry.to_dict())
     manifest.sort(key=lambda e: (e.get("title") or "").lower())
 
     asset = AssetsYaml(manifest)
@@ -118,5 +118,3 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
 
             if print_values:
                 logger.info(f"update_google {pformat(entry)}")
-
-    # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")

@@ -70,7 +70,7 @@ class PdfManifestEntry:
         """Return a dict built from the dataclass with `optimized` renamed to `Optimized`.
 
         The dict is constructed in a stable, explicit key order to preserve the
-        same ordering used previously when writing YAML (useful for diffs/readability).
+        same ordering used previously when writing legacy asset file (useful for diffs/readability).
         """
         raw = asdict(self)
         ordered_keys = [
@@ -102,10 +102,6 @@ class PdfManifestEntry:
         Uses dataclasses.asdict() under the hood and performs a small key rename
         so callers continue to see `Optimized` (capital O) rather than `optimized`.
         """
-        return self._asdict_with_optimized_rename()
-
-    def to_yaml_dict(self) -> dict:
-        """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
         return self._asdict_with_optimized_rename()
 
     @classmethod
@@ -169,8 +165,8 @@ class BooksCollection:
     tmp_path: str
 
     @classmethod
-    def from_legacy_path(cls, _yaml_path: str) -> BooksCollection:
-        py = PurePosixPath(_yaml_path)
+    def from_legacy_path(cls, _legacy_file_path: str) -> BooksCollection:
+        py = PurePosixPath(_legacy_file_path)
         dy = py.parent
         db = py.name
         return cls(
@@ -183,11 +179,11 @@ class BooksCollection:
             tmp_path="",
         )
 
-    def save_books_manifest(self) -> None:
-        """Save this collection's books_manifest to self.yaml_path."""
+    def save_books_legacy_manifest(self) -> None:
+        """Save this collection's books_manifest to legacy path."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_manifest: no books_manifest to save")
-        logger.info(f"yaml_path={self.legacy_file_path}")
+        logger.info(f"legacy_file_path_path={self.legacy_file_path}")
         documents = [
             {"input_path": self.input_path},
             [book.to_dict() for book in self.books_manifest.books],
