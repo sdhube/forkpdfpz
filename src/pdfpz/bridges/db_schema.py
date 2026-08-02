@@ -25,6 +25,7 @@ class BookOrm(Base):
     book_type = Column(String, default="pdf")
 
 
+# pythonic.sqlalchemy add table with foreignkey
 class BookPropsOrm(Base):
     __tablename__ = "books_props"
 
