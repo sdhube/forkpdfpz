@@ -25,3 +25,8 @@ def cp_pdf_from_metadata_to_normalized(entry: PdfManifestEntry, normalized_name)
         return
     logger.info(f"copied {pdf_path} to {p.DIR_TMP_MAP['renamed']}")
     shutil.copyfile(str(file_path), str(Path(p.DIR_TMP_MAP["renamed"]).joinpath(normalized_name)))
+
+
+def is_file(tmp_pdf_path: str) -> bool:
+    file_path = Path(tmp_pdf_path)
+    return file_path.is_file()
