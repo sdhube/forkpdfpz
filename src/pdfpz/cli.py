@@ -6,7 +6,7 @@ from typing import Optional
 import click
 
 from pdfpz.actions.class_books_actions import BooksActions
-from pdfpz.core.class_book_manifest import BooksCollection
+from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.logger import logger
 
 

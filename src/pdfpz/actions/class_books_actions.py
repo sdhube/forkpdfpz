@@ -8,7 +8,8 @@ from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
-from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
+from pdfpz.core.class_books_collection import BooksCollection
+from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
 from pdfpz.core.pdf_list_parallel_threads import (
@@ -89,7 +90,7 @@ class BooksActions:
             tmp_path = tempfile.mkdtemp()
 
         self.books_collection.set_tmp_path(tmp_path)
-        self.books_collection.load_books_manifest()
+        self.books_collection.load_books_collection()
         logger.info(f"loaded {pformat(self.books_collection)}")
 
     def update_books_collection_info_and_save(self) -> None:

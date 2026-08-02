@@ -50,7 +50,7 @@ class BooksCollection:
         self.tmp_path = str(tmp_path) if tmp_path else ""
         self.tmp_path = tmp_path
 
-    def load_books_manifest(self) -> None:
+    def load_books_collection(self) -> None:
         """Load a BooksShelf from a legacy file."""
         asset = AssetsLegacy()
         asset.set_legacy_path(self.legacy_file_name)
