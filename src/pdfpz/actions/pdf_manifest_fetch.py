@@ -18,30 +18,6 @@ from pdfpz.core.logger import logger
 # --------------------------------------------
 
 
-def write_entry_to_assets(entry: PdfManifestEntry, yaml_path: str) -> None:
-    """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
-    path = Path(yaml_path)
-
-    manifest: list[dict] = []
-    if path.exists():
-        asset = AssetsLegacy()
-        asset.set_legacy_path(yaml_path)
-        documents = asset.load_assets()
-        if documents and isinstance(documents[0], list):
-            manifest = documents[0]
-
-    # Update the entry for this file (remove old data for it) then re-add it
-    # in its correct alphabetical slot by title, rather than tacking it on
-    # at the end of the list.
-    manifest = [e for e in manifest if e.get("file") != entry.file]
-    manifest.append(entry.to_dict())
-    manifest.sort(key=lambda e: (e.get("title") or "").lower())
-
-    asset = AssetsLegacy(manifest)
-    asset.set_legacy_path(yaml_path)
-    asset.save_assets()
-
-
 def update_manifest_info_empty_fields(
     manifest_object: PdfManifestEntry,
     info_source: PdfManifestEntry,
