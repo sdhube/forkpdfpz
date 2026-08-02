@@ -33,33 +33,32 @@ class BookOperations:
 
 
 def load_books_collection_and_operate(
-    yaml_path: str,
+    legacy_file_path: str,
     tmp_path: Optional[str] = None,
     operations: Optional[BookOperations] = None,
 ) -> None:
     """Load books library and perform requested operations.
 
     Args:
-        yaml_path: Path to the YAML manifest file
+        legacy_file_path: Path to the YAML manifest file
         tmp_path: Optional temporary directory path
         operations: BookOperations instance defining which operations to perform
     """
     operations = operations or BookOperations()
 
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
-    books_collection: BooksCollection = BooksCollection.from_legacy_path(yaml_path)
-    books_collection.tmp_path = str(tmp_path) if tmp_path else ""
-    logger.info(f"loaded {pformat(books_collection)}")
+    books_collection: BooksCollection = BooksCollection.from_legacy_path(legacy_file_path)
+    books_collection.set_tmp_path(tmp_path)
 
     # Create BooksActions instance
     actions = BooksActions(books_collection)
 
-    # Ensure manifest is loaded (this will set up tmp dir if needed)
-    actions.load_manifest(tmp_path=tmp_path)
+    # Ensure collection is loaded (this will set up tmp dir if needed)
+    actions.load_collection(tmp_path=tmp_path)
 
     # Map operation flags to BooksActions methods
     operation_map = {
-        "copy_pdfs": actions.copy_yaml_pdf,
+        "copy_pdfs": actions.copy_assets_pdf,
         "update_assets_info": actions.update_books_collection_info_and_save,
         "move_no_info": actions.move_books_to_no_info,
         "sanitize_didier": actions.sanitize_books_didier,
@@ -96,7 +95,7 @@ def load_books_collection_and_operate(
     "print_first",
     is_flag=True,
     default=False,
-    help="Print first entry from yaml.",
+    help="Print first entry from legacy_file.",
 )
 def main(**kwargs) -> None:
     """Process books library with specified operations.

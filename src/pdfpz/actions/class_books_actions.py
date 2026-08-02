@@ -8,7 +8,6 @@ from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
-from pdfpz.core.assets_legacy import AssetsLegacy
 from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
@@ -23,7 +22,7 @@ class BooksActions:
     """Encapsulates operations on BooksCollection and PDF manifest entries."""
 
     def __init__(self, books_collection: BooksCollection):
-        self.books_collection = books_collection
+        self.books_collection: BooksCollection = books_collection
 
     def copy_external_file_to_temp(self, entry: PdfManifestEntry):
         """Copy a PDF file to the temporary directory."""
@@ -34,37 +33,6 @@ class BooksActions:
         logger.info(f"copy {pdf_input_path} to {pdf_output_path}")
         with open(pdf_input_path, "rb") as src, open(pdf_output_path, "wb") as dst:
             shutil.copyfileobj(src, dst)
-
-    @staticmethod
-    def load_books_manifest(yaml_path: str) -> BooksShelf:
-        """Load a BooksShelf from a legacy file.
-
-        Doesn't touch instance state, so it's a staticmethod -- callable as
-        BooksActions.load_books_manifest(path) without needing a BooksCollection.
-        save_books_manifest now lives on BooksCollection (not BooksShelf), so
-        this and BooksCollection.save_books_manifest are no longer a matched
-        pair on the same class -- self.books_collection below still assigns this
-        method's result to self.books_collection.books_manifest the same way it
-        always has, though.
-        """
-        p: Path = Path(yaml_path)
-        if not p.is_file():
-            logger.info(f"{yaml_path} is not a file")
-            return None
-        logger.info(f"yaml_path={yaml_path}")
-        asset = AssetsLegacy()
-        asset.set_legacy_path(yaml_path)
-        documents = asset.load_assets()
-        list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
-        books_list = documents[1]  # Contains your array of PDF dictionaries
-
-        parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
-        logger.info(f"loaded books manifest {yaml_path}")
-        # list_path['input_path'] is read but not threaded anywhere yet --
-        # BooksShelf no longer carries input_path (it moved to
-        # BooksCollection), and wiring it onto self.books_collection.input_path
-        # here is a separate "load" phase, not done in this change.
-        return BooksShelf(books=parsed_books)
 
     def copy_assets_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
@@ -113,17 +81,16 @@ class BooksActions:
             logger.info(f"{self.books_collection.tmp_path}/{path.name} {info.st_size}")
 
     # TODO this is actually set temp and load
-    def load_manifest(self, tmp_path: str = None) -> None:
+    def load_collection(self, tmp_path: str = None) -> None:
         """Load books manifest into books_collection."""
         if not tmp_path:
-            # Create a temporary directory if needed
             import tempfile
 
             tmp_path = tempfile.mkdtemp()
 
-        self.books_collection.tmp_path = tmp_path
+        self.books_collection.set_tmp_path(tmp_path)
+        self.books_collection.load_books_manifest()
         logger.info(f"loaded {pformat(self.books_collection)}")
-        self.books_collection.books_manifest = self.load_books_manifest(self.books_collection.yaml_path)
 
     def update_books_collection_info_and_save(self) -> None:
         self.update_books_collection_info_no_save()
@@ -139,7 +106,7 @@ class BooksActions:
 
     def save_books_collection(self) -> None:
         logger.info("saving  assets info for books")
-        self.books_collection.save_books_manifest()
+        self.books_collection.save_books_collection()
 
     def sanitize_books_didier(self) -> None:
         """Sanitize books using didier finds."""
