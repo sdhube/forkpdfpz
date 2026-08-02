@@ -9,20 +9,21 @@ class AssetsYaml(Asset):
     Construct with the document(s) to save: a single positional argument
     (a dict or list) is written as one plain YAML document; more than one
     is written as a `---`-separated document stream (the manifest's
-    [{"input_path": ...}, [books...]] shape).
+    [{"input_path": ...}, [books...]] shape). Call `set_yaml_path()` before
+    load_assets()/save_assets() -- both use that stored path.
 
-    `load_assets()` always returns the list of documents found in the file (one
-    entry for a plain single-document file) -- it doesn't guess at the
+    `load_assets()` always returns the list of documents found in the file
+    (one entry for a plain single-document file) -- it doesn't guess at the
     caller's intended shape, since that differs between callers.
     """
 
-    def load_assets(self, path: str) -> list:
-        with open(path, "r", encoding="utf-8") as f:
+    def load_assets(self) -> list:
+        with open(self.yaml_path, "r", encoding="utf-8") as f:
             self.assets = list(yaml.safe_load_all(f))
         return self.assets
 
-    def save_assets(self, path: str) -> None:
-        with open(path, "w", encoding="utf-8") as f:
+    def save_assets(self) -> None:
+        with open(self.yaml_path, "w", encoding="utf-8") as f:
             if len(self.assets) == 1:
                 yaml.safe_dump(self.assets[0], f, sort_keys=False, allow_unicode=True)
             else:

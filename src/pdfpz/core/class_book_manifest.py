@@ -192,7 +192,9 @@ class BooksCollection:
             {"input_path": self.input_path},
             [book.to_dict() for book in self.books_manifest.books],
         ]
-        AssetsYaml(*documents).save_assets(self.yaml_path)
+        asset = AssetsYaml(*documents)
+        asset.set_yaml_path(self.yaml_path)
+        asset.save_assets()
         logger.info(f"saved books manifest {self.yaml_path}")
 
 
