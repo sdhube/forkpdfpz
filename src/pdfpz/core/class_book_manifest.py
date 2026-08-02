@@ -142,6 +142,17 @@ class PdfManifestEntry:
 
 
 @dataclass
+class PdfProps:
+    valid_pdf: bool
+    input_file: str
+    orig: bool
+    sanitized: bool
+    metadata: bool
+    renamed: bool
+    sphostscript: bool
+
+
+@dataclass
 class BooksShelf:
     books: List[PdfManifestEntry] = field(default_factory=list)
 

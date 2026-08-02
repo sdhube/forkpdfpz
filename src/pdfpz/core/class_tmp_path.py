@@ -6,6 +6,7 @@ from typing import ClassVar, Dict
 @dataclass(slots=True)
 class TmpPath:
     DIR_TMP_MAP: ClassVar[Dict[str, Path]] = {
+        "orig": Path("/tmp/tmp_meta/orig"),
         "sanitized": Path("/tmp/tmp_meta/sanitized"),
         "metadata": Path("/tmp/tmp_meta/metadata"),
         "no_info": Path("/tmp/tmp_meta/no_info"),
