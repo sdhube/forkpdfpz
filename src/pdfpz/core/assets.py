@@ -10,6 +10,9 @@ class Asset(ABC):
     fresh path (or re-loaded from a different one) than it started with.
     """
 
+    def __init__(self, *assets):
+        self.assets = list(assets)
+
     @abstractmethod
     def load(self, path: str):
         """Load this asset's data from `path` and return it."""

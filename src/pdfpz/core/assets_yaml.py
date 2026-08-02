@@ -16,9 +16,6 @@ class AssetsYaml(Asset):
     caller's intended shape, since that differs between callers.
     """
 
-    def __init__(self, *assets):
-        self.assets = list(assets)
-
     def load(self, path: str) -> list:
         with open(path, "r", encoding="utf-8") as f:
             self.assets = list(yaml.safe_load_all(f))
