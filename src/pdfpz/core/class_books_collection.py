@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Optional
 
-from src.pdfpz.core.assets import Asset
-from src.pdfpz.core.assets_legacy import AssetsLegacy
-from src.pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
-from src.pdfpz.core.logger import logger
+from pdfpz.core.assets import Asset
+from pdfpz.core.assets_legacy import AssetsLegacy
+from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
+from pdfpz.core.logger import logger
 
 
 @dataclass
@@ -41,30 +41,30 @@ class BooksCollection:
     def save_books_legacy_manifest(self) -> None:
         """Save this collection's books_manifest to legacy path."""
         if self.books_manifest is None:
-            raise ValueError("BooksCollection.save_books_manifest: no books_manifest to save")
-        logger.info(f"legacy_file_path_path={self.legacy_file_path}")
-        self.asset.save_assets()
+            raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
+        logger.info(f"legacy_file_path={self.legacy_file_path}")
+        self.assets = AssetsLegacy(
+            {"input_path": self.input_path},
+            [book.to_dict() for book in self.books_manifest.books],
+        )
+        self.assets.set_legacy_path(self.legacy_file_path)
+        self.assets.save_assets()
         logger.info(f"saved books manifest {self.legacy_file_path}")
 
     def set_tmp_path(self, tmp_path: str):
         self.tmp_path = str(tmp_path) if tmp_path else ""
-        self.tmp_path = tmp_path
 
     def load_books_collection(self) -> None:
         """Load a BooksShelf from a legacy file."""
-        self.assets.set_legacy_path(self.legacy_file_name)
-        logger.info(f"legacy_file_name= {self.legacy_file_name} {type(self.legacy_file_name)}")
-        logger.info(f"legacy_file_name= {self.assets.legacy_path} {type(self.assets.legacy_path)}")
+        self.assets.set_legacy_path(self.legacy_file_path)
         p: Path = Path(self.assets.legacy_path)
         if not p.is_file():
             logger.info(f"{self.assets.legacy_path} is not a file")
             return None
         logger.info(f"legacy_path={self.assets.legacy_path}")
         documents = self.assets.load_assets()
-        logger.info(f"self.input_path brefore = {self.input_path}")
-        self.input_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
-        logger.info(f"self.input_path after = {self.input_path}")
+        self.input_path = documents[0].get("input_path", "")
 
         parsed_books = [PdfManifestEntry.from_dict(book) for book in documents[1]]
-        logger.info(f"loaded books manifest {self.legacy_file_name}")
+        logger.info(f"loaded books manifest {self.legacy_file_path}")
         self.books_manifest = BooksShelf(books=parsed_books)
