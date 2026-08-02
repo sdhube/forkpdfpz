@@ -3,11 +3,11 @@ from pathlib import Path
 from pprint import pformat
 
 import pikepdf
-import yaml
 
 from pdfpz.actions.pdf_scan_info_metadata import fill_entry_by_doc_info_legacy, fill_entry_by_doc_info_xmp
 from pdfpz.actions.pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
 from pdfpz.actions.pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
+from pdfpz.core.assets_yaml import AssetsYaml
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
@@ -24,10 +24,9 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
 
     manifest: list[dict] = []
     if path.exists():
-        with path.open("r", encoding="utf-8") as f:
-            loaded = yaml.safe_load(f)
-            if isinstance(loaded, list):
-                manifest = loaded
+        documents = AssetsYaml().load(yaml_path)
+        if documents and isinstance(documents[0], list):
+            manifest = documents[0]
 
     # Update the entry for this file (remove old data for it) then re-add it
     # in its correct alphabetical slot by title, rather than tacking it on
@@ -36,8 +35,7 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
     manifest.append(entry.to_yaml_dict())
     manifest.sort(key=lambda e: (e.get("title") or "").lower())
 
-    with path.open("w", encoding="utf-8") as f:
-        yaml.safe_dump(manifest, f, sort_keys=False, allow_unicode=True)
+    AssetsYaml(manifest).save(yaml_path)
 
 
 def update_manifest_info_empty_fields(

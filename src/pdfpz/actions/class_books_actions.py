@@ -3,13 +3,12 @@ from functools import partial
 from pathlib import Path, PurePosixPath
 from pprint import pformat
 
-import yaml
-
 from pdfpz.actions.class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
 from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
+from pdfpz.core.assets_yaml import AssetsYaml
 from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
@@ -53,19 +52,17 @@ class BooksActions:
             logger.info(f"{yaml_path} is not a file")
             return None
         logger.info(f"yaml_path={yaml_path}")
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            # safe_load_all handles the document separator (---) safely
-            documents = list(yaml.safe_load_all(f))
-            list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
-            books_list = documents[1]  # Contains your array of PDF dictionaries
+        documents = AssetsYaml().load(yaml_path)
+        list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
+        books_list = documents[1]  # Contains your array of PDF dictionaries
 
-            parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
-            logger.info(f"loaded books manifest {yaml_path}")
-            # list_path['input_path'] is read but not threaded anywhere yet --
-            # BooksShelf no longer carries input_path (it moved to
-            # BooksCollection), and wiring it onto self.books_collection.input_path
-            # here is a separate "load" phase, not done in this change.
-            return BooksShelf(books=parsed_books)
+        parsed_books = [PdfManifestEntry.from_dict(book) for book in books_list]
+        logger.info(f"loaded books manifest {yaml_path}")
+        # list_path['input_path'] is read but not threaded anywhere yet --
+        # BooksShelf no longer carries input_path (it moved to
+        # BooksCollection), and wiring it onto self.books_collection.input_path
+        # here is a separate "load" phase, not done in this change.
+        return BooksShelf(books=parsed_books)
 
     def copy_yaml_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
