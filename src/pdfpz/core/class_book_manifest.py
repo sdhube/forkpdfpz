@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import PurePosixPath
 from typing import List, Optional
 
-from pdfpz.core.assets_yaml import AssetsYaml
+from pdfpz.core.assets_legacy import AssetsLegacy
 from pdfpz.core.logger import logger
 
 # Compiled once upon module import
@@ -188,7 +188,7 @@ class BooksCollection:
             {"input_path": self.input_path},
             [book.to_dict() for book in self.books_manifest.books],
         ]
-        asset = AssetsYaml(*documents)
+        asset = AssetsLegacy(*documents)
         asset.set_yaml_path(self.legacy_file_path)
         asset.save_assets()
         logger.info(f"saved books manifest {self.legacy_file_path}")

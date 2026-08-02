@@ -8,7 +8,7 @@ from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
-from pdfpz.core.assets_yaml import AssetsYaml
+from pdfpz.core.assets_legacy import AssetsLegacy
 from pdfpz.core.class_book_manifest import BooksCollection, BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
@@ -52,7 +52,7 @@ class BooksActions:
             logger.info(f"{yaml_path} is not a file")
             return None
         logger.info(f"yaml_path={yaml_path}")
-        asset = AssetsYaml()
+        asset = AssetsLegacy()
         asset.set_yaml_path(yaml_path)
         documents = asset.load_assets()
         list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
