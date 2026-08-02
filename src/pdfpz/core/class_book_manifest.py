@@ -160,25 +160,25 @@ class BooksShelf:
 
 @dataclass
 class BooksCollection:
-    yaml_path: str
+    legacy_file_path: str
     input_path: str
-    yaml_base_path: str
+    legacy_base_path: str
     sqlite_path: str
-    yaml_name: str
+    legacy_file_name: str
     books_manifest: Optional[BooksShelf]
     tmp_path: str
 
     @classmethod
-    def from_yaml_path(cls, _yaml_path: str) -> BooksCollection:
+    def from_legacy_path(cls, _yaml_path: str) -> BooksCollection:
         py = PurePosixPath(_yaml_path)
         dy = py.parent
         db = py.name
         return cls(
-            yaml_path=str(py),
+            legacy_file_path=str(py),
             input_path="",
-            yaml_base_path=str(dy),
+            legacy_base_path=str(dy),
             sqlite_path="",
-            yaml_name=db,
+            legacy_file_name=db,
             books_manifest=None,
             tmp_path="",
         )
@@ -187,15 +187,15 @@ class BooksCollection:
         """Save this collection's books_manifest to self.yaml_path."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_manifest: no books_manifest to save")
-        logger.info(f"yaml_path={self.yaml_path}")
+        logger.info(f"yaml_path={self.legacy_file_path}")
         documents = [
             {"input_path": self.input_path},
             [book.to_dict() for book in self.books_manifest.books],
         ]
         asset = AssetsYaml(*documents)
-        asset.set_yaml_path(self.yaml_path)
+        asset.set_yaml_path(self.legacy_file_path)
         asset.save_assets()
-        logger.info(f"saved books manifest {self.yaml_path}")
+        logger.info(f"saved books manifest {self.legacy_file_path}")
 
 
 pdf_manifest_schema = """ {
