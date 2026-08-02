@@ -25,5 +25,14 @@
     "**/__pycache__": true,
     "**/*.lock": true
   },
-  "search.useIgnoreFiles": true
+  "search.useIgnoreFiles": true,
+  "python.analysis.aiCodeActions": {
+
+    "implementAbstractClasses": true,
+    "generateSymbol": true,
+    "convertFormatString": true
+  },
+  "python.analysis.extraPaths": [
+    "${worksapceFolder}./src"
+  ]
 }
