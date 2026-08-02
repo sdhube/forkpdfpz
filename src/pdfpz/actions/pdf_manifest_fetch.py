@@ -3,7 +3,6 @@ from pathlib import Path
 from pprint import pformat
 
 import pikepdf
-import yaml
 
 from pdfpz.actions.pdf_scan_info_metadata import fill_entry_by_doc_info_legacy, fill_entry_by_doc_info_xmp
 from pdfpz.actions.pdf_scan_info_pages import grep_copyright_line_pdf, grep_doi_line_pdf, normalize_isbn
@@ -16,28 +15,6 @@ from pdfpz.core.logger import logger
 # public functions
 #
 # --------------------------------------------
-
-
-def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
-    """Add/update `entry` (keyed by its 'file' name) in a YAML manifest file."""
-    path = Path(yaml_path)
-
-    manifest: list[dict] = []
-    if path.exists():
-        with path.open("r", encoding="utf-8") as f:
-            loaded = yaml.safe_load(f)
-            if isinstance(loaded, list):
-                manifest = loaded
-
-    # Update the entry for this file (remove old data for it) then re-add it
-    # in its correct alphabetical slot by title, rather than tacking it on
-    # at the end of the list.
-    manifest = [e for e in manifest if e.get("file") != entry.file]
-    manifest.append(entry.to_yaml_dict())
-    manifest.sort(key=lambda e: (e.get("title") or "").lower())
-
-    with path.open("w", encoding="utf-8") as f:
-        yaml.safe_dump(manifest, f, sort_keys=False, allow_unicode=True)
 
 
 def update_manifest_info_empty_fields(
@@ -116,5 +93,3 @@ def single_pdf_action_with_path(pdf_path, entry: PdfManifestEntry, print_values=
 
             if print_values:
                 logger.info(f"update_google {pformat(entry)}")
-
-    # write_entry_to_yaml(entry=entry, yaml_path="single_pdf.yaml")

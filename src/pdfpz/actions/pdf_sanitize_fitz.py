@@ -3,14 +3,16 @@ from pathlib import Path, PurePosixPath
 
 import fitz  # PyMuPDF
 
+from pdfpz.core.logger import logger
+
 
 def sanitize_fitz(pdf_path):
-    print(f"pdf_path={pdf_path}")
+    logger.info(f"pdf_path={pdf_path}")
     src = fitz.open(pdf_path)
     p = PurePosixPath(pdf_path)
     out_stem = "".join([p.stem, "-fitz"])
     out_path = p.with_stem(out_stem)
-    print(f"out_path={out_path}")
+    logger.info(f"out_path={out_path}")
 
     # Remove all annotations from every page — annotations aren't part
     # of the original content and are a common vector for /JS, /AA, /A actions
@@ -32,9 +34,9 @@ def sanitize_fitz(pdf_path):
     if Path(out_path).is_file():
         result = subprocess.run(["/home/sd/.local/bin/sdpdf-scan.sh", str(out_path)], capture_output=True, text=True)
         if result.stdout:
-            print(f"stdout: {result.stdout.strip()}")
+            logger.info(f"stdout: {result.stdout.strip()}")
         if result.returncode:
-            print("sanitize_fitz failed")
+            logger.info("sanitize_fitz failed")
         # scan_fitz_sanitized(str(out_path))
 
 
@@ -47,12 +49,12 @@ def fitz_remove_aa_open_action_from_catalog(src):
 
 
 def sanitize_fitz_not_working(pdf_path):
-    print(f"pdf_path={pdf_path}")
+    logger.info(f"pdf_path={pdf_path}")
     src = fitz.open(pdf_path)
     p = PurePosixPath(pdf_path)
     out_stem = "".join([p.stem, "-fitz"])
     out_path = p.with_stem(out_stem)
-    print(f"out_path={out_path}")
+    logger.info(f"out_path={out_path}")
     dst = fitz.open()
 
     for pg in src:
@@ -85,7 +87,7 @@ def sanitize_fitz_not_working(pdf_path):
     #        page.number
     #    )
 
-    print(f"saving {out_path}")
+    logger.info(f"saving {out_path}")
     dst.save(str(out_path))
 
     dst.close()

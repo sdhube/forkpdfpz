@@ -3,13 +3,8 @@
 # --------------------------------------------------------------------------
 
 import re
-from dataclasses import dataclass, field, asdict
-from pathlib import PurePosixPath
-from typing import List, Optional
-
-import yaml
-
-from pdfpz.core.logger import logger
+from dataclasses import asdict, dataclass, field
+from typing import List
 
 # Compiled once upon module import
 BLACKLIST_REGEX = re.compile(r"www|https|\.pdf|\bnone\b", re.IGNORECASE)
@@ -71,7 +66,7 @@ class PdfManifestEntry:
         """Return a dict built from the dataclass with `optimized` renamed to `Optimized`.
 
         The dict is constructed in a stable, explicit key order to preserve the
-        same ordering used previously when writing YAML (useful for diffs/readability).
+        same ordering used previously when writing legacy asset file (useful for diffs/readability).
         """
         raw = asdict(self)
         ordered_keys = [
@@ -103,10 +98,6 @@ class PdfManifestEntry:
         Uses dataclasses.asdict() under the hood and performs a small key rename
         so callers continue to see `Optimized` (capital O) rather than `optimized`.
         """
-        return self._asdict_with_optimized_rename()
-
-    def to_yaml_dict(self) -> dict:
-        """Serialize preserving field order and the `optimized` -> `Optimized` rename."""
         return self._asdict_with_optimized_rename()
 
     @classmethod
@@ -157,45 +148,6 @@ class BooksShelf:
     def books_generator(self, predicate):
         predicate = predicate or (lambda _: True)
         yield from (book for book in self.books if predicate(book))
-
-
-@dataclass
-class BooksCollection:
-    yaml_path: str
-    input_path: str
-    yaml_base_path: str
-    sqlite_path: str
-    yaml_name: str
-    books_manifest: Optional[BooksShelf]
-    tmp_path: str
-
-    @classmethod
-    def from_yaml_path(cls, _yaml_path: str) -> BooksCollection:
-        py = PurePosixPath(_yaml_path)
-        dy = py.parent
-        db = py.name
-        return cls(
-            yaml_path=str(py),
-            input_path="",
-            yaml_base_path=str(dy),
-            sqlite_path="",
-            yaml_name=db,
-            books_manifest=None,
-            tmp_path="",
-        )
-
-    def save_books_manifest(self) -> None:
-        """Save this collection's books_manifest to self.yaml_path."""
-        if self.books_manifest is None:
-            raise ValueError("BooksCollection.save_books_manifest: no books_manifest to save")
-        logger.info(f"yaml_path={self.yaml_path}")
-        documents = [
-            {"input_path": self.input_path},
-            [book.to_dict() for book in self.books_manifest.books],
-        ]
-        with open(self.yaml_path, "w", encoding="utf-8") as f:
-            yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)
-        print(f"saved books manifest {self.yaml_path}")
 
 
 pdf_manifest_schema = """ {

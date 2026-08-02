@@ -13,7 +13,7 @@ def move_pdf_to_no_info(entry: PdfManifestEntry):
     file_path = Path(pdf_path)
     if not file_path.is_file():
         return
-    print(f"move {pdf_path} to {p.dir_no_info}")
+    logger.info(f"move {pdf_path} to {p.dir_no_info}")
     shutil.move(str(file_path), str(p.path_sanitized_no_info))
 
 

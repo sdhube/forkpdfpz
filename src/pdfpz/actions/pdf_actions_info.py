@@ -3,10 +3,10 @@ from pathlib import Path
 import click
 import pikepdf
 
+from pdfpz.actions.pdf_sanitize_info import del_info, pdf_update_metadata
 from pdfpz.core.class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
-from pdfpz.actions.pdf_sanitize_info import del_info, pdf_update_metadata
 
 # --------------------------------------------
 # public functions
@@ -14,9 +14,7 @@ from pdfpz.actions.pdf_sanitize_info import del_info, pdf_update_metadata
 # --------------------------------------------
 
 
-def single_pdf_info_action_with_path(
-    pdf_path, entry: PdfManifestEntry, sanitize_info=False
-):
+def single_pdf_info_action_with_path(pdf_path, entry: PdfManifestEntry, sanitize_info=False):
     logger.info("enter single_pdf_info_action_with_path")
     if not Path(pdf_path).exists():
         return f"pdf not found {str(pdf_path)}"
@@ -63,7 +61,7 @@ def main(pdf_path: str, sanitize_info: bool) -> None:
     entry.input_file = "/tmp/test.pdf"
     single_pdf_info_action_with_path(pdf_path, entry, sanitize_info=sanitize_info)
     p: TmpPath = TmpPath(pdf_path)
-    print(f"input file field ={get_input_file(p.path_sanitized_info_tmp)}")
+    logger.info(f"input file field ={get_input_file(p.path_sanitized_info_tmp)}")
 
 
 if __name__ == "__main__":

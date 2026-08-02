@@ -3,8 +3,9 @@ import re
 import click
 import pymupdf
 
-from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.actions.pdf_scan_info_web import doi_book_info_by_link
+from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.core.logger import logger
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
 YEAR_PATTERN = re.compile(r"\b20[12]\d\b")
@@ -67,7 +68,7 @@ def grep_copyright_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: boo
     entry.isbn = str(isbn).rstrip()
     entry.isbn_normalized = normalized_isbn
     if print_values:
-        print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} normalized_isbn={normalized_isbn}")
+        logger.info(f"year={entry.year}, isbn={entry.isbn} title={entry.title} normalized_isbn={normalized_isbn}")
 
 
 def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = False, max_search_pages=5):
@@ -83,7 +84,7 @@ def grep_doi_line_pdf(pdf_path, entry: PdfManifestEntry, print_values: bool = Fa
             doi_book_info_by_link(match.group(), entry)
             break  # pythonic break on first find, cpu save, stop to search on pages
     if print_values:
-        print(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
+        logger.info(f"year={entry.year}, isbn={entry.isbn} title={entry.title} isbn={entry.isbn}")
 
 
 # --------------------------------------------------------------------------

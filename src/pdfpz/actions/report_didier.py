@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from pdfpz.core.logger import logger
+
 KEYWORDS = [
     "/JS",
     "/JavaScript",
@@ -59,9 +61,9 @@ def check_dider_move(pdf_file):
         bad = check_pdfid(pdf_file)
 
         if bad:
-            print(f"{pdf_file}: SUSPICIOUS")
+            logger.info(f"{pdf_file}: SUSPICIOUS")
             for key, value in bad.items():
-                print(f"  {key}: {value}")
+                logger.info(f"  {key}: {value}")
             if len(bad) == 1:
                 dest = list(bad)[0][1:]
                 file_path: Path = Path(pdf_file)
@@ -76,13 +78,13 @@ def check_dider_move(pdf_file):
             shutil.move(str(file_path), str(dest_dir / file_path.name))
 
     except Exception as e:
-        print(f"Error checking {pdf_file}: {e}")
+        logger.info(f"Error checking {pdf_file}: {e}")
         return 2
 
 
 def main():
     if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} file.pdf")
+        logger.info(f"Usage: {sys.argv[0]} file.pdf")
         sys.exit(1)
 
     pdf_file = sys.argv[1]
