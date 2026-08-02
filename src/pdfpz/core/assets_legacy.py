@@ -18,12 +18,12 @@ class AssetsLegacy(Asset):
     """
 
     def load_assets(self) -> list:
-        with open(self.yaml_path, "r", encoding="utf-8") as f:
+        with open(self.legacy_path, "r", encoding="utf-8") as f:
             self.assets = list(yaml.safe_load_all(f))
         return self.assets
 
     def save_assets(self) -> None:
-        with open(self.yaml_path, "w", encoding="utf-8") as f:
+        with open(self.legacy_path, "w", encoding="utf-8") as f:
             if len(self.assets) == 1:
                 yaml.safe_dump(self.assets[0], f, sort_keys=False, allow_unicode=True)
             else:

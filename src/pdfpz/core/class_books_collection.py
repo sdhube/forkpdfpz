@@ -52,15 +52,15 @@ class BooksCollection:
 
     def load_books_collection(self) -> None:
         """Load a BooksShelf from a legacy file."""
-        asset = AssetsLegacy()
-        asset.set_legacy_path(self.legacy_file_name)
-
+        self.assets.set_legacy_path(self.legacy_file_name)
+        logger.info(f"legacy_file_name= {self.legacy_file_name} {type(self.legacy_file_name)}")
+        logger.info(f"legacy_file_name= {self.assets.legacy_path} {type(self.assets.legacy_path)}")
         p: Path = Path(self.assets.legacy_path)
         if not p.is_file():
             logger.info(f"{self.assets.legacy_path} is not a file")
             return None
         logger.info(f"legacy_path={self.assets.legacy_path}")
-        documents = asset.load_assets()
+        documents = self.assets.load_assets()
         logger.info(f"self.input_path brefore = {self.input_path}")
         self.input_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
         logger.info(f"self.input_path after = {self.input_path}")
