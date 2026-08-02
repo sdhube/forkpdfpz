@@ -14,11 +14,11 @@ class Asset(ABC):
         self.assets = list(assets)
 
     @abstractmethod
-    def load(self, path: str):
+    def load_assets(self, path: str):
         """Load this asset's data from `path` and return it."""
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, path: str) -> None:
+    def save_assets(self, path: str) -> None:
         """Save this asset's current data to `path`."""
         raise NotImplementedError

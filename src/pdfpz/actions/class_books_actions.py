@@ -52,7 +52,7 @@ class BooksActions:
             logger.info(f"{yaml_path} is not a file")
             return None
         logger.info(f"yaml_path={yaml_path}")
-        documents = AssetsYaml().load(yaml_path)
+        documents = AssetsYaml().load_assets(yaml_path)
         list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
         books_list = documents[1]  # Contains your array of PDF dictionaries
 

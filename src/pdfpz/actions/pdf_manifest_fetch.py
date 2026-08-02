@@ -24,7 +24,7 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
 
     manifest: list[dict] = []
     if path.exists():
-        documents = AssetsYaml().load(yaml_path)
+        documents = AssetsYaml().load_assets(yaml_path)
         if documents and isinstance(documents[0], list):
             manifest = documents[0]
 
@@ -35,7 +35,7 @@ def write_entry_to_yaml(entry: PdfManifestEntry, yaml_path: str) -> None:
     manifest.append(entry.to_yaml_dict())
     manifest.sort(key=lambda e: (e.get("title") or "").lower())
 
-    AssetsYaml(manifest).save(yaml_path)
+    AssetsYaml(manifest).save_assets(yaml_path)
 
 
 def update_manifest_info_empty_fields(
