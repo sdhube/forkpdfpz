@@ -9,7 +9,7 @@ class AssetsLegacy(Asset):
     Construct with the document(s) to save: a single positional argument
     (a dict or list) is written as one plain YAML document; more than one
     is written as a `---`-separated document stream (the manifest's
-    [{"input_path": ...}, [books...]] shape). Call `set_yaml_path()` before
+    [{"input_path": ...}, [books...]] shape). Call `set_legacy_path()` before
     load_assets()/save_assets() -- both use that stored path.
 
     `load_assets()` always returns the list of documents found in the file

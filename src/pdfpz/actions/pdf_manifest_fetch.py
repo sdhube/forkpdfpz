@@ -25,7 +25,7 @@ def write_entry_to_assets(entry: PdfManifestEntry, yaml_path: str) -> None:
     manifest: list[dict] = []
     if path.exists():
         asset = AssetsLegacy()
-        asset.set_yaml_path(yaml_path)
+        asset.set_legacy_path(yaml_path)
         documents = asset.load_assets()
         if documents and isinstance(documents[0], list):
             manifest = documents[0]
@@ -38,7 +38,7 @@ def write_entry_to_assets(entry: PdfManifestEntry, yaml_path: str) -> None:
     manifest.sort(key=lambda e: (e.get("title") or "").lower())
 
     asset = AssetsLegacy(manifest)
-    asset.set_yaml_path(yaml_path)
+    asset.set_legacy_path(yaml_path)
     asset.save_assets()
 
 

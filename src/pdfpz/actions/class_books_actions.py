@@ -53,7 +53,7 @@ class BooksActions:
             return None
         logger.info(f"yaml_path={yaml_path}")
         asset = AssetsLegacy()
-        asset.set_yaml_path(yaml_path)
+        asset.set_legacy_path(yaml_path)
         documents = asset.load_assets()
         list_path = documents[0]  # Contains {'input_path': '/mnt/shared/gitlab_books'}
         books_list = documents[1]  # Contains your array of PDF dictionaries

@@ -189,7 +189,7 @@ class BooksCollection:
             [book.to_dict() for book in self.books_manifest.books],
         ]
         asset = AssetsLegacy(*documents)
-        asset.set_yaml_path(self.legacy_file_path)
+        asset.set_legacy_path(self.legacy_file_path)
         asset.save_assets()
         logger.info(f"saved books manifest {self.legacy_file_path}")
 

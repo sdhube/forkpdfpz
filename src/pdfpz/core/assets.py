@@ -5,7 +5,7 @@ class Asset(ABC):
     """Base class for a file-backed asset with a load/save pair.
 
     Subclasses own one on-disk format (e.g. YAML) and how their held data
-    maps to/from it. The path is set once via `set_yaml_path()` and then
+    maps to/from it. The path is set once via `set_legacy_path()` and then
     reused by both `load_assets()` and `save_assets()`, rather than being
     passed to each call.
     """
