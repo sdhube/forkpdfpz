@@ -27,7 +27,7 @@ class BooksActions:
 
     def copy_external_file_to_temp(self, entry: PdfManifestEntry):
         """Copy a PDF file to the temporary directory."""
-        pdf_input_path = str(Path(self.books_collection.assets.legacy_base_path).joinpath(entry.input_file))
+        pdf_input_path = str(Path(self.books_collection.assets.get_legacy_base_path()).joinpath(entry.input_file))
         pdf_name = str(PurePosixPath(entry.input_file).name)
         pdf_output_path = str(Path(self.books_collection.tmp_path).joinpath(pdf_name))
         entry.file = pdf_output_path
@@ -65,6 +65,10 @@ class BooksActions:
                 continue
             cp_pdf_from_metadata_to_normalized(book, normalized_name)
             book.name = normalized_name
+
+    def load_yaml_export_db(self):
+        """export to db"""
+        self.books_collection.export_format("db")
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""

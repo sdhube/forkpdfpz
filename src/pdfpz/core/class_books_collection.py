@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from pdfpz.bridges.assets_legacy import AssetsLegacy
-from pdfpz.core.assets import Asset
+from pdfpz.bridges.db_bridge import AssetsDb
+from pdfpz.core.assets import Assets, assets_pathname_to_type
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.crawl import PdfCrawler
 from pdfpz.core.logger import logger
@@ -10,31 +13,51 @@ from pdfpz.core.merge import merge as merge_entries
 
 @dataclass
 class BooksCollection:
-    sqlite_path: str
     books_manifest: BooksShelf | None
     tmp_path: str
-    assets: Asset
+    assets: Assets
+    policy: str
+
+    @classmethod
+    def from_persistence_file_path(cls, persistence_file_path):
+        ext = assets_pathname_to_type(persistence_file_path)
+        if ext == "db":
+            return BooksCollection.from_db(persistence_file_path)
+        if ext == "yaml":
+            return BooksCollection.from_legacy_path(persistence_file_path)
+        logger.error(f"{persistence_file_path} not supported")
+
+    @classmethod
+    def from_db(cls, _legacy_file_path: str) -> BooksCollection:
+        return cls(books_manifest=None, tmp_path="", assets=AssetsDb(), policy="db")
 
     @classmethod
     def from_legacy_path(cls, _legacy_file_path: str) -> BooksCollection:
         return cls(
-            sqlite_path="",
-            books_manifest=None,
-            tmp_path="",
-            assets=AssetsLegacy(persistance_path=_legacy_file_path),
+            books_manifest=None, tmp_path="", assets=AssetsLegacy(persistance_path=_legacy_file_path), policy="yaml"
         )
 
     @classmethod
     def from_entries(cls, _books_manifests: BooksShelf) -> BooksCollection:
+        """NOT USED YET"""
         return cls(
-            sqlite_path="",
             books_manifest=_books_manifests,
             tmp_path="",
             assets=AssetsLegacy(persistance_path="out.yaml"),
         )
 
-    def save_books_collection(self):
-        self.save_books_legacy_manifest()
+    def export_format(self, format: str):
+        assets: Assets = None
+        if format == "db":
+            assets = AssetsDb()
+        assets.set_entries(self.books_manifest.books)
+        assets.save_assets()
+
+    def save_books_collection(self, policy="yaml"):
+        if self.policy == "yaml" and policy == self.policy:
+            self.save_books_legacy_manifest()
+        if self.policy == "yaml" and policy == "db":
+            self.export_format("db")
 
     def save_books_legacy_manifest(self) -> None:
         """Save this collection's books_manifest via its AssetsLegacy -- all
@@ -42,10 +65,10 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
-        if not self.assets.books_manifest:
-            self.assets.books_manifest = self.books_manifest
+        if not self.assets.get_entries():
+            self.assets.set_entries(self.books_manifest.books)
         self.assets.save_assets()
-        logger.info(f"saved books manifest {self.assets.persistence_path}")
+        logger.info(f"saved books manifest {self.assets.get_persistence_path()}")
 
     def set_tmp_path(self, tmp_path: str):
         self.tmp_path = str(tmp_path) if tmp_path else ""
@@ -55,8 +78,8 @@ class BooksCollection:
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
-        self.books_manifest = BooksShelf(books=self.assets.assets)
-        logger.info(f"loaded books manifest {self.assets.persistence_path}")
+        self.books_manifest = BooksShelf(books=self.assets.get_entries())
+        logger.info(f"loaded books manifest {self.assets.get_persistence_path()}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
         """Crawl top_dir for PDFs and merge new-by-name entries into
