@@ -27,7 +27,7 @@ class AssetsLegacy(Asset):
         books=None,
     ):
 
-        Asset(self, persistance_path)
+        super().__init__(persistance_path)
         py = PurePosixPath(persistance_path)
         dy = py.parent
         dn = py.name
