@@ -3,7 +3,7 @@ from pathlib import Path, PurePosixPath
 
 from pdfpz.core.assets import Asset
 from pdfpz.core.assets_legacy import AssetsLegacy
-from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
+from pdfpz.core.class_book_manifest import BooksShelf
 from pdfpz.core.logger import logger
 
 
@@ -31,22 +31,23 @@ class BooksCollection:
             legacy_file_name=db,
             books_manifest=None,
             tmp_path="",
-            assets=AssetsLegacy(),
+            assets=AssetsLegacy(legacy_path=str(py)),
         )
 
     def save_books_collection(self):
         self.save_books_legacy_manifest()
 
     def save_books_legacy_manifest(self) -> None:
-        """Save this collection's books_manifest to legacy path."""
+        """Save this collection's books_manifest via its AssetsLegacy -- all
+        the yaml document shape/PdfManifestEntry.to_dict() knowledge lives
+        on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
-        logger.info(f"legacy_file_path={self.legacy_file_path}")
         self.assets = AssetsLegacy(
-            {"input_path": self.input_path},
-            [book.to_dict() for book in self.books_manifest.books],
+            legacy_path=self.legacy_file_path,
+            input_path=self.input_path,
+            books=self.books_manifest.books,
         )
-        self.assets.set_legacy_path(self.legacy_file_path)
         self.assets.save_assets()
         logger.info(f"saved books manifest {self.legacy_file_path}")
 
@@ -54,16 +55,14 @@ class BooksCollection:
         self.tmp_path = str(tmp_path) if tmp_path else ""
 
     def load_books_collection(self) -> None:
-        """Load a BooksShelf from a legacy file."""
-        self.assets.set_legacy_path(self.legacy_file_path)
+        """Load this collection's books_manifest via its AssetsLegacy -- all
+        the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
+        on AssetsLegacy now, not here."""
         p: Path = Path(self.assets.legacy_path)
         if not p.is_file():
             logger.info(f"{self.assets.legacy_path} is not a file")
             return
-        logger.info(f"legacy_path={self.assets.legacy_path}")
-        documents = self.assets.load_assets()
-        self.input_path = documents[0].get("input_path", "")
-
-        parsed_books = [PdfManifestEntry.from_dict(book) for book in documents[1]]
+        self.assets.load_assets()
+        self.input_path = self.assets.input_path
+        self.books_manifest = BooksShelf(books=self.assets.books)
         logger.info(f"loaded books manifest {self.legacy_file_path}")
-        self.books_manifest = BooksShelf(books=parsed_books)
