@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from .db_schema import Base, BookOrm
 from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.core.assets import Assets
 
 DB_NAME = "books_db"
 DB_FILE = f"{DB_NAME}.sqlite"
@@ -16,6 +17,9 @@ DB_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 
+class AssetsDb(Assets):    
+    def __init__(self):
+        pass
 
 def is_exist() -> bool:
     """Return True if the database file already exists."""

@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
 from pdfpz.bridges.assets_legacy import AssetsLegacy
-from pdfpz.core.assets import Asset
+from pdfpz.core.assets import Assets
+from pdfpz.bridges.db_bridge import AssetsDb
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.crawl import PdfCrawler
 from pdfpz.core.logger import logger
@@ -10,15 +11,21 @@ from pdfpz.core.merge import merge as merge_entries
 
 @dataclass
 class BooksCollection:
-    sqlite_path: str
     books_manifest: BooksShelf | None
     tmp_path: str
-    assets: Asset
+    assets: Assets
+
+    @classmethod
+    def from_db(cls, _legacy_file_path: str) -> BooksCollection:
+        return cls(
+            books_manifest=None,
+            tmp_path="",
+            assets=AssetsDb(),
+        )
 
     @classmethod
     def from_legacy_path(cls, _legacy_file_path: str) -> BooksCollection:
         return cls(
-            sqlite_path="",
             books_manifest=None,
             tmp_path="",
             assets=AssetsLegacy(persistance_path=_legacy_file_path),
@@ -27,7 +34,6 @@ class BooksCollection:
     @classmethod
     def from_entries(cls, _books_manifests: BooksShelf) -> BooksCollection:
         return cls(
-            sqlite_path="",
             books_manifest=_books_manifests,
             tmp_path="",
             assets=AssetsLegacy(persistance_path="out.yaml"),

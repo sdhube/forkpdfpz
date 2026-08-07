@@ -4,7 +4,7 @@ from pathlib import PurePosixPath
 from pdfpz.core.logger import logger
 
 
-class Asset(ABC):
+class Assets(ABC):
     """Base class for a file-backed asset with a load/save pair.
 
     Subclasses own one on-disk format (e.g. YAML) and how their held data
@@ -20,6 +20,9 @@ class Asset(ABC):
 
     def set_persistence_path(self, legacy_path: str) -> None:
         self.persistence_path = legacy_path
+
+    def set_input_path(self, _input_path: str) -> None:
+        self.input_path = self.input_path
 
     def set_assets(self, assets_list):
         self.assets = assets_list

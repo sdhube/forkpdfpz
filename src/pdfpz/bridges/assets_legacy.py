@@ -2,12 +2,12 @@ from pathlib import Path, PurePosixPath
 
 import yaml
 
-from pdfpz.core.assets import Asset
+from pdfpz.core.assets import Assets
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.logger import logger
 
 
-class AssetsLegacy(Asset):
+class AssetsLegacy(Assets):
     """A YAML-backed asset representing the books manifest.
 
     Constructed with everything needed to load and save it: legacy_file_path
@@ -33,7 +33,7 @@ class AssetsLegacy(Asset):
 
         self.legacy_base_path = str(dy)
         self.legacy_file_name = str(dn)
-        self.input_path = input_path
+        self.set_input_path(input_path)
 
     def load_assets(self) -> None:
         p: Path = Path(self.persistence_path)
