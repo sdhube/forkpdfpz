@@ -43,11 +43,8 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
-        self.assets = AssetsLegacy(
-            legacy_path=self.legacy_file_path,
-            input_path=self.input_path,
-            books=self.books_manifest.books,
-        )
+        self.assets.input_path = self.input_path
+        self.assets.books = self.books_manifest.books
         self.assets.save_assets()
         logger.info(f"saved books manifest {self.legacy_file_path}")
 
