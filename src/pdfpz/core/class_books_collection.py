@@ -1,10 +1,12 @@
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
+from pdfpz.bridges.assets_legacy import AssetsLegacy
 from pdfpz.core.assets import Asset
-from pdfpz.core.assets_legacy import AssetsLegacy
-from pdfpz.core.class_book_manifest import BooksShelf
+from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
+from pdfpz.core.crawl import PdfCrawler
 from pdfpz.core.logger import logger
+from pdfpz.core.merge import merge as merge_entries
 
 
 @dataclass
@@ -45,3 +47,17 @@ class BooksCollection:
         self.assets.load_assets()
         self.books_manifest = BooksShelf(books=self.assets.books)
         logger.info(f"loaded books manifest {self.assets.legacy_file_path}")
+
+    def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
+        """Crawl top_dir for PDFs and merge new-by-name entries into
+        books_manifest. Moved here from pdftui's BooksSpine -- crawling and
+        merging operate purely on the in-memory books list, independent of
+        which Asset backend (if any) this collection is persisted through."""
+        crawler = PdfCrawler(top_dir)
+        crawled_entries = crawler.crawl()
+
+        existing_books = self.books_manifest.books if self.books_manifest else []
+        merged_books = merge_entries(existing_books, crawled_entries)
+        self.books_manifest = BooksShelf(books=merged_books)
+
+        return crawled_entries
