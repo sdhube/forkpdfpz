@@ -14,6 +14,7 @@ from pdfpz.core.merge import merge as merge_entries
 @dataclass
 class BooksCollection:
     books_shelf: BooksShelf | None
+    books_spines: BooksShelf | None
     tmp_path: str
     assets: Assets
     policy: str
@@ -79,6 +80,7 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
         self.books_shelf = BooksShelf(books=self.assets.get_entries())
+        self.books_spines = BooksShelf(books=self.assets.get_spines())
         logger.info(f"loaded books manifest {self.assets.get_persistence_path()}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:

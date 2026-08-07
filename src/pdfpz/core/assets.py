@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import PurePosixPath
 
-from pdfpz.core.logger import logger
 from pdfpz.core.class_book_manifest import POLICIES
+from pdfpz.core.logger import logger
 
 
 class Assets(ABC):
@@ -24,6 +25,8 @@ class Assets(ABC):
         self._persistence_path = str(PurePosixPath(persistence_path))
         self._input_path = ""
         self._entries = None
+        self._spines = None
+        self._filter = None
 
     def get_persistence_path(self) -> str:
         return self._persistence_path
@@ -40,9 +43,19 @@ class Assets(ABC):
     def get_entries(self):
         return self._entries
 
+    def get_spines(self):
+        return self._spines
+
     def set_entries(self, entries) -> None:
         self._entries = entries
         logger.info(f"have set {len(self._entries)} entries")
+
+    def set_spines(self, entries) -> None:
+        self._spines = entries
+        logger.info(f"have set {len(self._spines)} entries")
+
+    def set_filter(self, filter_param):
+        self._filter = filter_param
 
     @abstractmethod
     def load_assets(self):

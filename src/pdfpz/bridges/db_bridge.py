@@ -52,7 +52,15 @@ class AssetsDb(Assets):
             logger.info(f"{self.get_persistence_path()} does not exist")
             return
         self.set_entries(load_all())
-        logger.info(f"loaded from {self.get_persistence_path()}")
+        self.set_spines(self.load_filtered())
+
+    def load_filtered(self):
+        """Return every entry currently stored in the database using filter"""
+        if not self._filter:
+            self._filter = None  # TODO all entries with title or with author
+            with Session() as session:
+                # TODO line below query for books matching filter
+                self.set_spines([_book_to_entry(b) for b in session.query(BookOrm).filter(self._filter)])
 
     def save_assets(self) -> None:
         def save(entries: list[PdfManifestEntry]) -> None:
