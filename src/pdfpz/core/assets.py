@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from pathlib import PurePosixPath
 
 from pdfpz.core.logger import logger
+
+
 class Asset(ABC):
     """Base class for a file-backed asset with a load/save pair.
 
@@ -21,7 +23,7 @@ class Asset(ABC):
 
     def set_assets(self, assets_list):
         self.assets = assets_list
-        logger.info(f"have set  {len(self.assets)} assets") 
+        logger.info(f"have set  {len(self.assets)} assets")
 
     @abstractmethod
     def load_assets(self):
