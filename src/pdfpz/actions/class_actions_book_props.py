@@ -29,10 +29,10 @@ class BookPropsActions:
         self.name = name
 
     def set_id(self) -> None:
-        """Look up this book's row id in the books table by name."""
+        """Look up this book's book_id in the books"""
         session = Session()
         try:
-            row = session.query(BookOrm.id).filter(BookOrm.name == self.name).first()
+            row = session.query(BookOrm.book_id).filter(BookOrm.book_id == self.book_id).first()
         finally:
             session.close()
         self.id_book_table = row[0] if row else None
@@ -59,6 +59,7 @@ class BookPropsActions:
             return
 
         self.pdf_props = PdfProps(
+            book_id=book.book_id,
             valid_pdf=book.valid_pdf,
             input_file=book.input_file,
             orig=props_row.orig if props_row else False,
