@@ -27,7 +27,7 @@ class BooksActions:
 
     def copy_external_file_to_temp(self, entry: PdfManifestEntry):
         """Copy a PDF file to the temporary directory."""
-        pdf_input_path = str(Path(self.books_collection.legacy_base_path).joinpath(entry.input_file))
+        pdf_input_path = str(Path(self.books_collection.assets.legacy_base_path).joinpath(entry.input_file))
         pdf_name = str(PurePosixPath(entry.input_file).name)
         pdf_output_path = str(Path(self.books_collection.tmp_path).joinpath(pdf_name))
         entry.file = pdf_output_path
