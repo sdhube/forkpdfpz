@@ -1,5 +1,8 @@
+from pathlib import PurePosixPath, Path
+
 import yaml
 
+from pdfpz.core.logger import logger
 from pdfpz.core.assets import Asset
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 
@@ -19,25 +22,33 @@ class AssetsLegacy(Asset):
 
     def __init__(
         self,
-        legacy_file_path: str = "",
-        legacy_base_path: str = "",
-        legacy_file_name: str = "",
+        persistance_path: str = "",
         input_path: str = "",
         books=None,
     ):
-        self.legacy_file_path = legacy_file_path
-        self.legacy_base_path = legacy_base_path
-        self.legacy_file_name = legacy_file_name
+
+        Asset(self, persistance_path)
+        py = PurePosixPath(persistance_path)
+        dy = py.parent
+        dn = py.name
+
+        self.legacy_base_path = str(dy)
+        self.legacy_file_name = str(dn)
         self.input_path = input_path
         self.books = list(books) if books else []
 
     def load_assets(self) -> None:
-        with open(self.legacy_file_path, "r", encoding="utf-8") as f:
+        p: Path = Path(self.persistence_path)
+        if not p.is_file():
+            logger.info(f"{self.assets.legacy_file_path} is not a file")
+            return
+
+        with open(self.persistence_path, "r", encoding="utf-8") as f:
             documents = list(yaml.safe_load_all(f))
-        self.input_path = documents[0].get("input_path", "")
-        self.books = [PdfManifestEntry.from_dict(book) for book in documents[1]]
+            self.input_path = documents[0].get("input_path", "")
+            self.books = [PdfManifestEntry.from_dict(book) for book in documents[1]]
 
     def save_assets(self) -> None:
         documents = [{"input_path": self.input_path}, [book.to_dict() for book in self.books]]
-        with open(self.legacy_file_path, "w", encoding="utf-8") as f:
+        with open(self.persistence_path, "w", encoding="utf-8") as f:
             yaml.safe_dump_all(documents, f, sort_keys=False, allow_unicode=True, explicit_start=True)

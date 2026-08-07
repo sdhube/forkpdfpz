@@ -16,18 +16,11 @@ class BooksCollection:
 
     @classmethod
     def from_legacy_path(cls, _legacy_file_path: str) -> BooksCollection:
-        py = PurePosixPath(_legacy_file_path)
-        dy = py.parent
-        db = py.name
         return cls(
             sqlite_path="",
             books_manifest=None,
             tmp_path="",
-            assets=AssetsLegacy(
-                legacy_file_path=str(py),
-                legacy_base_path=str(dy),
-                legacy_file_name=db,
-            ),
+            assets=AssetsLegacy(),
         )
 
     def save_books_collection(self):
@@ -39,7 +32,6 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
-        self.assets.books = self.books_manifest.books
         self.assets.save_assets()
         logger.info(f"saved books manifest {self.assets.legacy_file_path}")
 
@@ -50,10 +42,6 @@ class BooksCollection:
         """Load this collection's books_manifest via its AssetsLegacy -- all
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
-        p: Path = Path(self.assets.legacy_file_path)
-        if not p.is_file():
-            logger.info(f"{self.assets.legacy_file_path} is not a file")
-            return
         self.assets.load_assets()
         self.books_manifest = BooksShelf(books=self.assets.books)
         logger.info(f"loaded books manifest {self.assets.legacy_file_path}")

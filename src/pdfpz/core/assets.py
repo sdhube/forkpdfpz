@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import PurePosixPath
 
 
 class Asset(ABC):
@@ -10,12 +11,13 @@ class Asset(ABC):
     passed to each call.
     """
 
-    def __init__(self, *assets):
-        self.assets = list(assets)
-        self.legacy_path = None
+    def __init__(self, persistence_path):
+        self.assets = None
+        py = PurePosixPath(persistence_path)
+        self.persistence_path = str(py)
 
-    def set_legacy_path(self, legacy_path: str) -> None:
-        self.legacy_path = legacy_path
+    def set_persistence_path(self, legacy_path: str) -> None:
+        self.persistence_path = legacy_path
 
     @abstractmethod
     def load_assets(self):
