@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path
-from pprint import pformat
-from typing import Optional
 
 import click
 
@@ -21,6 +19,7 @@ class BookOperations:
     fitz_didier: bool = False
     sanitize_info: bool = False
     sanitize_normalize_name: bool = False
+    load_yaml_export_db: bool = False
     print_first: bool = False
 
     # pythonic replacing repited if statements with dictionary
@@ -34,13 +33,13 @@ class BookOperations:
 
 def load_books_collection_and_operate(
     persistence_file_path: str,
-    tmp_path: Optional[str] = None,
-    operations: Optional[BookOperations] = None,
+    tmp_path: str | None = None,
+    operations: BookOperations | None = None,
 ) -> None:
     """Load books library and perform requested operations.
 
     Args:
-        persistence_file_path: Path to the YAML manifest file
+        persistence_file_path: Path to YAML/DB file
         tmp_path: Optional temporary directory path
         operations: BookOperations instance defining which operations to perform
     """
@@ -48,7 +47,7 @@ def load_books_collection_and_operate(
 
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
     logger.info(f"initializing BooksCollection from legacy_path {persistence_file_path}")
-    books_collection: BooksCollection = BooksCollection.from_legacy_path(persistence_file_path)
+    books_collection: BooksCollection = BooksCollection.from_persistence_file_path(persistence_file_path)
     books_collection.set_tmp_path(tmp_path)
 
     # Create BooksActions instance
@@ -66,6 +65,7 @@ def load_books_collection_and_operate(
         "fitz_didier": actions.sanitize_books_fitz_didier,
         "sanitize_info": actions.sanitize_books_info,
         "sanitize_normalize_name": actions.update_normalized_info_and_move_rename_file,
+        "load_yaml_export_db": actions.load_yaml_export_db,
         "print_first": actions.print_first_entry,
     }
 
@@ -82,7 +82,7 @@ def load_books_collection_and_operate(
 
 
 @click.command()
-@click.argument("legacy_file_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
+@click.argument("persistence_file_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("--tmp-path", type=click.Path(path_type=Path), default=None, help="Optional temporary path.")
 @click.option("--copy-pdfs", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
 @click.option("--update-assets-info", is_flag=True, default=False, help="update yaml with pdf metadata")
@@ -91,6 +91,7 @@ def load_books_collection_and_operate(
 @click.option("--fitz-didier", is_flag=True, default=False, help="fitz and move pdf by didier finds")
 @click.option("--sanitize-info", is_flag=True, default=False, help="sanitize info into pdf")
 @click.option("--sanitize-normalize-name", is_flag=True, default=False, help="normalize pdf file names")
+@click.option("--load-yaml-export-db", is_flag=True, default=False, help="load yaml export db")
 @click.option(
     "--print-first",
     "print_first",
@@ -105,14 +106,14 @@ def main(**kwargs) -> None:
     it easier to add new operations without modifying the main signature.
     """
     # Extract positional and optional arguments
-    legacy_file_path: Path = kwargs.pop("legacy_file_path")
-    tmp_path: Optional[Path] = kwargs.pop("tmp_path")
+    persistence_file_path: Path = kwargs.pop("persistence_file_path")
+    tmp_path: Path | None = kwargs.pop("tmp_path")
 
     # Create BookOperations from remaining kwargs (operation flags)
     operations = BookOperations(**kwargs)
 
     load_books_collection_and_operate(
-        str(legacy_file_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations
+        str(persistence_file_path), tmp_path=str(tmp_path) if tmp_path else None, operations=operations
     )
 
 
@@ -126,3 +127,4 @@ if __name__ == "__main__":
 # pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-didier"
 # pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/sanitized --sanitize-info"
 # pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --sanitize-normalize-name"
+# pdfpz  files_uuid.yaml --tmp-path=/tmp/tmp_meta/metadata/ --load-yaml-export-db

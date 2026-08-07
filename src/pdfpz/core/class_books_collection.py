@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from pdfpz.bridges.assets_legacy import AssetsLegacy
-from pdfpz.core.assets import Assets
 from pdfpz.bridges.db_bridge import AssetsDb
+from pdfpz.core.assets import Assets, assets_pathname_to_type
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.crawl import PdfCrawler
 from pdfpz.core.logger import logger
@@ -15,33 +16,48 @@ class BooksCollection:
     books_manifest: BooksShelf | None
     tmp_path: str
     assets: Assets
+    policy: str
+
+    @classmethod
+    def from_persistence_file_path(cls, persistence_file_path):
+        ext = assets_pathname_to_type(persistence_file_path)
+        if ext == "db":
+            return BooksCollection.from_db(persistence_file_path)
+        if ext == "yaml":
+            return BooksCollection.from_legacy_path(persistence_file_path)
+        logger.error(f"{persistence_file_path} not supported")
 
     @classmethod
     def from_db(cls, _legacy_file_path: str) -> BooksCollection:
-        return cls(
-            books_manifest=None,
-            tmp_path="",
-            assets=AssetsDb(),
-        )
+        return cls(books_manifest=None, tmp_path="", assets=AssetsDb(), policy="db")
 
     @classmethod
     def from_legacy_path(cls, _legacy_file_path: str) -> BooksCollection:
         return cls(
-            books_manifest=None,
-            tmp_path="",
-            assets=AssetsLegacy(persistance_path=_legacy_file_path),
+            books_manifest=None, tmp_path="", assets=AssetsLegacy(persistance_path=_legacy_file_path), policy="yaml"
         )
 
     @classmethod
     def from_entries(cls, _books_manifests: BooksShelf) -> BooksCollection:
+        """NOT USED YET"""
         return cls(
             books_manifest=_books_manifests,
             tmp_path="",
             assets=AssetsLegacy(persistance_path="out.yaml"),
         )
 
-    def save_books_collection(self):
-        self.save_books_legacy_manifest()
+    def export_format(self, format: str):
+        assets: Assets = None
+        if format == "db":
+            assets = AssetsDb()
+        assets.set_entries(self.books_manifest.books)
+        assets.save_assets()
+
+    def save_books_collection(self, policy="yaml"):
+        if self.policy == "yaml" and policy == self.policy:
+            self.save_books_legacy_manifest()
+        if self.policy == "yaml" and policy == "db":
+            self.export_format("db")
 
     def save_books_legacy_manifest(self) -> None:
         """Save this collection's books_manifest via its AssetsLegacy -- all

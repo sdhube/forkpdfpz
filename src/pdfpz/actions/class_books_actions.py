@@ -66,6 +66,10 @@ class BooksActions:
             cp_pdf_from_metadata_to_normalized(book, normalized_name)
             book.name = normalized_name
 
+    def load_yaml_export_db(self):
+        """export to db"""
+        self.books_collection.export_format("db")
+
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
         books_manifest: BooksShelf = self.books_collection.books_manifest

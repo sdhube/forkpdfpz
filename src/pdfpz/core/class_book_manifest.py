@@ -13,6 +13,8 @@ MULTIPLE_SPACES_REGEX = re.compile(r"\s+")
 SPACES_REGEX = re.compile(r"\s")
 MULTIPLE_DASHES_REGEX = re.compile(r"-{3,}")
 
+POLICIES = ("json", "yaml", "db")
+
 
 def is_value_containing_blacklisted_terms(text: str) -> bool:
     return bool(BLACKLIST_REGEX.search(text))

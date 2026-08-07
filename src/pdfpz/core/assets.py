@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from pathlib import PurePosixPath
 
 from pdfpz.core.logger import logger
+from pdfpz.core.class_book_manifest import POLICIES
 
 
 class Assets(ABC):
@@ -52,3 +53,11 @@ class Assets(ABC):
     def save_assets(self) -> None:
         """Save this asset's current data"""
         raise NotImplementedError
+
+
+def assets_pathname_to_type(name: str) -> str:
+    p = PurePosixPath(name).suffix.strip(".")
+    if p not in POLICIES:
+        logger.error(f"{p} {name} is not supported as persistent")
+        return
+    return p

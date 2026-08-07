@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .db_schema import Base, BookOrm
-from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.assets import Assets
+from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.logger import logger
 
+from .db_schema import Base, BookOrm
+
 DB_NAME = "books_db"
-DB_FILE = f"{DB_NAME}.sqlite"
+DB_FILE = f"{DB_NAME}.db"
 DB_URL = f"sqlite:///{DB_FILE}"
 
 engine = create_engine(DB_URL)
@@ -42,6 +42,12 @@ class AssetsDb(Assets):
         """Load every entry currently in the database. A missing database
         means "nothing saved yet" -- same no-op AssetsLegacy.load_assets()
         does for a missing yaml file -- rather than an error."""
+
+        def load_all() -> list[PdfManifestEntry]:
+            """Return every entry currently stored in the database."""
+            with Session() as session:
+                return [_book_to_entry(b) for b in session.query(BookOrm).all()]
+
         if not is_exist():
             logger.info(f"{self.get_persistence_path()} does not exist")
             return
@@ -49,13 +55,18 @@ class AssetsDb(Assets):
         logger.info(f"loaded from {self.get_persistence_path()}")
 
     def save_assets(self) -> None:
-        """Merge this asset's current entries into the database by name,
-        creating the schema first if needed. Uses merge_to_db() rather than
-        save() so a repeat save doesn't try to re-insert entries already in
-        the database and violate books.name's unique constraint."""
+        def save(entries: list[PdfManifestEntry]) -> None:
+            """Save a list of manifest entries into the database (no dedup check)."""
+            with Session() as session:
+                try:
+                    session.add_all(_entry_to_book(e) for e in entries)
+                    session.commit()
+                except Exception as ex:
+                    print(f"failed save to db {ex}")
+
         if not is_exist():
             create_db()
-        merge_to_db(self.get_entries() or [])
+        save(self.get_entries())
         logger.info(f"saved to {self.get_persistence_path()}")
 
 
@@ -108,26 +119,7 @@ def _book_to_entry(book: BookOrm) -> PdfManifestEntry:
     return entry
 
 
-def load_all() -> List[PdfManifestEntry]:
-    """Return every entry currently stored in the database."""
-    session = Session()
-    try:
-        return [_book_to_entry(b) for b in session.query(BookOrm).all()]
-    finally:
-        session.close()
-
-
-def save(entries: List[PdfManifestEntry]) -> None:
-    """Save a list of manifest entries into the database (no dedup check)."""
-    session = Session()
-    try:
-        session.add_all(_entry_to_book(e) for e in entries)
-        session.commit()
-    finally:
-        session.close()
-
-
-def merge_to_db(entries: List[PdfManifestEntry]) -> int:
+def merge_to_db(entries: list[PdfManifestEntry]) -> int:
     """Add entries whose name isn't already in the database. Returns count added."""
     session = Session()
     try:
