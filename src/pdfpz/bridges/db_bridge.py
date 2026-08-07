@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from .db_schema import Base, BookOrm
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.assets import Assets
+from pdfpz.core.logger import logger
 
 DB_NAME = "books_db"
 DB_FILE = f"{DB_NAME}.sqlite"
@@ -19,8 +20,43 @@ Session = sessionmaker(bind=engine)
 
 
 class AssetsDb(Assets):
-    def __init__(self):
-        pass
+    """A SQLite-backed asset representing the books manifest.
+
+    Mirrors AssetsLegacy's contract (load_assets()/save_assets() reading
+    and writing get_entries()/get_persistence_path()) but persists through
+    the books table via this module's own is_exist()/create_db()/
+    load_all()/merge_to_db() -- it owns no SQL itself, same as
+    AssetsLegacy owns no yaml.safe_load beyond its own load/save pair.
+
+    Unlike AssetsLegacy's yaml documents, the books table has nowhere to
+    hold a top-level input_path, so it isn't round-tripped here -- callers
+    that need it can still set_input_path()/get_input_path() themselves,
+    it just won't survive a save_assets()/load_assets() round trip.
+    """
+
+    def __init__(self, persistence_path: str = DB_FILE, input_path: str = ""):
+        super().__init__(persistence_path)
+        self.set_input_path(input_path)
+
+    def load_assets(self) -> None:
+        """Load every entry currently in the database. A missing database
+        means "nothing saved yet" -- same no-op AssetsLegacy.load_assets()
+        does for a missing yaml file -- rather than an error."""
+        if not is_exist():
+            logger.info(f"{self.get_persistence_path()} does not exist")
+            return
+        self.set_entries(load_all())
+        logger.info(f"loaded from {self.get_persistence_path()}")
+
+    def save_assets(self) -> None:
+        """Merge this asset's current entries into the database by name,
+        creating the schema first if needed. Uses merge_to_db() rather than
+        save() so a repeat save doesn't try to re-insert entries already in
+        the database and violate books.name's unique constraint."""
+        if not is_exist():
+            create_db()
+        merge_to_db(self.get_entries() or [])
+        logger.info(f"saved to {self.get_persistence_path()}")
 
 
 def is_exist() -> bool:
