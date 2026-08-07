@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Optional
 
 from pdfpz.core.assets import Asset
 from pdfpz.core.assets_legacy import AssetsLegacy
@@ -15,7 +14,7 @@ class BooksCollection:
     legacy_base_path: str
     sqlite_path: str
     legacy_file_name: str
-    books_manifest: Optional[BooksShelf]
+    books_manifest: BooksShelf | None
     tmp_path: str
     assets: Asset
 
@@ -60,7 +59,7 @@ class BooksCollection:
         p: Path = Path(self.assets.legacy_path)
         if not p.is_file():
             logger.info(f"{self.assets.legacy_path} is not a file")
-            return None
+            return
         logger.info(f"legacy_path={self.assets.legacy_path}")
         documents = self.assets.load_assets()
         self.input_path = documents[0].get("input_path", "")
