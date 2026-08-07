@@ -9,11 +9,7 @@ from pdfpz.core.logger import logger
 
 @dataclass
 class BooksCollection:
-    legacy_file_path: str
-    input_path: str
-    legacy_base_path: str
     sqlite_path: str
-    legacy_file_name: str
     books_manifest: BooksShelf | None
     tmp_path: str
     assets: Asset
@@ -24,14 +20,14 @@ class BooksCollection:
         dy = py.parent
         db = py.name
         return cls(
-            legacy_file_path=str(py),
-            input_path="",
-            legacy_base_path=str(dy),
             sqlite_path="",
-            legacy_file_name=db,
             books_manifest=None,
             tmp_path="",
-            assets=AssetsLegacy(legacy_path=str(py)),
+            assets=AssetsLegacy(
+                legacy_file_path=str(py),
+                legacy_base_path=str(dy),
+                legacy_file_name=db,
+            ),
         )
 
     def save_books_collection(self):
@@ -43,10 +39,9 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
-        self.assets.input_path = self.input_path
         self.assets.books = self.books_manifest.books
         self.assets.save_assets()
-        logger.info(f"saved books manifest {self.legacy_file_path}")
+        logger.info(f"saved books manifest {self.assets.legacy_file_path}")
 
     def set_tmp_path(self, tmp_path: str):
         self.tmp_path = str(tmp_path) if tmp_path else ""
@@ -55,11 +50,10 @@ class BooksCollection:
         """Load this collection's books_manifest via its AssetsLegacy -- all
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
-        p: Path = Path(self.assets.legacy_path)
+        p: Path = Path(self.assets.legacy_file_path)
         if not p.is_file():
-            logger.info(f"{self.assets.legacy_path} is not a file")
+            logger.info(f"{self.assets.legacy_file_path} is not a file")
             return
         self.assets.load_assets()
-        self.input_path = self.assets.input_path
         self.books_manifest = BooksShelf(books=self.assets.books)
-        logger.info(f"loaded books manifest {self.legacy_file_path}")
+        logger.info(f"loaded books manifest {self.assets.legacy_file_path}")

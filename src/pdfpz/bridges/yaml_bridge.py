@@ -41,6 +41,6 @@ def save(input_path: str, books_list: List[PdfManifestEntry], output_path: str =
     books_list each time.
     """
     collection = BooksCollection.from_legacy_path(output_path)
-    collection.input_path = input_path
+    collection.assets.input_path = input_path
     collection.books_manifest = BooksShelf(books=list(books_list))
     collection.save_books_collection()
