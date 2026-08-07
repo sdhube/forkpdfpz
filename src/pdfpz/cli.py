@@ -33,21 +33,22 @@ class BookOperations:
 
 
 def load_books_collection_and_operate(
-    legacy_file_path: str,
+    persistence_file_path: str,
     tmp_path: Optional[str] = None,
     operations: Optional[BookOperations] = None,
 ) -> None:
     """Load books library and perform requested operations.
 
     Args:
-        legacy_file_path: Path to the YAML manifest file
+        persistence_file_path: Path to the YAML manifest file
         tmp_path: Optional temporary directory path
         operations: BookOperations instance defining which operations to perform
     """
     operations = operations or BookOperations()
 
     logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
-    books_collection: BooksCollection = BooksCollection.from_legacy_path(legacy_file_path)
+    logger.info(f"initializing BooksCollection from legacy_path {persistence_file_path}")
+    books_collection: BooksCollection = BooksCollection.from_legacy_path(persistence_file_path)
     books_collection.set_tmp_path(tmp_path)
 
     # Create BooksActions instance

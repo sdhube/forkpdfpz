@@ -1,10 +1,10 @@
-from pathlib import PurePosixPath, Path
+from pathlib import Path, PurePosixPath
 
 import yaml
 
-from pdfpz.core.logger import logger
 from pdfpz.core.assets import Asset
 from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.core.logger import logger
 
 
 class AssetsLegacy(Asset):
@@ -40,13 +40,14 @@ class AssetsLegacy(Asset):
     def load_assets(self) -> None:
         p: Path = Path(self.persistence_path)
         if not p.is_file():
-            logger.info(f"{self.assets.legacy_file_path} is not a file")
+            logger.info(f"{self.persistence_path} is not a file")
             return
 
         with open(self.persistence_path, "r", encoding="utf-8") as f:
             documents = list(yaml.safe_load_all(f))
             self.input_path = documents[0].get("input_path", "")
             self.books = [PdfManifestEntry.from_dict(book) for book in documents[1]]
+            logger.info(f"loaded {len(self.books)} from {self.persistence_path}")
 
     def save_assets(self) -> None:
         documents = [{"input_path": self.input_path}, [book.to_dict() for book in self.books]]

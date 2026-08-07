@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from pathlib import Path, PurePosixPath
 
 from pdfpz.bridges.assets_legacy import AssetsLegacy
 from pdfpz.core.assets import Asset
@@ -22,7 +21,7 @@ class BooksCollection:
             sqlite_path="",
             books_manifest=None,
             tmp_path="",
-            assets=AssetsLegacy(),
+            assets=AssetsLegacy(persistance_path=_legacy_file_path),
         )
 
     def save_books_collection(self):
@@ -35,7 +34,7 @@ class BooksCollection:
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
         self.assets.save_assets()
-        logger.info(f"saved books manifest {self.assets.legacy_file_path}")
+        logger.info(f"saved books manifest {self.assets.persistence_path}")
 
     def set_tmp_path(self, tmp_path: str):
         self.tmp_path = str(tmp_path) if tmp_path else ""
@@ -46,7 +45,7 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
         self.books_manifest = BooksShelf(books=self.assets.books)
-        logger.info(f"loaded books manifest {self.assets.legacy_file_path}")
+        logger.info(f"loaded books manifest {self.assets.persistence_path}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
         """Crawl top_dir for PDFs and merge new-by-name entries into
