@@ -13,7 +13,7 @@ from pdfpz.core.merge import merge as merge_entries
 
 @dataclass
 class BooksCollection:
-    books_manifest: BooksShelf | None
+    books_shelf: BooksShelf | None
     tmp_path: str
     assets: Assets
     policy: str
@@ -50,7 +50,7 @@ class BooksCollection:
         assets: Assets = None
         if format == "db":
             assets = AssetsDb()
-        assets.set_entries(self.books_manifest.books)
+        assets.set_entries(self.books_shelf.books)
         assets.save_assets()
 
     def save_books_collection(self, policy="yaml"):
@@ -63,10 +63,10 @@ class BooksCollection:
         """Save this collection's books_manifest via its AssetsLegacy -- all
         the yaml document shape/PdfManifestEntry.to_dict() knowledge lives
         on AssetsLegacy now, not here."""
-        if self.books_manifest is None:
+        if self.books_shelf is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
         if not self.assets.get_entries():
-            self.assets.set_entries(self.books_manifest.books)
+            self.assets.set_entries(self.books_shelf.books)
         self.assets.save_assets()
         logger.info(f"saved books manifest {self.assets.get_persistence_path()}")
 
@@ -78,7 +78,7 @@ class BooksCollection:
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
-        self.books_manifest = BooksShelf(books=self.assets.get_entries())
+        self.books_shelf = BooksShelf(books=self.assets.get_entries())
         logger.info(f"loaded books manifest {self.assets.get_persistence_path()}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
@@ -89,8 +89,8 @@ class BooksCollection:
         crawler = PdfCrawler(top_dir)
         crawled_entries = crawler.crawl()
 
-        existing_books = self.books_manifest.books if self.books_manifest else []
+        existing_books = self.books_shelf.books if self.books_shelf else []
         merged_books = merge_entries(existing_books, crawled_entries)
-        self.books_manifest = BooksShelf(books=merged_books)
+        self.books_shelf = BooksShelf(books=merged_books)
 
         return crawled_entries
