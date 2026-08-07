@@ -18,6 +18,11 @@ DB_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 
+database_nullify = """
+update books SET title=NULL WHERE books.title="";
+update books SET author=NULL WHERE books.author="";
+"""
+
 
 class AssetsDb(Assets):
     """A SQLite-backed asset representing the books manifest.

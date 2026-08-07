@@ -70,6 +70,17 @@ class BooksActions:
         """export to db"""
         self.books_collection.export_format("db")
 
+    def filter_first(self):
+        """Print first filtered entry and temp directory contents."""
+        books_spines: BooksShelf = self.books_collection.books_spines
+        logger.info(f"books_collection.books_spines = {type(self.books_collection.books_spines)}")
+        if not self.books_collection.books_spines.books:
+            return
+        books_count = len(books_spines.books)
+        logger.info(f"count={books_count}")
+        first_entry: PdfManifestEntry | None = next(iter(books_spines.books), None)
+        logger.info(f"first entry: {pformat(first_entry)}")
+
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
         books_manifest: BooksShelf = self.books_collection.books_shelf
@@ -95,7 +106,7 @@ class BooksActions:
 
         self.books_collection.set_tmp_path(tmp_path)
         self.books_collection.load_books_collection()
-        logger.info(f"loaded {pformat(self.books_collection)}")
+        logger.info(f"loaded {len(self.books_collection.books_shelf.books)} entries")
 
     def update_books_collection_info_and_save(self) -> None:
         self.update_books_collection_info_no_save()
