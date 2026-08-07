@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 
 from pdfpz.core.assets import Assets
@@ -52,15 +52,14 @@ class AssetsDb(Assets):
             logger.info(f"{self.get_persistence_path()} does not exist")
             return
         self.set_entries(load_all())
-        self.set_spines(self.load_filtered())
+        self.load_filtered()
 
     def load_filtered(self):
         """Return every entry currently stored in the database using filter"""
         if not self._filter:
-            self._filter = None  # TODO all entries with title or with author
-            with Session() as session:
-                # TODO line below query for books matching filter
-                self.set_spines([_book_to_entry(b) for b in session.query(BookOrm).filter(self._filter)])
+            self._filter = or_(BookOrm.title.isnot(None), BookOrm.author.isnot(None))
+        with Session() as session:
+            self.set_spines([_book_to_entry(b) for b in session.query(BookOrm).filter(self._filter)])
 
     def save_assets(self) -> None:
         def save(entries: list[PdfManifestEntry]) -> None:
