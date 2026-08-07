@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 from pdfpz.bridges.assets_legacy import AssetsLegacy
@@ -48,10 +49,10 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
-        if not self.assets.books_manifest:
-            self.assets.books_manifest = self.books_manifest
+        if not self.assets.get_entries():
+            self.assets.set_entries(self.books_manifest.books)
         self.assets.save_assets()
-        logger.info(f"saved books manifest {self.assets.persistence_path}")
+        logger.info(f"saved books manifest {self.assets.get_persistence_path()}")
 
     def set_tmp_path(self, tmp_path: str):
         self.tmp_path = str(tmp_path) if tmp_path else ""
@@ -61,8 +62,8 @@ class BooksCollection:
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
-        self.books_manifest = BooksShelf(books=self.assets.assets)
-        logger.info(f"loaded books manifest {self.assets.persistence_path}")
+        self.books_manifest = BooksShelf(books=self.assets.get_entries())
+        logger.info(f"loaded books manifest {self.assets.get_persistence_path()}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
         """Crawl top_dir for PDFs and merge new-by-name entries into
