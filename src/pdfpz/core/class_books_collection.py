@@ -13,7 +13,8 @@ from pdfpz.core.merge import merge as merge_entries
 
 @dataclass
 class BooksCollection:
-    books_manifest: BooksShelf | None
+    books_shelf: BooksShelf | None
+    books_spines: BooksShelf | None
     tmp_path: str
     assets: Assets
     policy: str
@@ -29,19 +30,24 @@ class BooksCollection:
 
     @classmethod
     def from_db(cls, _legacy_file_path: str) -> BooksCollection:
-        return cls(books_manifest=None, tmp_path="", assets=AssetsDb(), policy="db")
+        return cls(books_shelf=None, books_spines=None, tmp_path="", assets=AssetsDb(), policy="db")
 
     @classmethod
     def from_legacy_path(cls, _legacy_file_path: str) -> BooksCollection:
         return cls(
-            books_manifest=None, tmp_path="", assets=AssetsLegacy(persistance_path=_legacy_file_path), policy="yaml"
+            books_shelf=None,
+            books_spines=None,
+            tmp_path="",
+            assets=AssetsLegacy(persistance_path=_legacy_file_path),
+            policy="yaml",
         )
 
     @classmethod
     def from_entries(cls, _books_manifests: BooksShelf) -> BooksCollection:
         """NOT USED YET"""
         return cls(
-            books_manifest=_books_manifests,
+            books_shelf=_books_manifests,
+            books_spines=None,
             tmp_path="",
             assets=AssetsLegacy(persistance_path="out.yaml"),
         )
@@ -50,7 +56,7 @@ class BooksCollection:
         assets: Assets = None
         if format == "db":
             assets = AssetsDb()
-        assets.set_entries(self.books_manifest.books)
+        assets.set_entries(self.books_shelf.books)
         assets.save_assets()
 
     def save_books_collection(self, policy="yaml"):
@@ -60,13 +66,13 @@ class BooksCollection:
             self.export_format("db")
 
     def save_books_legacy_manifest(self) -> None:
-        """Save this collection's books_manifest via its AssetsLegacy -- all
+        """Save this collection's books_shelf via its AssetsLegacy -- all
         the yaml document shape/PdfManifestEntry.to_dict() knowledge lives
         on AssetsLegacy now, not here."""
-        if self.books_manifest is None:
-            raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
+        if self.books_shelf is None:
+            raise ValueError("BooksCollection.save_books_legacy_manifest: no books_shelf to save")
         if not self.assets.get_entries():
-            self.assets.set_entries(self.books_manifest.books)
+            self.assets.set_entries(self.books_shelf.books)
         self.assets.save_assets()
         logger.info(f"saved books manifest {self.assets.get_persistence_path()}")
 
@@ -78,19 +84,20 @@ class BooksCollection:
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
-        self.books_manifest = BooksShelf(books=self.assets.get_entries())
+        self.books_shelf = BooksShelf(books=self.assets.get_entries())
+        self.books_spines = BooksShelf(books=self.assets.get_spines())
         logger.info(f"loaded books manifest {self.assets.get_persistence_path()}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
         """Crawl top_dir for PDFs and merge new-by-name entries into
-        books_manifest. Moved here from pdftui's BooksSpine -- crawling and
+        books_shelf. Moved here from pdftui's BooksSpine -- crawling and
         merging operate purely on the in-memory books list, independent of
         which Asset backend (if any) this collection is persisted through."""
         crawler = PdfCrawler(top_dir)
         crawled_entries = crawler.crawl()
 
-        existing_books = self.books_manifest.books if self.books_manifest else []
+        existing_books = self.books_shelf.books if self.books_shelf else []
         merged_books = merge_entries(existing_books, crawled_entries)
-        self.books_manifest = BooksShelf(books=merged_books)
+        self.books_shelf = BooksShelf(books=merged_books)
 
         return crawled_entries

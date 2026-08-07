@@ -8,8 +8,8 @@ from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
-from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
+from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
 from pdfpz.core.pdf_list_parallel_threads import (
@@ -37,27 +37,27 @@ class BooksActions:
 
     def copy_assets_pdf_no_info(self) -> None:
         """Copy only PDFs with no metadata info to temp directory."""
-        books_manifest: BooksShelf = self.books_collection.books_manifest
+        books_manifest: BooksShelf = self.books_collection.books_shelf
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             self.copy_external_file_to_temp(book)
         self.save_books_collection()
 
     def copy_assets_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
-        books_manifest: BooksShelf = self.books_collection.books_manifest
+        books_manifest: BooksShelf = self.books_collection.books_shelf
         for book in books_manifest.books_generator():
             self.copy_external_file_to_temp(book)
         self.save_books_collection()
 
     def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
-        books_manifest: BooksShelf = self.books_collection.books_manifest
+        books_manifest: BooksShelf = self.books_collection.books_shelf
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             move_pdf_to_no_info(book)
 
     def update_normalized_info_and_move_rename_file(self):
         """update"""
-        books_manifest: BooksShelf = self.books_collection.books_manifest
+        books_manifest: BooksShelf = self.books_collection.books_shelf
         book: PdfManifestEntry = None
         for book in books_manifest.books_generator(lambda e: not e.has_no_metadata_info()):
             normalized_name = book.get_normilized_name()
@@ -70,10 +70,21 @@ class BooksActions:
         """export to db"""
         self.books_collection.export_format("db")
 
+    def filter_first(self):
+        """Print first filtered entry and temp directory contents."""
+        books_spines: BooksShelf = self.books_collection.books_spines
+        logger.info(f"books_collection.books_spines = {type(self.books_collection.books_spines)}")
+        if not self.books_collection.books_spines.books:
+            return
+        books_count = len(books_spines.books)
+        logger.info(f"count={books_count}")
+        first_entry: PdfManifestEntry | None = next(iter(books_spines.books), None)
+        logger.info(f"first entry: {pformat(first_entry)}")
+
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
-        books_manifest: BooksShelf = self.books_collection.books_manifest
-        logger.info(f"books_collection.books_manifest = {type(self.books_collection.books_manifest)}")
+        books_manifest: BooksShelf = self.books_collection.books_shelf
+        logger.info(f"books_collection.books_manifest = {type(self.books_collection.books_shelf)}")
         logger.info(f"books_manifest = {type(books_manifest)}")
         books_count = len(books_manifest.books)
         logger.info(f"count={books_count}")
@@ -95,7 +106,7 @@ class BooksActions:
 
         self.books_collection.set_tmp_path(tmp_path)
         self.books_collection.load_books_collection()
-        logger.info(f"loaded {pformat(self.books_collection)}")
+        logger.info(f"loaded {len(self.books_collection.books_shelf.books)} entries")
 
     def update_books_collection_info_and_save(self) -> None:
         self.update_books_collection_info_no_save()
@@ -105,7 +116,7 @@ class BooksActions:
         """Update lib info for books using threadpool."""
         logger.info("updating assets info for books")
         run_threaded_action(
-            generate_manifest_items(self.books_collection.books_manifest),
+            generate_manifest_items(self.books_collection.books_shelf),
             partial(single_pdf_action, tmp_path=self.books_collection.tmp_path),
         )
 
@@ -125,7 +136,7 @@ class BooksActions:
         """Sanitize and embed info into PDFs."""
         run_threaded_action(
             generate_manifest_items(
-                self.books_collection.books_manifest, predicate=lambda m: not m.has_no_metadata_info()
+                self.books_collection.books_shelf, predicate=lambda m: not m.has_no_metadata_info()
             ),
             lambda m: single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp, m, sanitize_info=True),
         )
