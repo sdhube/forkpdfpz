@@ -17,9 +17,11 @@ DB_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 
-class AssetsDb(Assets):    
+
+class AssetsDb(Assets):
     def __init__(self):
         pass
+
 
 def is_exist() -> bool:
     """Return True if the database file already exists."""
