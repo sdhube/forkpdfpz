@@ -24,6 +24,15 @@ class BooksCollection:
             assets=AssetsLegacy(persistance_path=_legacy_file_path),
         )
 
+    @classmethod
+    def from_entries(cls, _books_manifests: BooksShelf) -> BooksCollection:
+        return cls(
+            sqlite_path="",
+            books_manifest=_books_manifests,
+            tmp_path="",
+            assets=AssetsLegacy(persistance_path="out.yaml"),
+        )
+
     def save_books_collection(self):
         self.save_books_legacy_manifest()
 
@@ -33,6 +42,8 @@ class BooksCollection:
         on AssetsLegacy now, not here."""
         if self.books_manifest is None:
             raise ValueError("BooksCollection.save_books_legacy_manifest: no books_manifest to save")
+        if not self.assets.books_manifest:
+            self.assets.books_manifest = self.books_manifest
         self.assets.save_assets()
         logger.info(f"saved books manifest {self.assets.persistence_path}")
 
@@ -44,7 +55,7 @@ class BooksCollection:
         the yaml document shape/PdfManifestEntry.from_dict() knowledge lives
         on AssetsLegacy now, not here."""
         self.assets.load_assets()
-        self.books_manifest = BooksShelf(books=self.assets.books)
+        self.books_manifest = BooksShelf(books=self.assets.assets)
         logger.info(f"loaded books manifest {self.assets.persistence_path}")
 
     def crawl_and_merge(self, top_dir: str) -> list[PdfManifestEntry]:
