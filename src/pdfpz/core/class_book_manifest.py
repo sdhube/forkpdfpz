@@ -145,6 +145,7 @@ class PdfManifestEntry:
 
 @dataclass
 class PdfProps:
+    book_id: str
     valid_pdf: bool
     input_file: str
     orig: bool

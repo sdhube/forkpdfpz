@@ -3,6 +3,7 @@ from functools import partial
 from pathlib import Path, PurePosixPath
 from pprint import pformat
 
+from pdfpz.actions.class_actions_book_props import BooksPropsAction
 from pdfpz.actions.class_book_manifest_file_actions import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
 from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
@@ -80,6 +81,19 @@ class BooksActions:
         logger.info(f"count={books_count}")
         first_entry: PdfManifestEntry | None = next(iter(books_spines.books), None)
         logger.info(f"first entry: {pformat(first_entry)}")
+
+    def props_filter(self):
+        """Print first filtered entry and temp directory contents."""
+        books_spines: BooksShelf = self.books_collection.books_spines
+        logger.info(f"books_collection.books_spines = {type(self.books_collection.books_spines)}")
+        if not self.books_collection.books_spines.books:
+            return
+        books_count = len(books_spines.books)
+        logger.info(f"count={books_count}")
+        props_action: BooksPropsAction = BooksPropsAction(books_spines)
+        props_action.update_all_props()
+        # first_entry: PdfManifestEntry | None = next(iter(books_spines.books), None)
+        # logger.info(f"first entry: {pformat(first_entry)}")
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""

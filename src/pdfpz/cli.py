@@ -21,6 +21,7 @@ class BookOperations:
     sanitize_normalize_name: bool = False
     load_yaml_export_db: bool = False
     filter_first: bool = (False,)
+    props_filter: bool = (False,)
     print_first: bool = False
 
     # pythonic replacing repited if statements with dictionary
@@ -68,6 +69,7 @@ def load_books_collection_and_operate(
         "sanitize_normalize_name": actions.update_normalized_info_and_move_rename_file,
         "load_yaml_export_db": actions.load_yaml_export_db,
         "filter_first": actions.filter_first,
+        "props_filter": actions.props_filter,
         "print_first": actions.print_first_entry,
     }
 
@@ -95,6 +97,7 @@ def load_books_collection_and_operate(
 @click.option("--sanitize-normalize-name", is_flag=True, default=False, help="normalize pdf file names")
 @click.option("--load-yaml-export-db", is_flag=True, default=False, help="load yaml export db")
 @click.option("--filter-first", is_flag=True, default=False, help="print first filtered")
+@click.option("--props-filter", is_flag=True, default=False, help="do props filter")
 @click.option(
     "--print-first",
     "print_first",
@@ -132,3 +135,4 @@ if __name__ == "__main__":
 # pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --sanitize-normalize-name"
 # pdfpz  files_uuid.yaml --tmp-path=/tmp/tmp_meta/metadata/ --load-yaml-export-db
 # PYTHONPATH=src python3 -m pdfpz.cli    books_db.db --tmp-path=/tmp/tmp_meta/metadata/ --filter-first
+# PYTHONPATH=src python3 -m pdfpz.cli    books_db.db --tmp-path=/tmp/tmp_meta/metadata/ --props-filter

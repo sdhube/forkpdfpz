@@ -23,19 +23,14 @@ class BookPropsActions:
     def __init__(self):
         self.pdf_props = None
         self.name = None
-        self.id_book_table = None
+        self.book_id = None
 
     def set_name(self, name: str):
         self.name = name
 
-    def set_id(self) -> None:
+    def set_id(self, book_id) -> None:
         """Look up this book's book_id in the books"""
-        session = Session()
-        try:
-            row = session.query(BookOrm.book_id).filter(BookOrm.book_id == self.book_id).first()
-        finally:
-            session.close()
-        self.id_book_table = row[0] if row else None
+        self.book_id = book_id
 
     def set_props_from_db(self) -> None:
         """Set self.pdf_props from the books/books_props rows for this book.
@@ -45,13 +40,11 @@ class BookPropsActions:
         needed to build a complete PdfProps.
         """
         self.pdf_props = None
-        if self.id_book_table is None:
-            return
 
         session = Session()
         try:
-            book = session.query(BookOrm).filter(BookOrm.id == self.id_book_table).first()
-            props_row = session.query(BookPropsOrm).filter(BookPropsOrm.id == self.id_book_table).first()
+            book = session.query(BookOrm).filter(BookOrm.book_id == self.book_id).first()
+            props_row = session.query(BookPropsOrm).filter(BookPropsOrm.book_id == self.book_id).first()
         finally:
             session.close()
 
@@ -71,14 +64,14 @@ class BookPropsActions:
 
     def save_props_to_db(self) -> None:
         """Upsert this book's books_props row from self.pdf_props."""
-        if self.id_book_table is None or self.pdf_props is None:
+        if self.book_id is None or self.pdf_props is None:
             return
 
         session = Session()
         try:
-            row = session.query(BookPropsOrm).filter(BookPropsOrm.id == self.id_book_table).first()
+            row = session.query(BookPropsOrm).filter(BookPropsOrm.book_id == self.book_id).first()
             if row is None:
-                row = BookPropsOrm(id=self.id_book_table)
+                row = BookPropsOrm(book_id=self.book_id)
                 session.add(row)
             row.orig = self.pdf_props.orig
             row.sanitized = self.pdf_props.sanitized
@@ -124,6 +117,6 @@ class BooksPropsAction:
         for book in self.book_shelf.books_generator(None):
             props_act = BookPropsActions()
             props_act.set_name(book.name)
-            props_act.set_id()
+            props_act.set_id(book.book_id)
             props_act.set_props_from_db()
             props_act.set_props_from_filesystem_and_update_db()
