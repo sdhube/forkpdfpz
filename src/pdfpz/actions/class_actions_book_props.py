@@ -1,3 +1,5 @@
+import shutil
+
 from sqlalchemy import inspect, or_, text, select
 
 from pdfpz.actions.pdf_actions_file import get_size
@@ -23,6 +25,7 @@ map_prop_field_to_tmppath_property = {
 
 map_prop_field_to_tmppath_property_by_norm = {
     "ps": "path_sanitized_ps_tmp",
+    "ps_ratio_size": "path_ps_ratio_size_tmp",
     "renamed": "path_sanitized_renamed_tmp",
 }
 
@@ -31,6 +34,7 @@ map_prop_field_to_tmppath_property_by_norm = {
 # every BookView2PropsOrm field name lines up with its TmpPath property name.
 map_prop_field_name_to_prop_field = {
     "ps": "ps",
+    "ps_ratio_size": "ps_ratio_size",
     "renamed": "renamed",
     "sanitized": "sanitized",
 }
@@ -175,3 +179,19 @@ class BooksPropsAction:
                 session.query(BookOrm).filter(BookOrm.book_id == book_id).delete(synchronize_session=False)
 
             session.commit()
+
+    def copy_books_ps_with_ratio_and_size(self):
+        with Session() as session:
+            books_names = session.scalars(
+                # pythonic sqlalchemy select with and
+                select(BookViewPropsOrm.norm_name).where(
+                    BookViewPropsOrm.ratio_ps_renamed > 10,
+                    BookViewPropsOrm.ratio_ps_renamed < 200,
+                    BookViewPropsOrm.sz_ps < 25 * 1024 * 1024,
+                )
+            ).all()
+            for name in books_names:
+                tmp_path: TmpPath = TmpPath(name)
+                tmp_ps = tmp_path.path_sanitized_ps_tmp
+                tmp_ps_size_ratio = tmp_path.path_ps_ratio_size_tmp
+                shutil.copyfile(tmp_ps, tmp_ps_size_ratio)

@@ -12,6 +12,7 @@ class TmpPath:
         "no_info": Path("/tmp/tmp_meta/no_info"),
         "renamed": Path("/tmp/tmp_meta/renamed"),
         "ps": Path("/tmp/tmp_meta/ps"),
+        "ps_ratio_size": Path("/tmp/tmp_meta/ps_ratio_size"),
     }
     pdf_path: Path | str
 
@@ -67,6 +68,10 @@ class TmpPath:
     @property
     def path_sanitized_ps_tmp(self) -> Path:
         return self.DIR_TMP_MAP["ps"] / self.name
+
+    @property
+    def path_ps_ratio_size_tmp(self) -> Path:
+        return self.DIR_TMP_MAP["ps_ratio_size"] / self.name
 
     @property
     def path_sanitized(self) -> Path:
