@@ -25,7 +25,7 @@ map_prop_field_to_tmppath_property = {
 
 map_prop_field_to_tmppath_property_by_norm = {
     "ps": "path_sanitized_ps_tmp",
-    "ps_ratio_size": "path_ps_ratio_size_tmp",
+    "ps_and_ratio_size": "path_ps_ratio_size_tmp",
     "renamed": "path_sanitized_renamed_tmp",
 }
 
@@ -34,7 +34,7 @@ map_prop_field_to_tmppath_property_by_norm = {
 # every BookView2PropsOrm field name lines up with its TmpPath property name.
 map_prop_field_name_to_prop_field = {
     "ps": "ps",
-    "ps_ratio_size": "ps_ratio_size",
+    "ps_and_ratio_size": "ps_and_ratio_size",
     "renamed": "renamed",
     "sanitized": "sanitized",
 }
@@ -159,7 +159,7 @@ class BooksPropsAction:
             props_act = BookPropsActions(book_view, book)
             props_act.set_props_from_filesystem()
             if book.sz_ps and book.sz_renamed:
-                book.ratio_ps_renamed = book.sz_ps * 100 // book.sz_renamed
+                book.ratio_ps_vs_renamed = book.sz_ps * 100 // book.sz_renamed
             session.commit()
 
     def update_all_books_props(self):
@@ -185,8 +185,8 @@ class BooksPropsAction:
             books_names = session.scalars(
                 # pythonic sqlalchemy select with and
                 select(BookViewPropsOrm.norm_name).where(
-                    BookViewPropsOrm.ratio_ps_renamed > 10,
-                    BookViewPropsOrm.ratio_ps_renamed < 200,
+                    BookViewPropsOrm.ratio_ps_vs_renamed > 10,
+                    BookViewPropsOrm.ratio_ps_vs_renamed < 200,
                     BookViewPropsOrm.sz_ps < 25 * 1024 * 1024,
                 )
             ).all()
