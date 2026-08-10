@@ -97,6 +97,7 @@ class BooksActions:
         props_action.update_book_props_one_item()  # test with default
         props_action.update_all_books_props()
         props_action.copy_books_ps_with_ratio_and_size()
+        props_action.copy_books_ps_with_ratio_to_n_isbn()
 
     def print_first_entry(self):
         """Print first entry and temp directory contents."""
