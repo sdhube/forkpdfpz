@@ -145,13 +145,10 @@ class PdfManifestEntry:
 
 @dataclass
 class PdfProps:
-    valid_pdf: bool
+    book_id: str
     input_file: str
-    orig: bool
-    sanitized: bool
-    metadata: bool
-    renamed: bool
-    sphostscript: bool
+    name: str
+    norm_name: str
 
 
 @dataclass

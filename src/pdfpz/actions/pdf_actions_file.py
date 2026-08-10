@@ -10,3 +10,11 @@ def save_tmp_mv_on_source(src, pdf_path: str, **kwargs):
     logger.info(f"saving tmpfile to {tmpfile}")
     src.save(str(tmpfile), **kwargs)
     shutil.move(str(tmpfile), str(pdf_path))
+
+
+def get_size(pdf_path: str) -> int:
+    """Return the file size in bytes, or 0 if the file does not exist."""
+    try:
+        return Path(pdf_path).stat().st_size
+    except FileNotFoundError:
+        return 0
