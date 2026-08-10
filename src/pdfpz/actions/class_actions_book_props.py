@@ -1,5 +1,7 @@
+from sqlalchemy import inspect, or_
+
 from pdfpz.actions.class_book_manifest_file_actions import is_file
-from pdfpz.bridges.db_bridge import Session
+from pdfpz.bridges.db_bridge import Session, engine
 from pdfpz.bridges.db_schema import BookOrm, BookPropsOrm
 from pdfpz.core.class_book_manifest import BooksShelf, PdfProps
 from pdfpz.core.class_tmp_path import TmpPath
@@ -21,11 +23,13 @@ map_prop_field_name_to_prop_field = {
 
 class BookPropsActions:
     def __init__(self, pdf_props: PdfProps):
-        self.pdf_props = PdfProps
+        self.pdf_props = pdf_props
+        self.book_id = pdf_props.book_id if pdf_props else None
+        self.name = ""
 
     def set_name(self):
-        # TODO set name by self.pdf_props
-        pass
+        """Set self.name from self.pdf_props' normalized book name."""
+        self.name = self.pdf_props.book_norm_name if self.pdf_props else ""
 
     def save_props_to_db(self) -> None:
         """Upsert this book's books_props row from self.pdf_props."""
@@ -50,7 +54,6 @@ class BookPropsActions:
     def set_props_from_filesystem(self) -> None:
         """Set each mapped PdfProps flag by checking whether that stage's
         tmp file exists on disk for this book."""
-        # TODO complete implementation
         tmp_path = TmpPath.from_pdf_path(self.name)
         for prop_name, tmppath_property_name in map_prop_field_to_tmppath_property.items():
             fpath = getattr(tmp_path, tmppath_property_name)
@@ -61,8 +64,7 @@ class BookPropsActions:
         # update db table books_props item book_id
         # book_id, input_file are immutable for the item
         # update te mutable fields : orig, sanitizedm metadatam renemed, spostcript
-        # TODO implement
-        pass
+        self.save_props_to_db()
 
     def set_props_from_filesystem_and_update_db(self) -> None:
         self.set_props_from_filesystem()
@@ -76,20 +78,52 @@ class BooksPropsAction:
 
     def delete_table(self):
         """if table in db does not match schema of books props delete books_props table and create books_props table by the schema,"""
-        # TODO implement
-        pass
+        inspector = inspect(engine)
+        if self.table_name not in inspector.get_table_names():
+            BookPropsOrm.__table__.create(engine)
+            return
+        existing_columns = {col["name"] for col in inspector.get_columns(self.table_name)}
+        expected_columns = {col.name for col in BookPropsOrm.__table__.columns}
+        if existing_columns != expected_columns:
+            BookPropsOrm.__table__.drop(engine)
+            BookPropsOrm.__table__.create(engine)
 
     def insert_valid_items_to_table(self):
         """use sql table books to filter books and
         insert into table books_props all books that has author or title, fileds applicable are book_id,  input_file          book orig name
         """
-        # TODO implement
-        pass
+        with Session() as session:
+            existing_ids = {row[0] for row in session.query(BookPropsOrm.book_id).all()}
+            valid_books = (
+                session.query(BookOrm).filter(or_(BookOrm.title.isnot(None), BookOrm.author.isnot(None))).all()
+            )
+            new_rows = [
+                BookPropsOrm(book_id=b.book_id, input_file=b.input_file, book_norm_name=b.name)
+                for b in valid_books
+                if b.book_id not in existing_ids
+            ]
+            if new_rows:
+                session.add_all(new_rows)
+                session.commit()
 
     def update_book_props_one_item(self, book_id) -> PdfProps:
         """use book_id to init PdfPfops by data from table books to initialize PdfProps"""
-        # TODO implement
-        return None  # TODO return initialized PdfProps
+        with Session() as session:
+            book = session.query(BookOrm).filter(BookOrm.book_id == book_id).first()
+            if book is None:
+                return None
+            return PdfProps(
+                book_id=book.book_id,
+                input_file=book.input_file,
+                book_norm_name=book.name,
+                orig=False,
+                sanitized=False,
+                metadata=False,
+                renamed=False,
+                sphostscript=False,
+                valid_pdf=book.valid_pdf,
+                book_input_name="",
+            )
 
     def update_all_props(self) -> None:
         """For every book on the shelf: resolve its DB id, load whatever
