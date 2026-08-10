@@ -11,6 +11,7 @@ class TmpPath:
         "metadata": Path("/tmp/tmp_meta/metadata"),
         "no_info": Path("/tmp/tmp_meta/no_info"),
         "renamed": Path("/tmp/tmp_meta/renamed"),
+        "ps": Path("/tmp/tmp_meta/ps"),
     }
     pdf_path: Path | str
 
@@ -62,6 +63,10 @@ class TmpPath:
     @property
     def path_sanitized_renamed_tmp(self) -> Path:
         return self.DIR_TMP_MAP["renamed"] / self.name
+
+    @property
+    def path_sanitized_ps_tmp(self) -> Path:
+        return self.DIR_TMP_MAP["ps"] / self.name
 
     @property
     def path_sanitized(self) -> Path:

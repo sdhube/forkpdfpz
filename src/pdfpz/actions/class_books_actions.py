@@ -93,7 +93,9 @@ class BooksActions:
         props_action: BooksPropsAction = BooksPropsAction(books_spines)
         props_action.delete_table()
         props_action.insert_valid_items_to_table()
+        props_action.delete_books_named_like_linearized_sanitized()
         props_action.update_book_props_one_item()  # test with default
+        props_action.update_all_books_props()
         # first_entry: PdfManifestEntry | None = next(iter(books_spines.books), None)
         # logger.info(f"first entry: {pformat(first_entry)}")
 

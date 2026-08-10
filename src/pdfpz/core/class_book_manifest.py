@@ -148,14 +148,7 @@ class PdfProps:
     book_id: str
     input_file: str
     name: str
-    book_norm_name: str
-    orig: bool
-    sanitized: bool
-    metadata: bool
-    renamed: bool
-    sphostscript: bool
-    valid_pdf: bool
-    book_input_name: str
+    norm_name: str
 
 
 @dataclass
