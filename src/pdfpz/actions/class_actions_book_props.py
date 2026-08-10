@@ -206,4 +206,4 @@ class BooksPropsView:
 
     def select_rows(self):
         with Session() as session:
-            self.rows = session.scalars(select(BookViewPropsOrm).where(self.filter["all"])).all()
+            self.rows = session.scalars(select(BookViewPropsOrm).where(self.filters["all"])).all()
