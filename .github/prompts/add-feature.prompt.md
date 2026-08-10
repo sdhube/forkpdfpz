@@ -21,6 +21,7 @@ Verify structural integrity by simulating a `py_compile` logic scan:
 # [Target Module Path/Name]
 # Syntax Verified: True (py_compile checks passed)
 
+
 class NewFeatureService:
     """Minimal docstring outlining class responsibility."""
 

@@ -31,6 +31,8 @@ class BookPropsOrm(Base):
     # Shared primary key with books: this table's id is both its own
     # primary key and a foreign key into books.id (one row per book).
     book_id = Column(String, ForeignKey("books.book_id"), primary_key=True)
+    input_file = Column(String, default=None, nullable=True)
+    book_norm_name = Column(String, default=None, nullable=True)
     orig = Column(Boolean, default=False, nullable=False)
     sanitized = Column(Boolean, default=False, nullable=False)
     # "metadata" is reserved by SQLAlchemy's declarative Base, so the

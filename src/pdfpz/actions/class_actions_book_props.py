@@ -20,47 +20,12 @@ map_prop_field_name_to_prop_field = {
 
 
 class BookPropsActions:
-    def __init__(self):
-        self.pdf_props = None
-        self.name = None
-        self.book_id = None
+    def __init__(self, pdf_props: PdfProps):
+        self.pdf_props = PdfProps
 
-    def set_name(self, name: str):
-        self.name = name
-
-    def set_id(self, book_id) -> None:
-        """Look up this book's book_id in the books"""
-        self.book_id = book_id
-
-    def set_props_from_db(self) -> None:
-        """Set self.pdf_props from the books/books_props rows for this book.
-
-        valid_pdf/input_file live on the books table; the per-stage flags
-        live on books_props (one row per book, sharing its id) -- both are
-        needed to build a complete PdfProps.
-        """
-        self.pdf_props = None
-
-        session = Session()
-        try:
-            book = session.query(BookOrm).filter(BookOrm.book_id == self.book_id).first()
-            props_row = session.query(BookPropsOrm).filter(BookPropsOrm.book_id == self.book_id).first()
-        finally:
-            session.close()
-
-        if book is None:
-            return
-
-        self.pdf_props = PdfProps(
-            book_id=book.book_id,
-            valid_pdf=book.valid_pdf,
-            input_file=book.input_file,
-            orig=props_row.orig if props_row else False,
-            sanitized=props_row.sanitized if props_row else False,
-            metadata=props_row.metadata_ if props_row else False,
-            renamed=props_row.renamed if props_row else False,
-            sphostscript=props_row.spostscript if props_row else False,
-        )
+    def set_name(self):
+        # TODO set name by self.pdf_props
+        pass
 
     def save_props_to_db(self) -> None:
         """Upsert this book's books_props row from self.pdf_props."""
@@ -85,30 +50,46 @@ class BookPropsActions:
     def set_props_from_filesystem(self) -> None:
         """Set each mapped PdfProps flag by checking whether that stage's
         tmp file exists on disk for this book."""
-        if self.pdf_props is None:
-            self.pdf_props = PdfProps(
-                valid_pdf=False,
-                input_file="",
-                orig=False,
-                sanitized=False,
-                metadata=False,
-                renamed=False,
-                sphostscript=False,
-            )
+        # TODO complete implementation
         tmp_path = TmpPath.from_pdf_path(self.name)
         for prop_name, tmppath_property_name in map_prop_field_to_tmppath_property.items():
             fpath = getattr(tmp_path, tmppath_property_name)
             file_exists = is_file(fpath)
             setattr(self.pdf_props, map_prop_field_name_to_prop_field[prop_name], file_exists)
 
+    def update_db(self):
+        # update db table books_props item book_id
+        # book_id, input_file are immutable for the item
+        # update te mutable fields : orig, sanitizedm metadatam renemed, spostcript
+        # TODO implement
+        pass
+
     def set_props_from_filesystem_and_update_db(self) -> None:
         self.set_props_from_filesystem()
-        self.save_props_to_db()
+        self.update_db()
 
 
 class BooksPropsAction:
     def __init__(self, books_shelf: BooksShelf):
         self.book_shelf = books_shelf
+        self.table_name = "books_props"
+
+    def delete_table(self):
+        """if table in db does not match schema of books props delete books_props table and create books_props table by the schema,"""
+        # TODO implement
+        pass
+
+    def insert_valid_items_to_table(self):
+        """use sql table books to filter books and
+        insert into table books_props all books that has author or title, fileds applicable are book_id,  input_file          book orig name
+        """
+        # TODO implement
+        pass
+
+    def update_book_props_one_item(self, book_id) -> PdfProps:
+        """use book_id to init PdfPfops by data from table books to initialize PdfProps"""
+        # TODO implement
+        return None  # TODO return initialized PdfProps
 
     def update_all_props(self) -> None:
         """For every book on the shelf: resolve its DB id, load whatever
