@@ -31,8 +31,7 @@ class BookPropsOrm(Base):
     # Shared primary key with books: this table's id is both its own
     # primary key and a foreign key into books.id (one row per book).
     book_id = Column(String, ForeignKey("books.book_id"), primary_key=True)
-    input_file = Column(String, default=None, nullable=True)
-    book_norm_name = Column(String, default=None, nullable=True)
+    norm_name = Column(String, default=None, nullable=False)
     orig = Column(Boolean, default=False, nullable=False)
     sanitized = Column(Boolean, default=False, nullable=False)
     # "metadata" is reserved by SQLAlchemy's declarative Base, so the
@@ -40,3 +39,9 @@ class BookPropsOrm(Base):
     metadata_ = Column("metadata", Boolean, default=False, nullable=False)
     renamed = Column(Boolean, default=False, nullable=False)
     spostscript = Column(Boolean, default=False, nullable=False)
+
+
+# TODO class view
+class BookViewPropsOrm(Base):
+    # TODO implement has all fields of BooksPropsOrm + BookOrm::(title,author,year,isbn,name,input_file)
+    pass

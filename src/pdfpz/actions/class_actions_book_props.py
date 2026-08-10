@@ -2,7 +2,7 @@ from sqlalchemy import inspect, or_
 
 from pdfpz.actions.class_book_manifest_file_actions import is_file
 from pdfpz.bridges.db_bridge import Session, engine
-from pdfpz.bridges.db_schema import BookOrm, BookPropsOrm
+from pdfpz.bridges.db_schema import BookOrm, BookPropsOrm, BookViewPropsOrm
 from pdfpz.core.class_book_manifest import BooksShelf, PdfProps
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
@@ -26,13 +26,11 @@ map_prop_field_name_to_prop_field = {
 
 class BookPropsActions:
     def __init__(self, pdf_props: PdfProps):
+        if not pdf_props:
+            raise ValueError("pdf_props should not be None")
         self.pdf_props = pdf_props
-        self.book_id = pdf_props.book_id if pdf_props else None
-        self.name = pdf_props.book_norm_name
-
-    def set_name(self):
-        """Set self.name from self.pdf_props' normalized book name."""
-        self.name = self.pdf_props.book_norm_name if self.pdf_props else ""
+        self.book_id = pdf_props.book_id
+        self.name = pdf_props.name
 
     def save_props_to_db(self) -> None:
         """Upsert this book's books_props row from self.pdf_props."""
@@ -82,6 +80,7 @@ class BooksPropsAction:
     def __init__(self, books_shelf: BooksShelf):
         self.book_shelf = books_shelf
         self.table_name = "books_props"
+        self.view_name = "view_books_props"
 
     def delete_table(self):
         """if table in db does not match schema of books props delete books_props table and create books_props table by the schema,"""
@@ -94,6 +93,7 @@ class BooksPropsAction:
         if existing_columns != expected_columns:
             BookPropsOrm.__table__.drop(engine)
             BookPropsOrm.__table__.create(engine)
+            # TODO implement add view view_books_props
 
     def insert_valid_items_to_table(self):
         """use sql table books to filter books and
@@ -104,11 +104,7 @@ class BooksPropsAction:
             valid_books = (
                 session.query(BookOrm).filter(or_(BookOrm.title.isnot(None), BookOrm.author.isnot(None))).all()
             )
-            new_rows = [
-                BookPropsOrm(book_id=b.book_id, input_file=b.input_file, book_norm_name=b.name)
-                for b in valid_books
-                if b.book_id not in existing_ids
-            ]
+            new_rows = [BookPropsOrm(book_id=b.book_id) for b in valid_books if b.book_id not in existing_ids]
             if new_rows:
                 session.add_all(new_rows)
                 session.commit()
@@ -116,12 +112,13 @@ class BooksPropsAction:
     def update_book_props_one_item(self, book_id="0f5bb01f-4b0e-43b5-adbe-baa1ad9c70f1") -> PdfProps:
         """use book_id to init PdfPfops by data from table books to initialize PdfProps"""
         with Session() as session:
-            book = session.query(BookPropsOrm).filter(BookPropsOrm.book_id == book_id).first()
+            book = session.query(BookViewPropsOrm).filter(BookViewPropsOrm.book_id == book_id).first()
             if book is None:
                 return None
             pdf_props = PdfProps(
                 book_id=book.book_id,
                 input_file=book.input_file,
+                name=book.name,
                 book_norm_name=book.book_norm_name,
                 orig=False,
                 sanitized=False,
