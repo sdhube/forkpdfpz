@@ -5,11 +5,13 @@ from pdfpz.bridges.db_bridge import Session, engine
 from pdfpz.bridges.db_schema import BookOrm, BookPropsOrm
 from pdfpz.core.class_book_manifest import BooksShelf, PdfProps
 from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.logger import logger
 
 # Maps a PdfProps field name to the TmpPath property whose existence on disk
 # determines that field's value. Extend both this and
 # map_prop_field_name_to_prop_field together to track another stage.
 map_prop_field_to_tmppath_property = {
+    "sanitized": "path_sanitized_tmp",
     "renamed": "path_sanitized_renamed_tmp",
 }
 
@@ -17,6 +19,7 @@ map_prop_field_to_tmppath_property = {
 # separate dict (rather than assuming the names always match) since not
 # every PdfProps field name lines up with its TmpPath property name.
 map_prop_field_name_to_prop_field = {
+    "sanitized": "sanitized",
     "renamed": "renamed",
 }
 
@@ -25,7 +28,7 @@ class BookPropsActions:
     def __init__(self, pdf_props: PdfProps):
         self.pdf_props = pdf_props
         self.book_id = pdf_props.book_id if pdf_props else None
-        self.name = ""
+        self.name = pdf_props.book_norm_name
 
     def set_name(self):
         """Set self.name from self.pdf_props' normalized book name."""
@@ -55,9 +58,13 @@ class BookPropsActions:
         """Set each mapped PdfProps flag by checking whether that stage's
         tmp file exists on disk for this book."""
         tmp_path = TmpPath.from_pdf_path(self.name)
+        logger.info(f"name={self.name}")
         for prop_name, tmppath_property_name in map_prop_field_to_tmppath_property.items():
             fpath = getattr(tmp_path, tmppath_property_name)
             file_exists = is_file(fpath)
+            logger.info(
+                f"fpath={fpath} file_exist={file_exists} tmp_path={tmp_path} tmp_path_property_name={tmppath_property_name} "
+            )
             setattr(self.pdf_props, map_prop_field_name_to_prop_field[prop_name], file_exists)
 
     def update_db(self):
@@ -106,24 +113,26 @@ class BooksPropsAction:
                 session.add_all(new_rows)
                 session.commit()
 
-    def update_book_props_one_item(self, book_id) -> PdfProps:
+    def update_book_props_one_item(self, book_id="0f5bb01f-4b0e-43b5-adbe-baa1ad9c70f1") -> PdfProps:
         """use book_id to init PdfPfops by data from table books to initialize PdfProps"""
         with Session() as session:
-            book = session.query(BookOrm).filter(BookOrm.book_id == book_id).first()
+            book = session.query(BookPropsOrm).filter(BookPropsOrm.book_id == book_id).first()
             if book is None:
                 return None
-            return PdfProps(
+            pdf_props = PdfProps(
                 book_id=book.book_id,
                 input_file=book.input_file,
-                book_norm_name=book.name,
+                book_norm_name=book.book_norm_name,
                 orig=False,
                 sanitized=False,
                 metadata=False,
                 renamed=False,
                 sphostscript=False,
-                valid_pdf=book.valid_pdf,
+                valid_pdf=True,
                 book_input_name="",
             )
+            props_act = BookPropsActions(pdf_props=pdf_props)
+            props_act.set_props_from_filesystem_and_update_db()
 
     def update_all_props(self) -> None:
         """For every book on the shelf: resolve its DB id, load whatever
