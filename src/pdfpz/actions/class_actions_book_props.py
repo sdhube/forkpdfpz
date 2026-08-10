@@ -200,11 +200,35 @@ class BooksPropsAction:
 class BooksPropsView:
     """loading rows from db for ui"""
 
+    # Boolean flags on view_books_props that a caller can filter on -- the
+    # same fields the UI's props checkboxes are built from. "metadata" is
+    # the natural/display name; view_books_props_field_name_to_orm_attr
+    # below maps it to BookViewPropsOrm's actual metadata_ attribute (see
+    # db_schema.BookViewPropsOrm: "metadata" is reserved by SQLAlchemy's
+    # declarative base, so the column is mapped onto metadata_ instead).
+    FILTERABLE_FIELDS = ("orig", "sanitized", "metadata", "renamed", "ps", "ps_and_ratio_size")
+
+    view_books_props_field_name_to_orm_attr = {"metadata": "metadata_"}
+
     def __init__(self):
         self.rows = None
-        self.filters = {"all": BookViewPropsOrm.author is not None}
-        self.filter_id = "all"
+        # field name -> True / False / None ("no filter", every field's
+        # default) -- one independent tri-state filter per FILTERABLE_FIELDS
+        # entry, all AND-ed together in select_rows().
+        self.prop_filters = {field_name: None for field_name in self.FILTERABLE_FIELDS}
+
+    def set_prop_filter(self, field_name: str, value) -> None:
+        """value is True ("filter if true"), False ("filter if false"), or
+        None ("no filter", the default). Raises ValueError for a field name
+        outside FILTERABLE_FIELDS rather than silently no-opping."""
+        if field_name not in self.prop_filters:
+            raise ValueError(f"{field_name!r} is not filterable (expected one of {self.FILTERABLE_FIELDS})")
+        self.prop_filters[field_name] = value
 
     def select_rows(self):
+        orm_attr = lambda field_name: getattr(  # noqa: E731
+            BookViewPropsOrm, self.view_books_props_field_name_to_orm_attr.get(field_name, field_name)
+        )
+        clauses = [orm_attr(field_name) == value for field_name, value in self.prop_filters.items() if value is not None]
         with Session() as session:
-            self.rows = session.scalars(select(BookViewPropsOrm).where(self.filters["all"])).all()
+            self.rows = session.scalars(select(BookViewPropsOrm).where(*clauses)).all()
