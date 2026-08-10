@@ -195,3 +195,15 @@ class BooksPropsAction:
                 tmp_ps = tmp_path.path_sanitized_ps_tmp
                 tmp_ps_size_ratio = tmp_path.path_ps_ratio_size_tmp
                 shutil.copyfile(tmp_ps, tmp_ps_size_ratio)
+
+
+class BooksPropsView:
+    """ loading rows from db for ui"""
+    def __init__(self):
+        self.rows = None
+        self.filters = {"all": BookViewPropsOrm.author is not None}
+        self.filter_id = "all"
+
+    def select_rows(self):
+        with Session() as session:
+            self.rows = session.scalars(select(BookViewPropsOrm).where(self.filter["all"])).all()
