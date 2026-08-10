@@ -198,7 +198,8 @@ class BooksPropsAction:
 
 
 class BooksPropsView:
-    """ loading rows from db for ui"""
+    """loading rows from db for ui"""
+
     def __init__(self):
         self.rows = None
         self.filters = {"all": BookViewPropsOrm.author is not None}
