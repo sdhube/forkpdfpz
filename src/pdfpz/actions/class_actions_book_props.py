@@ -237,6 +237,8 @@ class BooksPropsView:
         # field name -> True / False / None ("no filter", every field's
         # default) -- one independent tri-state filter per FILTERABLE_FIELDS
         # entry, all AND-ed together in select_rows().
+
+        # pythonic dictionary comprehension
         self.prop_filters = {field_name: None for field_name in self.FILTERABLE_FIELDS}
         # field name -> an int upper bound ("at most this value"), or None
         # ("no filter", the default) -- one per MAX_FILTERABLE_FIELDS entry.
@@ -277,15 +279,21 @@ class BooksPropsView:
         self.isbn_filter = value
 
     def select_rows(self):
-        orm_attr = lambda field_name: getattr(  # noqa: E731
+        orm_attr = lambda field_name: getattr(  # noqa: E731  # pythonic suppress linter error on this line
             BookViewPropsOrm, self.view_books_props_field_name_to_orm_attr.get(field_name, field_name)
         )
-        clauses = [orm_attr(field_name) == value for field_name, value in self.prop_filters.items() if value is not None]
+
+        # pythonic list comprehension builds "sql where" clauses for Boolean variables
+        clauses = [
+            orm_attr(field_name) == value for field_name, value in self.prop_filters.items() if value is not None
+        ]
+        # pythonic add list comprehention for "sql where" max value fileters
         clauses += [
             getattr(BookViewPropsOrm, field_name) <= value
             for field_name, value in self.max_filters.items()
             if value is not None
         ]
+        # pythonic add "sql where" clauses for string empty/not empty
         if self.author_filter is True:
             clauses.append(and_(BookViewPropsOrm.author.isnot(None), BookViewPropsOrm.author != ""))
         elif self.author_filter is False:
@@ -295,4 +303,5 @@ class BooksPropsView:
         elif self.isbn_filter is False:
             clauses.append(or_(BookViewPropsOrm.isbn.is_(None), BookViewPropsOrm.isbn == ""))
         with Session() as session:
+            # pythonic using unpack list of clauses
             self.rows = session.scalars(select(BookViewPropsOrm).where(*clauses)).all()
