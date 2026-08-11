@@ -2,13 +2,15 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path, PurePosixPath
 
-
 # TmpStage binds each pipeline stage's tmp directory to a single enum
 # member (the member name is the stage name itself), replacing
 # DIR_TMP_MAP -- a dict whose string keys were repeated, by hand, in
 # every path_*_tmp property below. A typo'd key now fails at
 # TmpStage.<typo> (AttributeError, at the call site itself) instead of
 # DIR_TMP_MAP["<typo>"] (KeyError, only once that property actually runs).
+
+
+# pythonic; Enum class having each member is path of the stage TmpStage.member is a path
 class TmpStage(Enum):
     def __init__(self, dir_path: str) -> None:
         self.dir = Path(dir_path)
@@ -28,8 +30,9 @@ class TmpPath:
     pdf_path: Path | str
 
     @classmethod
-    def from_pdf_path(cls, pdf_path: Path | str) -> "TmpPath":
+    def from_pdf_path(cls, pdf_path: Path | str) -> TmpPath:
         # ensure all runtime tmp dirs exist
+        # pythonic stage members has order
         for stage in TmpStage:
             stage.dir.mkdir(parents=True, exist_ok=True)
         p = PurePosixPath(pdf_path)
@@ -85,7 +88,7 @@ class TmpPath:
         return TmpStage.ps_ratio_size.dir / self.name
 
     @property
-    def path_no_isbn(self) -> Path:
+    def path_no_isbn_tmp(self) -> Path:
         return TmpStage.n_isbn.dir / self.name
 
     @property

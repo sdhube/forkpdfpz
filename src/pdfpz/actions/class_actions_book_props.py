@@ -1,10 +1,10 @@
 import shutil
 from enum import Enum
 
-from sqlalchemy import and_, inspect, or_, text, select
+from sqlalchemy import and_, inspect, or_, select, text
 
-from pdfpz.actions.pdf_actions_file import get_size
 from pdfpz.actions.class_book_manifest_file_actions import is_file
+from pdfpz.actions.pdf_actions_file import get_size
 from pdfpz.bridges.db_bridge import Session, engine
 from pdfpz.bridges.db_schema import (
     CREATE_VIEW_BOOKS_PROPS_SQL,
@@ -17,7 +17,6 @@ from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
 
-
 # PropStage binds a prop-tracking stage's TmpPath property name and which
 # book name it's checked under (the original name vs. the normalized one)
 # together, replacing three separately-maintained dicts that had to be
@@ -28,6 +27,7 @@ from pdfpz.core.logger import logger
 #       every key already equalled its value -- so it's gone entirely;
 #       BookPropsOrm's field is just stage.name)
 
+
 # pythonic PropStage binds member to property name, boolean if its norm_name or name
 class PropStage(Enum):
     def __init__(self, tmppath_property: str, by_norm_name: bool = True) -> None:
@@ -35,7 +35,7 @@ class PropStage(Enum):
         self.by_norm_name = by_norm_name
 
     sanitized = ("path_sanitized_tmp", False)
-    n_isbn_prs = ("path_no_isbn",)
+    n_isbn_prs = ("path_no_isbn_tmp",)
     ps = ("path_sanitized_ps_tmp",)
     ps_and_ratio_size = ("path_ps_ratio_size_tmp",)
     renamed = ("path_sanitized_renamed_tmp",)
@@ -48,6 +48,7 @@ class PropStage(Enum):
 # -- "metadata" is reserved by SQLAlchemy's declarative base, so
 # BookViewPropsOrm maps that column onto metadata_ instead (see
 # db_schema.BookViewPropsOrm).
+
 
 # pythonic; Enum binds prop boolean field name and ORM  attribute name
 class FilterableField(Enum):
@@ -86,7 +87,7 @@ class BookPropsActions:
         tmp_path_by_name = TmpPath.from_pdf_path(self.name)
         tmp_path_by_norm = TmpPath.from_pdf_path(self.norm_name)
         logger.info(f"name={self.name}")
-        
+
         # pythonic loop over enum members setting variables by member
         for stage in PropStage:
             tmp_path = tmp_path_by_norm if stage.by_norm_name else tmp_path_by_name
@@ -215,7 +216,7 @@ class BooksPropsAction:
                 shutil.copyfile(tmp_ps, tmp_ps_size_ratio)
 
     def copy_books_ps_with_ratio_to_n_isbn(self):
-        """select no isbn books file into path_no_isbn instead of path_ps_ratio_size_tmp."""
+        """select no isbn books file into path_no_isbn_tmp instead of path_ps_ratio_size_tmp."""
         with Session() as session:
             books_names = session.scalars(
                 # pythonic sqlalchemy select with and
@@ -227,7 +228,7 @@ class BooksPropsAction:
             for name in books_names:
                 tmp_path: TmpPath = TmpPath(name)
                 tmp_ps = tmp_path.path_ps_ratio_size_tmp
-                tmp_no_isbn = tmp_path.path_no_isbn
+                tmp_no_isbn = tmp_path.path_no_isbn_tmp
                 shutil.copyfile(tmp_ps, tmp_no_isbn)
 
 
@@ -291,7 +292,8 @@ class BooksPropsView:
         self.isbn_filter = value
 
     def select_rows(self):
-        orm_attr = lambda field_name: getattr(  # noqa: E731  # pythonic suppress linter error on this line
+        # pythonic defining funtion that will be assigned with field name, lambda is shorter then def
+        orm_attr = lambda field_name: getattr(  # pythonic suppress linter error on this line
             BookViewPropsOrm, FilterableField[field_name].column_name
         )
 
