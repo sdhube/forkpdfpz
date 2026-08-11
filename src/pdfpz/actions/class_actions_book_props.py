@@ -293,7 +293,7 @@ class BooksPropsView:
 
     def select_rows(self):
         # pythonic defining funtion that will be assigned with field name, lambda is shorter then def
-        orm_attr = lambda field_name: getattr(  # pythonic suppress linter error on this line
+        orm_attr = lambda field_name: getattr(  # noqa 731 # pythonic suppress linter error on this line
             BookViewPropsOrm, FilterableField[field_name].column_name
         )
 
