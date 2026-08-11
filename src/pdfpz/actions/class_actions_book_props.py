@@ -3,7 +3,7 @@ from enum import Enum
 
 from sqlalchemy import and_, inspect, or_, select, text
 
-from pdfpz.actions.class_book_manifest_file_actions import is_file
+from pdfpz.actions.class_actions_book_manifest_file import is_file
 from pdfpz.actions.pdf_actions_file import get_size
 from pdfpz.bridges.db_bridge import Session, engine
 from pdfpz.bridges.db_schema import (
