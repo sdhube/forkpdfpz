@@ -1,27 +1,37 @@
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path, PurePosixPath
-from typing import ClassVar, Dict
+
+
+# TmpStage binds each pipeline stage's tmp directory to a single enum
+# member (the member name is the stage name itself), replacing
+# DIR_TMP_MAP -- a dict whose string keys were repeated, by hand, in
+# every path_*_tmp property below. A typo'd key now fails at
+# TmpStage.<typo> (AttributeError, at the call site itself) instead of
+# DIR_TMP_MAP["<typo>"] (KeyError, only once that property actually runs).
+class TmpStage(Enum):
+    def __init__(self, dir_path: str) -> None:
+        self.dir = Path(dir_path)
+
+    orig = "/tmp/tmp_meta/orig"
+    sanitized = "/tmp/tmp_meta/sanitized"
+    metadata = "/tmp/tmp_meta/metadata"
+    no_info = "/tmp/tmp_meta/no_info"
+    renamed = "/tmp/tmp_meta/renamed"
+    ps = "/tmp/tmp_meta/ps"
+    ps_ratio_size = "/tmp/tmp_meta/ps_ratio_size"
+    n_isbn = "/tmp/tmp_meta/n_isbn"
 
 
 @dataclass(slots=True)
 class TmpPath:
-    DIR_TMP_MAP: ClassVar[Dict[str, Path]] = {
-        "orig": Path("/tmp/tmp_meta/orig"),
-        "sanitized": Path("/tmp/tmp_meta/sanitized"),
-        "metadata": Path("/tmp/tmp_meta/metadata"),
-        "no_info": Path("/tmp/tmp_meta/no_info"),
-        "renamed": Path("/tmp/tmp_meta/renamed"),
-        "ps": Path("/tmp/tmp_meta/ps"),
-        "ps_ratio_size": Path("/tmp/tmp_meta/ps_ratio_size"),
-        "n_isbn": Path("/tmp/tmp_meta/n_isbn"),
-    }
     pdf_path: Path | str
 
     @classmethod
     def from_pdf_path(cls, pdf_path: Path | str) -> "TmpPath":
         # ensure all runtime tmp dirs exist
-        for d in cls.DIR_TMP_MAP.values():
-            d.mkdir(parents=True, exist_ok=True)
+        for stage in TmpStage:
+            stage.dir.mkdir(parents=True, exist_ok=True)
         p = PurePosixPath(pdf_path)
         name = p.name
         return cls(name)
@@ -40,11 +50,11 @@ class TmpPath:
 
     @property
     def dir_tmp(self) -> Path:
-        return self.DIR_TMP_MAP["sanitized"]
+        return TmpStage.sanitized.dir
 
     @property
     def dir_no_info(self) -> Path:
-        return self.DIR_TMP_MAP["no_info"]
+        return TmpStage.no_info.dir
 
     @property
     def dir_sanitized(self) -> Path:
@@ -52,31 +62,31 @@ class TmpPath:
 
     @property
     def path_sanitized_tmp(self) -> Path:
-        return self.DIR_TMP_MAP["sanitized"] / self.name
+        return TmpStage.sanitized.dir / self.name
 
     @property
     def path_sanitized_info_tmp(self) -> Path:
-        return self.DIR_TMP_MAP["metadata"] / self.name
+        return TmpStage.metadata.dir / self.name
 
     @property
     def path_sanitized_no_info(self) -> Path:
-        return self.DIR_TMP_MAP["no_info"] / self.name
+        return TmpStage.no_info.dir / self.name
 
     @property
     def path_sanitized_renamed_tmp(self) -> Path:
-        return self.DIR_TMP_MAP["renamed"] / self.name
+        return TmpStage.renamed.dir / self.name
 
     @property
     def path_sanitized_ps_tmp(self) -> Path:
-        return self.DIR_TMP_MAP["ps"] / self.name
+        return TmpStage.ps.dir / self.name
 
     @property
     def path_ps_ratio_size_tmp(self) -> Path:
-        return self.DIR_TMP_MAP["ps_ratio_size"] / self.name
+        return TmpStage.ps_ratio_size.dir / self.name
 
     @property
     def path_no_isbn(self) -> Path:
-        return self.DIR_TMP_MAP["n_isbn"] / self.name
+        return TmpStage.n_isbn.dir / self.name
 
     @property
     def path_sanitized(self) -> Path:

@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 
 from pdfpz.core.class_book_manifest import PdfManifestEntry
-from pdfpz.core.class_tmp_path import TmpPath
+from pdfpz.core.class_tmp_path import TmpPath, TmpStage
 from pdfpz.core.logger import logger
 
 
@@ -23,8 +23,8 @@ def cp_pdf_from_metadata_to_normalized(entry: PdfManifestEntry, normalized_name)
     file_path = Path(pdf_path)
     if not file_path.is_file():
         return
-    logger.info(f"copied {pdf_path} to {p.DIR_TMP_MAP['renamed']}")
-    shutil.copyfile(str(file_path), str(Path(p.DIR_TMP_MAP["renamed"]).joinpath(normalized_name)))
+    logger.info(f"copied {pdf_path} to {TmpStage.renamed.dir}")
+    shutil.copyfile(str(file_path), str(Path(TmpStage.renamed.dir).joinpath(normalized_name)))
 
 
 def is_file(tmp_pdf_path: str) -> bool:
