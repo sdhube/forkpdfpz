@@ -52,16 +52,8 @@ class TmpPath:
         return self.path.parent
 
     @property
-    def dir_tmp(self) -> Path:
-        return TmpStage.sanitized.dir
-
-    @property
     def dir_no_info(self) -> Path:
         return TmpStage.no_info.dir
-
-    @property
-    def dir_sanitized(self) -> Path:
-        return self.path_base / "sanitized"
 
     @property
     def path_sanitized_tmp(self) -> Path:
@@ -90,7 +82,3 @@ class TmpPath:
     @property
     def path_no_isbn_tmp(self) -> Path:
         return TmpStage.n_isbn.dir / self.name
-
-    @property
-    def path_sanitized(self) -> Path:
-        return self.dir_sanitized / self.name
