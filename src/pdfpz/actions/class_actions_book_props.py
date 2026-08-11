@@ -27,6 +27,8 @@ from pdfpz.core.logger import logger
 #   map_prop_field_name_to_prop_field           (was pure identity --
 #       every key already equalled its value -- so it's gone entirely;
 #       BookPropsOrm's field is just stage.name)
+
+# pythonic PropStage binds member to property name, boolean if its norm_name or name
 class PropStage(Enum):
     def __init__(self, tmppath_property: str, by_norm_name: bool = True) -> None:
         self.tmppath_property = tmppath_property
@@ -46,9 +48,11 @@ class PropStage(Enum):
 # -- "metadata" is reserved by SQLAlchemy's declarative base, so
 # BookViewPropsOrm maps that column onto metadata_ instead (see
 # db_schema.BookViewPropsOrm).
+
+# pythonic; Enum binds prop boolean field name and ORM  attribute name
 class FilterableField(Enum):
-    def __init__(self, orm_attr: str) -> None:
-        self.orm_attr = orm_attr
+    def __init__(self, column_name: str) -> None:
+        self.column_name = column_name
 
     orig = "orig"
     sanitized = "sanitized"
@@ -82,6 +86,8 @@ class BookPropsActions:
         tmp_path_by_name = TmpPath.from_pdf_path(self.name)
         tmp_path_by_norm = TmpPath.from_pdf_path(self.norm_name)
         logger.info(f"name={self.name}")
+        
+        # pythonic loop over enum members setting variables by member
         for stage in PropStage:
             tmp_path = tmp_path_by_norm if stage.by_norm_name else tmp_path_by_name
             fpath = getattr(tmp_path, stage.tmppath_property)
@@ -286,7 +292,7 @@ class BooksPropsView:
 
     def select_rows(self):
         orm_attr = lambda field_name: getattr(  # noqa: E731  # pythonic suppress linter error on this line
-            BookViewPropsOrm, FilterableField[field_name].orm_attr
+            BookViewPropsOrm, FilterableField[field_name].column_name
         )
 
         # pythonic list comprehension builds "sql where" clauses for Boolean variables
