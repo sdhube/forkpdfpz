@@ -1,4 +1,5 @@
 import shutil
+from enum import Enum
 
 from sqlalchemy import and_, inspect, or_, text, select
 
@@ -16,30 +17,26 @@ from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
 
-# Maps a BooksViewPropsOrm row field name to the TmpPath property whose existence on disk
-# determines that field's value. Extend both this and
-# map_prop_field_name_to_prop_field together to track another stage.
-map_prop_field_to_tmppath_property = {
-    "sanitized": "path_sanitized_tmp",
-}
 
-map_prop_field_to_tmppath_property_by_norm = {
-    "n_isbn_prs": "path_no_isbn",
-    "ps": "path_sanitized_ps_tmp",
-    "ps_and_ratio_size": "path_ps_ratio_size_tmp",
-    "renamed": "path_sanitized_renamed_tmp",
-}
+# PropStage binds a prop-tracking stage's TmpPath property name and which
+# book name it's checked under (the original name vs. the normalized one)
+# together, replacing three separately-maintained dicts that had to be
+# kept in sync by hand:
+#   map_prop_field_to_tmppath_property         (orig-name stages)
+#   map_prop_field_to_tmppath_property_by_norm (norm-name stages)
+#   map_prop_field_name_to_prop_field           (was pure identity --
+#       every key already equalled its value -- so it's gone entirely;
+#       BookPropsOrm's field is just stage.name)
+class PropStage(Enum):
+    def __init__(self, tmppath_property: str, by_norm_name: bool = True) -> None:
+        self.tmppath_property = tmppath_property
+        self.by_norm_name = by_norm_name
 
-# Maps the same key used above to attribute it sets. Kept as a
-# separate dict (rather than assuming the names always match) since not
-# every BookView2PropsOrm field name lines up with its TmpPath property name.
-map_prop_field_name_to_prop_field = {
-    "n_isbn_prs": "n_isbn_prs",
-    "ps": "ps",
-    "ps_and_ratio_size": "ps_and_ratio_size",
-    "renamed": "renamed",
-    "sanitized": "sanitized",
-}
+    sanitized = ("path_sanitized_tmp", False)
+    n_isbn_prs = ("path_no_isbn",)
+    ps = ("path_sanitized_ps_tmp",)
+    ps_and_ratio_size = ("path_ps_ratio_size_tmp",)
+    renamed = ("path_sanitized_renamed_tmp",)
 
 
 class BookPropsActions:
@@ -58,30 +55,23 @@ class BookPropsActions:
         return self.book_row.norm_name
 
     def set_props_from_filesystem(self) -> None:
-        """Set each mapped BookPropsOrm flag by checking whether that stage's
-        tmp file exists on disk for this book."""
-        tmp_path = TmpPath.from_pdf_path(self.name)
+        """Set each PropStage's BookPropsOrm flag by checking whether that
+        stage's tmp file exists on disk for this book -- under self.name
+        for stages checked by original name, self.norm_name for the rest
+        (PropStage.by_norm_name)."""
+        tmp_path_by_name = TmpPath.from_pdf_path(self.name)
+        tmp_path_by_norm = TmpPath.from_pdf_path(self.norm_name)
         logger.info(f"name={self.name}")
-        fpath = None
-        for prop_name, tmppath_property_name in map_prop_field_to_tmppath_property.items():
-            fpath = getattr(tmp_path, tmppath_property_name)
+        for stage in PropStage:
+            tmp_path = tmp_path_by_norm if stage.by_norm_name else tmp_path_by_name
+            fpath = getattr(tmp_path, stage.tmppath_property)
             file_exists = is_file(fpath)
-            logger.info(
-                f"fpath={fpath} file_exist={file_exists} tmp_path={tmp_path} tmp_path_property_name={tmppath_property_name} "
-            )
-            setattr(self.book_row, map_prop_field_name_to_prop_field[prop_name], file_exists)
-        tmp_path = TmpPath.from_pdf_path(self.norm_name)
-        for prop_name, tmppath_property_name in map_prop_field_to_tmppath_property_by_norm.items():
-            fpath = getattr(tmp_path, tmppath_property_name)
-            file_exists = is_file(fpath)
-            logger.info(
-                f"fpath={fpath} file_exist={file_exists} tmp_path={tmp_path} tmp_path_property_name={tmppath_property_name} "
-            )
-            setattr(self.book_row, map_prop_field_name_to_prop_field[prop_name], file_exists)
-            if prop_name == "renamed" and self.book_row.renamed:
+            logger.info(f"fpath={fpath} file_exist={file_exists} tmp_path={tmp_path} stage={stage.name} ")
+            setattr(self.book_row, stage.name, file_exists)
+            if stage.name == "renamed" and self.book_row.renamed:
                 self.book_row.sz_renamed = get_size(fpath)
                 logger.info(f"{fpath} set sz_renamed {self.book_row.sz_renamed}")
-            if prop_name == "ps" and self.book_row.ps:
+            if stage.name == "ps" and self.book_row.ps:
                 self.book_row.sz_ps = get_size(fpath)
                 logger.info(f"{fpath} set sz_ps {self.book_row.sz_ps}")
 
