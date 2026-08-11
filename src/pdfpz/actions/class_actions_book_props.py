@@ -24,6 +24,7 @@ map_prop_field_to_tmppath_property = {
 }
 
 map_prop_field_to_tmppath_property_by_norm = {
+    "n_isbn_prs": "path_no_isbn",
     "ps": "path_sanitized_ps_tmp",
     "ps_and_ratio_size": "path_ps_ratio_size_tmp",
     "renamed": "path_sanitized_renamed_tmp",
@@ -33,6 +34,7 @@ map_prop_field_to_tmppath_property_by_norm = {
 # separate dict (rather than assuming the names always match) since not
 # every BookView2PropsOrm field name lines up with its TmpPath property name.
 map_prop_field_name_to_prop_field = {
+    "n_isbn_prs": "n_isbn_prs",
     "ps": "ps",
     "ps_and_ratio_size": "ps_and_ratio_size",
     "renamed": "renamed",
@@ -196,6 +198,22 @@ class BooksPropsAction:
                 tmp_ps_size_ratio = tmp_path.path_ps_ratio_size_tmp
                 shutil.copyfile(tmp_ps, tmp_ps_size_ratio)
 
+    def copy_books_ps_with_ratio_to_n_isbn(self):
+        """select no isbn books file into path_no_isbn instead of path_ps_ratio_size_tmp."""
+        with Session() as session:
+            books_names = session.scalars(
+                # pythonic sqlalchemy select with and
+                select(BookViewPropsOrm.norm_name).where(
+                    BookViewPropsOrm.ps_and_ratio_size,
+                    or_(BookViewPropsOrm.isbn.is_(None), BookViewPropsOrm.isbn == ""),
+                )
+            ).all()
+            for name in books_names:
+                tmp_path: TmpPath = TmpPath(name)
+                tmp_ps = tmp_path.path_ps_ratio_size_tmp
+                tmp_no_isbn = tmp_path.path_no_isbn
+                shutil.copyfile(tmp_ps, tmp_no_isbn)
+
 
 class BooksPropsView:
     """loading rows from db for ui"""
@@ -206,7 +224,7 @@ class BooksPropsView:
     # below maps it to BookViewPropsOrm's actual metadata_ attribute (see
     # db_schema.BookViewPropsOrm: "metadata" is reserved by SQLAlchemy's
     # declarative base, so the column is mapped onto metadata_ instead).
-    FILTERABLE_FIELDS = ("orig", "sanitized", "metadata", "renamed", "ps", "ps_and_ratio_size")
+    FILTERABLE_FIELDS = ("orig", "sanitized", "metadata", "renamed", "ps", "ps_and_ratio_size", "n_isbn_prs")
 
     # Integer columns on view_books_props a caller can cap with an "at
     # most this value" filter.
@@ -226,6 +244,9 @@ class BooksPropsView:
         # True ("has an author"), False ("no author"), or None ("no
         # filter", the default).
         self.author_filter = None
+        # True ("has an isbn"), False ("no isbn"), or None ("no filter",
+        # the default).
+        self.isbn_filter = None
 
     def set_prop_filter(self, field_name: str, value) -> None:
         """value is True ("filter if true"), False ("filter if false"), or
@@ -249,6 +270,12 @@ class BooksPropsView:
         author", same as a NULL one."""
         self.author_filter = value
 
+    def set_isbn_filter(self, value) -> None:
+        """value is True ("filter for an isbn"), False ("filter for no
+        isbn"), or None ("no filter", the default). An empty-string isbn
+        counts as "no isbn", same as a NULL one."""
+        self.isbn_filter = value
+
     def select_rows(self):
         orm_attr = lambda field_name: getattr(  # noqa: E731
             BookViewPropsOrm, self.view_books_props_field_name_to_orm_attr.get(field_name, field_name)
@@ -263,5 +290,9 @@ class BooksPropsView:
             clauses.append(and_(BookViewPropsOrm.author.isnot(None), BookViewPropsOrm.author != ""))
         elif self.author_filter is False:
             clauses.append(or_(BookViewPropsOrm.author.is_(None), BookViewPropsOrm.author == ""))
+        if self.isbn_filter is True:
+            clauses.append(and_(BookViewPropsOrm.isbn.isnot(None), BookViewPropsOrm.isbn != ""))
+        elif self.isbn_filter is False:
+            clauses.append(or_(BookViewPropsOrm.isbn.is_(None), BookViewPropsOrm.isbn == ""))
         with Session() as session:
             self.rows = session.scalars(select(BookViewPropsOrm).where(*clauses)).all()

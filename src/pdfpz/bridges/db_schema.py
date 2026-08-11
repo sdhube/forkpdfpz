@@ -40,6 +40,7 @@ class BookPropsOrm(Base):
     renamed = Column(Boolean, default=False, nullable=False)
     ps = Column(Boolean, default=False, nullable=False)
     ps_and_ratio_size = Column(Boolean, default=False, nullable=False)
+    n_isbn_prs = Column(Boolean, default=False, nullable=False)
     sz_ps = Column(Integer, default=0, nullable=False)
     sz_renamed = Column(Integer, default=0, nullable=False)
     ratio_ps_vs_renamed = Column(Integer, default=0, nullable=False)
@@ -62,6 +63,7 @@ SELECT
     books_props.renamed AS renamed,
     books_props.ps AS ps,
     books_props.ps_and_ratio_size AS ps_and_ratio_size,
+    books_props.n_isbn_prs AS n_isbn_prs,
     books_props.sz_ps AS sz_ps,
     books_props.sz_renamed AS sz_renamed,
     books_props.ratio_ps_vs_renamed AS ratio_ps_vs_renamed,
@@ -102,6 +104,7 @@ class BookViewPropsOrm(ViewBase):
     renamed = Column(Boolean)
     ps = Column(Boolean)
     ps_and_ratio_size = Column(Boolean)
+    n_isbn_prs = Column(Boolean)
     sz_ps = Column(Integer)
     sz_renamed = Column(Integer)
     ratio_ps_vs_renamed = Column(Integer)
