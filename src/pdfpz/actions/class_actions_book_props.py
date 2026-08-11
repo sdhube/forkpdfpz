@@ -224,7 +224,7 @@ class BooksPropsView:
     # below maps it to BookViewPropsOrm's actual metadata_ attribute (see
     # db_schema.BookViewPropsOrm: "metadata" is reserved by SQLAlchemy's
     # declarative base, so the column is mapped onto metadata_ instead).
-    FILTERABLE_FIELDS = ("orig", "sanitized", "metadata", "renamed", "ps", "ps_and_ratio_size")
+    FILTERABLE_FIELDS = ("orig", "sanitized", "metadata", "renamed", "ps", "ps_and_ratio_size", "n_isbn_prs")
 
     # Integer columns on view_books_props a caller can cap with an "at
     # most this value" filter.
