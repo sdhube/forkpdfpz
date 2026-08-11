@@ -39,6 +39,26 @@ class PropStage(Enum):
     renamed = ("path_sanitized_renamed_tmp",)
 
 
+# FilterableField binds a view_books_props boolean column's field name
+# (the member name itself) to its BookViewPropsOrm attribute name,
+# replacing FILTERABLE_FIELDS + view_books_props_field_name_to_orm_attr:
+# a member's orm_attr is its own name for every field except "metadata"
+# -- "metadata" is reserved by SQLAlchemy's declarative base, so
+# BookViewPropsOrm maps that column onto metadata_ instead (see
+# db_schema.BookViewPropsOrm).
+class FilterableField(Enum):
+    def __init__(self, orm_attr: str) -> None:
+        self.orm_attr = orm_attr
+
+    orig = "orig"
+    sanitized = "sanitized"
+    metadata = "metadata_"
+    renamed = "renamed"
+    ps = "ps"
+    ps_and_ratio_size = "ps_and_ratio_size"
+    n_isbn_prs = "n_isbn_prs"
+
+
 class BookPropsActions:
     def __init__(self, book_view_row, book_row):
         if not book_row:
@@ -209,18 +229,14 @@ class BooksPropsView:
     """loading rows from db for ui"""
 
     # Boolean flags on view_books_props that a caller can filter on -- the
-    # same fields the UI's props checkboxes are built from. "metadata" is
-    # the natural/display name; view_books_props_field_name_to_orm_attr
-    # below maps it to BookViewPropsOrm's actual metadata_ attribute (see
-    # db_schema.BookViewPropsOrm: "metadata" is reserved by SQLAlchemy's
-    # declarative base, so the column is mapped onto metadata_ instead).
-    FILTERABLE_FIELDS = ("orig", "sanitized", "metadata", "renamed", "ps", "ps_and_ratio_size", "n_isbn_prs")
+    # same fields the UI's props checkboxes are built from. Derived from
+    # FilterableField, which is also where the "metadata" ->
+    # BookViewPropsOrm.metadata_ attribute-name override lives now.
+    FILTERABLE_FIELDS = tuple(f.name for f in FilterableField)
 
     # Integer columns on view_books_props a caller can cap with an "at
     # most this value" filter.
     MAX_FILTERABLE_FIELDS = ("ratio_ps_vs_renamed", "sz_ps_mega")
-
-    view_books_props_field_name_to_orm_attr = {"metadata": "metadata_"}
 
     def __init__(self):
         self.rows = None
@@ -270,7 +286,7 @@ class BooksPropsView:
 
     def select_rows(self):
         orm_attr = lambda field_name: getattr(  # noqa: E731  # pythonic suppress linter error on this line
-            BookViewPropsOrm, self.view_books_props_field_name_to_orm_attr.get(field_name, field_name)
+            BookViewPropsOrm, FilterableField[field_name].orm_attr
         )
 
         # pythonic list comprehension builds "sql where" clauses for Boolean variables
