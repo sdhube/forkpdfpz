@@ -24,6 +24,7 @@ map_prop_field_to_tmppath_property = {
 }
 
 map_prop_field_to_tmppath_property_by_norm = {
+    "n_isbn_prs": "path_no_isbn",
     "ps": "path_sanitized_ps_tmp",
     "ps_and_ratio_size": "path_ps_ratio_size_tmp",
     "renamed": "path_sanitized_renamed_tmp",
@@ -33,6 +34,7 @@ map_prop_field_to_tmppath_property_by_norm = {
 # separate dict (rather than assuming the names always match) since not
 # every BookView2PropsOrm field name lines up with its TmpPath property name.
 map_prop_field_name_to_prop_field = {
+    "n_isbn_prs": "n_isbn_prs",
     "ps": "ps",
     "ps_and_ratio_size": "ps_and_ratio_size",
     "renamed": "renamed",
@@ -197,22 +199,18 @@ class BooksPropsAction:
                 shutil.copyfile(tmp_ps, tmp_ps_size_ratio)
 
     def copy_books_ps_with_ratio_to_n_isbn(self):
-        """Same ratio/size selection as copy_books_ps_with_ratio_and_size(),
-        further restricted to books with no isbn, copying each match's ps
-        file into path_no_isbn instead of path_ps_ratio_size_tmp."""
+        """select no isbn books file into path_no_isbn instead of path_ps_ratio_size_tmp."""
         with Session() as session:
             books_names = session.scalars(
                 # pythonic sqlalchemy select with and
                 select(BookViewPropsOrm.norm_name).where(
-                    BookViewPropsOrm.ratio_ps_vs_renamed > 10,
-                    BookViewPropsOrm.ratio_ps_vs_renamed < 200,
-                    BookViewPropsOrm.sz_ps < 25 * 1024 * 1024,
+                    BookViewPropsOrm.ps_and_ratio_size,
                     or_(BookViewPropsOrm.isbn.is_(None), BookViewPropsOrm.isbn == ""),
                 )
             ).all()
             for name in books_names:
                 tmp_path: TmpPath = TmpPath(name)
-                tmp_ps = tmp_path.path_sanitized_ps_tmp
+                tmp_ps = tmp_path.path_ps_ratio_size_tmp
                 tmp_no_isbn = tmp_path.path_no_isbn
                 shutil.copyfile(tmp_ps, tmp_no_isbn)
 
