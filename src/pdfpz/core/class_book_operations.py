@@ -36,6 +36,26 @@ class BookOperationStage(Enum):
         """The BookOperations flag name this stage corresponds to."""
         return self.value
 
+    @property
+    def next_stage(self) -> Optional["BookOperationStage"]:
+        """The stage that runs right after this one in canonical order, or
+        None if this is the last stage -- lets a caller walk the pipeline
+        stage-by-stage (stage = stage.next_stage) without going through
+        BookOperationState, which additionally skips stages that aren't
+        part of a particular run's plan or are already done."""
+        stages = list(BookOperationStage)
+        idx = stages.index(self) + 1
+        return stages[idx] if idx < len(stages) else None
+
+    @property
+    def label(self) -> str:
+        """This stage's operation_flag, prefixed with a letter (a, b, c,
+        ...) marking its position in canonical order -- for showing the
+        user the pipeline's stages in a menu/help listing."""
+        idx = list(BookOperationStage).index(self)
+        letter = chr(ord("a") + idx)
+        return f"{letter}) {self.operation_flag}"
+
 
 class BookOperationStatus(Enum):
     """One BookOperationStage's progress within a single run of
