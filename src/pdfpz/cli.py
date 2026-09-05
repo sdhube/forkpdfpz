@@ -1,36 +1,11 @@
-from dataclasses import dataclass
 from pathlib import Path
 
 import click
 
 from pdfpz.actions.class_actions_books import BooksActions
+from pdfpz.core.class_book_operations import BookOperations
 from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.logger import logger
-
-
-@dataclass
-class BookOperations:
-    """Encapsulates all book processing operations as flags."""
-
-    copy_pdfs: bool = False
-    update_assets_info: bool = False
-    move_no_info: bool = False
-    sanitize_didier: bool = False
-    fitz_didier: bool = False
-    sanitize_info: bool = False
-    sanitize_normalize_name: bool = False
-    load_yaml_export_db: bool = False
-    filter_first: bool = (False,)
-    props_filter: bool = (False,)
-    print_first: bool = False
-
-    # pythonic replacing repited if statements with dictionary
-    def get_enabled_operations(self) -> dict:
-        """Return a mapping of enabled operation names to their methods.
-        Allows callers to iterate over only the enabled operations without
-        repeating if-statement chains.
-        """
-        return {name: getattr(self, name) for name, value in self.__dict__.items() if value}
 
 
 def load_books_collection_and_operate(
