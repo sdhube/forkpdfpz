@@ -21,37 +21,49 @@ class BookOperationStage(Enum):
     Member names are prefixed A_/B_/C_/... to spell out that order
     directly in the name itself (A_COPY_PDFS runs before
     B_UPDATE_ASSETS_INFO, and so on) -- not just implicit in definition
-    order. .value stays the plain operation_flag string (e.g. "copy_pdfs")
-    since that's the actual BookOperations field name.
+    order.
+
+    Each member's init tuple is (operation_flag, next_operation_flag):
+    the next stage is set at initialization time as a second parameter,
+    right alongside the member it belongs to, instead of computed by
+    indexing into list(BookOperationStage) at every next_stage call.
+    It's the *next stage's operation_flag string*, not that stage's Enum
+    member directly (G_SANITIZE_NORMALIZE_NAME = (..., H_LOAD_YAML_EXPORT_DB)
+    can't work as Python -- H_LOAD_YAML_EXPORT_DB isn't a bound name yet
+    while G's own value is still being evaluated); next_stage resolves
+    that string back to the actual member. The last stage's tuple omits
+    it (defaults to None).
     """
 
-    A_COPY_PDFS = "copy_pdfs"
-    B_UPDATE_ASSETS_INFO = "update_assets_info"
-    C_MOVE_NO_INFO = "move_no_info"
-    D_SANITIZE_DIDIER = "sanitize_didier"
-    E_FITZ_DIDIER = "fitz_didier"
-    F_SANITIZE_INFO = "sanitize_info"
-    G_SANITIZE_NORMALIZE_NAME = "sanitize_normalize_name"
-    H_LOAD_YAML_EXPORT_DB = "load_yaml_export_db"
-    I_FILTER_FIRST = "filter_first"
-    J_PROPS_FILTER = "props_filter"
-    K_PRINT_FIRST = "print_first"
+    def __init__(self, operation_flag: str, next_operation_flag: Optional[str] = None) -> None:
+        self._operation_flag = operation_flag
+        self._next_operation_flag = next_operation_flag
+
+    A_COPY_PDFS = ("copy_pdfs", "update_assets_info")
+    B_UPDATE_ASSETS_INFO = ("update_assets_info", "move_no_info")
+    C_MOVE_NO_INFO = ("move_no_info", "sanitize_didier")
+    D_SANITIZE_DIDIER = ("sanitize_didier", "fitz_didier")
+    E_FITZ_DIDIER = ("fitz_didier", "sanitize_info")
+    F_SANITIZE_INFO = ("sanitize_info", "sanitize_normalize_name")
+    G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", "load_yaml_export_db")
+    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", "filter_first")
+    I_FILTER_FIRST = ("filter_first", "props_filter")
+    J_PROPS_FILTER = ("props_filter", "print_first")
+    K_PRINT_FIRST = ("print_first",)
 
     @property
     def operation_flag(self) -> str:
         """The BookOperations flag name this stage corresponds to."""
-        return self.value
+        return self._operation_flag
 
     @property
     def next_stage(self) -> Optional["BookOperationStage"]:
-        """The stage that runs right after this one in canonical order, or
-        None if this is the last stage -- lets a caller walk the pipeline
-        stage-by-stage (stage = stage.next_stage) without going through
-        BookOperationState, which additionally skips stages that aren't
-        part of a particular run's plan or are already done."""
-        stages = list(BookOperationStage)
-        idx = stages.index(self) + 1
-        return stages[idx] if idx < len(stages) else None
+        """The stage that runs right after this one -- set at
+        initialization time via each member's next_operation_flag (see
+        the class docstring), not computed by walking canonical order."""
+        if self._next_operation_flag is None:
+            return None
+        return next(stage for stage in BookOperationStage if stage.operation_flag == self._next_operation_flag)
 
 
 class BookOperationStatus(Enum):
