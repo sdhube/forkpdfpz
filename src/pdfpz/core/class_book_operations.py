@@ -17,19 +17,25 @@ class BookOperationStage(Enum):
     stage at a time for a future single "run the whole pipeline" cli call,
     instead of the user invoking pdfpz separately per stage as cli.py's
     own usage examples currently show.
+
+    Member names are prefixed A_/B_/C_/... to spell out that order
+    directly in the name itself (A_COPY_PDFS runs before
+    B_UPDATE_ASSETS_INFO, and so on) -- not just implicit in definition
+    order. .value stays the plain operation_flag string (e.g. "copy_pdfs")
+    since that's the actual BookOperations field name.
     """
 
-    COPY_PDFS = "copy_pdfs"
-    UPDATE_ASSETS_INFO = "update_assets_info"
-    MOVE_NO_INFO = "move_no_info"
-    SANITIZE_DIDIER = "sanitize_didier"
-    FITZ_DIDIER = "fitz_didier"
-    SANITIZE_INFO = "sanitize_info"
-    SANITIZE_NORMALIZE_NAME = "sanitize_normalize_name"
-    LOAD_YAML_EXPORT_DB = "load_yaml_export_db"
-    FILTER_FIRST = "filter_first"
-    PROPS_FILTER = "props_filter"
-    PRINT_FIRST = "print_first"
+    A_COPY_PDFS = "copy_pdfs"
+    B_UPDATE_ASSETS_INFO = "update_assets_info"
+    C_MOVE_NO_INFO = "move_no_info"
+    D_SANITIZE_DIDIER = "sanitize_didier"
+    E_FITZ_DIDIER = "fitz_didier"
+    F_SANITIZE_INFO = "sanitize_info"
+    G_SANITIZE_NORMALIZE_NAME = "sanitize_normalize_name"
+    H_LOAD_YAML_EXPORT_DB = "load_yaml_export_db"
+    I_FILTER_FIRST = "filter_first"
+    J_PROPS_FILTER = "props_filter"
+    K_PRINT_FIRST = "print_first"
 
     @property
     def operation_flag(self) -> str:
@@ -46,15 +52,6 @@ class BookOperationStage(Enum):
         stages = list(BookOperationStage)
         idx = stages.index(self) + 1
         return stages[idx] if idx < len(stages) else None
-
-    @property
-    def label(self) -> str:
-        """This stage's operation_flag, prefixed with a letter (a, b, c,
-        ...) marking its position in canonical order -- for showing the
-        user the pipeline's stages in a menu/help listing."""
-        idx = list(BookOperationStage).index(self)
-        letter = chr(ord("a") + idx)
-        return f"{letter}) {self.operation_flag}"
 
 
 class BookOperationStatus(Enum):
