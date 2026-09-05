@@ -238,12 +238,13 @@ class BookOperations:
         return {name: getattr(self, name) for name, value in self.__dict__.items() if value}
 
     @classmethod
-    def all_stages(cls) -> BookOperations:
-        """Build a BookOperations with every BookOperationStage enabled --
-        the "run everything, in order, from one cli call" skeleton this
-        class provides for cli.py to eventually wire up as a single flag,
-        instead of the caller enabling each stage's flag individually."""
-        return cls(**{stage.operation_flag: True for stage in BookOperationStage})
+    def all_stages(cls) -> List[BookOperations]:
+        """One BookOperations per BookOperationStage, in canonical run
+        order, each with only that single stage's flag enabled -- for
+        running the whole pipeline one operation at a time from a single
+        cli call (for ops in BookOperations.all_stages(): ...), instead
+        of a single BookOperations with every flag on at once."""
+        return [cls(**{stage.operation_flag: True}) for stage in BookOperationStage.canonical_order()]
 
     def plan(self) -> BookOperationPlan:
         """This BookOperations' requested stages, in canonical
