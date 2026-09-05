@@ -63,16 +63,34 @@ class BookOperationStage(Enum):
 
     @classmethod
     def canonical_order(cls) -> List["BookOperationStage"]:
-        """Every stage in actual pipeline-run order, starting from
-        A_COPY_PDFS and following each member's own next_operation_flag
-        (set at initialization time -- see class docstring) to the end.
-        The order to use wherever pipeline order matters
-        (BookOperationPlan.stages, BookOperationState's default).
-        list(BookOperationStage) itself no longer matches pipeline order,
-        since members are declared K_PRINT_FIRST..A_COPY_PDFS (reverse)
-        so each next_operation_flag can read the previous line's own flag
-        (see class docstring); this method, not declaration order, is
-        this Enum's single source of truth for pipeline order now."""
+        """Every stage in actual pipeline-run order (A_COPY_PDFS first,
+        K_PRINT_FIRST last) -- the order to use wherever pipeline order
+        matters (BookOperationPlan.stages, BookOperationState's default).
+        list(BookOperationStage) itself does NOT give you this: members
+        are declared K_PRINT_FIRST..A_COPY_PDFS (reverse -- see class
+        docstring), so Enum's own iteration order is backwards from
+        pipeline order. This is the one place that resolves the
+        next_operation_flag chain into real members and is the
+        authoritative pipeline order everything else should read from.
+
+        Cached (built once, right after the class body below, by
+        _resolve_canonical_order()) rather than re-walked on every call:
+        the chain is fixed at class-definition time and never changes
+        afterward, so re-building the flag->stage dict and re-walking all
+        11 members on every BookOperationPlan.stages / BookOperationState()
+        call (i.e. every single planned run) would be pure repeated work
+        for the exact same answer every time. A list copy is still
+        returned each call so a caller mutating their copy can't corrupt
+        the cache."""
+        return list(cls._canonical_order_cache)
+
+    @classmethod
+    def _resolve_canonical_order(cls) -> List["BookOperationStage"]:
+        """Walk each member's next_operation_flag from A_COPY_PDFS to the
+        end, resolving that chain of flag strings into actual members.
+        Runs exactly once -- see the assignment to
+        BookOperationStage._canonical_order_cache right after this class
+        -- caching the answer for canonical_order() to hand back."""
         by_flag = {stage.operation_flag: stage for stage in cls}
         stages = []
         stage = cls.A_COPY_PDFS
@@ -80,6 +98,13 @@ class BookOperationStage(Enum):
             stages.append(stage)
             stage = by_flag[stage._next_operation_flag] if stage._next_operation_flag else None
         return stages
+
+
+# Resolve the pipeline order exactly once, right here at import time --
+# not lazily inside canonical_order() -- since BookOperationStage's chain
+# can't change after the class is defined, so there's nothing to
+# recompute later; canonical_order() just hands back a copy of this.
+BookOperationStage._canonical_order_cache = BookOperationStage._resolve_canonical_order()
 
 
 class BookOperationStatus(Enum):
