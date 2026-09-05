@@ -28,28 +28,33 @@ class BookOperationStage(Enum):
     right alongside the member it belongs to, instead of computed by
     indexing into list(BookOperationStage) at every next_stage call.
     It's the *next stage's operation_flag string*, not that stage's Enum
-    member directly (G_SANITIZE_NORMALIZE_NAME = (..., H_LOAD_YAML_EXPORT_DB)
-    can't work as Python -- H_LOAD_YAML_EXPORT_DB isn't a bound name yet
-    while G's own value is still being evaluated); next_stage resolves
-    that string back to the actual member. The last stage's tuple omits
-    it (defaults to None).
+    member directly -- referencing a member by name only works once it's
+    already been assigned earlier in this same class body (Enum member
+    objects don't exist yet during body execution; each name is still
+    just the plain tuple on its right-hand side at that point), so
+    members are declared in *reverse* pipeline order (K_PRINT_FIRST
+    first, A_COPY_PDFS last) and each next_operation_flag reads the
+    previous line's own flag straight off it (K_PRINT_FIRST[0]) instead
+    of retyping that string a second time. next_stage resolves the
+    string back to the actual member. The first-declared (last-run)
+    stage's tuple omits it, so its next_stage stays None.
     """
 
     def __init__(self, operation_flag: str, next_operation_flag: Optional[str] = None) -> None:
         self._operation_flag = operation_flag
         self._next_operation_flag = next_operation_flag
 
-    A_COPY_PDFS = ("copy_pdfs", "update_assets_info")
-    B_UPDATE_ASSETS_INFO = ("update_assets_info", "move_no_info")
-    C_MOVE_NO_INFO = ("move_no_info", "sanitize_didier")
-    D_SANITIZE_DIDIER = ("sanitize_didier", "fitz_didier")
-    E_FITZ_DIDIER = ("fitz_didier", "sanitize_info")
-    F_SANITIZE_INFO = ("sanitize_info", "sanitize_normalize_name")
-    G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", "load_yaml_export_db")
-    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", "filter_first")
-    I_FILTER_FIRST = ("filter_first", "props_filter")
-    J_PROPS_FILTER = ("props_filter", "print_first")
     K_PRINT_FIRST = ("print_first",)
+    J_PROPS_FILTER = ("props_filter", K_PRINT_FIRST[0])
+    I_FILTER_FIRST = ("filter_first", J_PROPS_FILTER[0])
+    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", I_FILTER_FIRST[0])
+    G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", H_LOAD_YAML_EXPORT_DB[0])
+    F_SANITIZE_INFO = ("sanitize_info", G_SANITIZE_NORMALIZE_NAME[0])
+    E_FITZ_DIDIER = ("fitz_didier", F_SANITIZE_INFO[0])
+    D_SANITIZE_DIDIER = ("sanitize_didier", E_FITZ_DIDIER[0])
+    C_MOVE_NO_INFO = ("move_no_info", D_SANITIZE_DIDIER[0])
+    B_UPDATE_ASSETS_INFO = ("update_assets_info", C_MOVE_NO_INFO[0])
+    A_COPY_PDFS = ("copy_pdfs", B_UPDATE_ASSETS_INFO[0])
 
     @property
     def operation_flag(self) -> str:
@@ -64,6 +69,24 @@ class BookOperationStage(Enum):
         if self._next_operation_flag is None:
             return None
         return next(stage for stage in BookOperationStage if stage.operation_flag == self._next_operation_flag)
+
+    @classmethod
+    def canonical_order(cls) -> List["BookOperationStage"]:
+        """Every stage in actual pipeline-run order, starting from
+        A_COPY_PDFS and walking next_stage to the end -- the order to use
+        wherever pipeline order matters (BookOperationPlan.stages,
+        BookOperationState's default). list(BookOperationStage) itself no
+        longer matches pipeline order, since members are declared
+        K_PRINT_FIRST..A_COPY_PDFS (reverse) so each next_operation_flag
+        can read the previous line's own flag (see class docstring); the
+        next_stage chain, not declaration order, is this Enum's single
+        source of truth for order now."""
+        stages = []
+        stage = cls.A_COPY_PDFS
+        while stage is not None:
+            stages.append(stage)
+            stage = stage.next_stage
+        return stages
 
 
 class BookOperationStatus(Enum):
@@ -105,9 +128,11 @@ class BookOperationPlan:
     @property
     def stages(self) -> List[BookOperationStage]:
         """The requested stages only (operations' enabled flags), in
-        BookOperationStage's canonical order -- not operations' own
-        __dict__ order, which get_enabled_operations() uses today."""
-        return [stage for stage in BookOperationStage if getattr(self.operations, stage.operation_flag)]
+        BookOperationStage's canonical run order -- not operations' own
+        __dict__ order, which get_enabled_operations() uses today, and
+        not list(BookOperationStage)'s declaration order either (see
+        BookOperationStage.canonical_order)."""
+        return [stage for stage in BookOperationStage.canonical_order() if getattr(self.operations, stage.operation_flag)]
 
     def new_state(self) -> BookOperationState:
         """A fresh BookOperationState scoped to just this plan's stages,
@@ -130,7 +155,7 @@ class BookOperationState:
     requested.
     """
 
-    stages: List[BookOperationStage] = field(default_factory=lambda: list(BookOperationStage))
+    stages: List[BookOperationStage] = field(default_factory=lambda: BookOperationStage.canonical_order())
     status: Dict[BookOperationStage, BookOperationStatus] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
