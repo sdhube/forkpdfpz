@@ -25,19 +25,19 @@ class BookOperationStage(Enum):
 
     Each member's init tuple is (operation_flag, next_operation_flag):
     the next stage is set at initialization time as a second parameter,
-    right alongside the member it belongs to, instead of computed by
-    indexing into list(BookOperationStage) at every next_stage call.
-    It's the *next stage's operation_flag string*, not that stage's Enum
-    member directly -- referencing a member by name only works once it's
-    already been assigned earlier in this same class body (Enum member
-    objects don't exist yet during body execution; each name is still
-    just the plain tuple on its right-hand side at that point), so
-    members are declared in *reverse* pipeline order (K_PRINT_FIRST
-    first, A_COPY_PDFS last) and each next_operation_flag reads the
-    previous line's own flag straight off it (K_PRINT_FIRST[0]) instead
-    of retyping that string a second time. next_stage resolves the
-    string back to the actual member. The first-declared (last-run)
-    stage's tuple omits it, so its next_stage stays None.
+    right alongside the member it belongs to, rather than computed by
+    walking canonical order on demand. It's the *next stage's
+    operation_flag string*, not that stage's Enum member directly --
+    referencing a member by name only works once it's already been
+    assigned earlier in this same class body (Enum member objects don't
+    exist yet during body execution; each name is still just the plain
+    tuple on its right-hand side at that point), so members are declared
+    in *reverse* pipeline order (K_PRINT_FIRST first, A_COPY_PDFS last)
+    and each next_operation_flag reads the previous line's own flag
+    straight off it (K_PRINT_FIRST[0]) instead of retyping that string a
+    second time. canonical_order() resolves the chain of flag strings
+    back to actual members. The first-declared (last-run) stage's tuple
+    omits it, so its next_operation_flag stays None (end of the chain).
     """
 
     def __init__(self, operation_flag: str, next_operation_flag: Optional[str] = None) -> None:
@@ -61,31 +61,24 @@ class BookOperationStage(Enum):
         """The BookOperations flag name this stage corresponds to."""
         return self._operation_flag
 
-    @property
-    def next_stage(self) -> Optional["BookOperationStage"]:
-        """The stage that runs right after this one -- set at
-        initialization time via each member's next_operation_flag (see
-        the class docstring), not computed by walking canonical order."""
-        if self._next_operation_flag is None:
-            return None
-        return next(stage for stage in BookOperationStage if stage.operation_flag == self._next_operation_flag)
-
     @classmethod
     def canonical_order(cls) -> List["BookOperationStage"]:
         """Every stage in actual pipeline-run order, starting from
-        A_COPY_PDFS and walking next_stage to the end -- the order to use
-        wherever pipeline order matters (BookOperationPlan.stages,
-        BookOperationState's default). list(BookOperationStage) itself no
-        longer matches pipeline order, since members are declared
-        K_PRINT_FIRST..A_COPY_PDFS (reverse) so each next_operation_flag
-        can read the previous line's own flag (see class docstring); the
-        next_stage chain, not declaration order, is this Enum's single
-        source of truth for order now."""
+        A_COPY_PDFS and following each member's own next_operation_flag
+        (set at initialization time -- see class docstring) to the end.
+        The order to use wherever pipeline order matters
+        (BookOperationPlan.stages, BookOperationState's default).
+        list(BookOperationStage) itself no longer matches pipeline order,
+        since members are declared K_PRINT_FIRST..A_COPY_PDFS (reverse)
+        so each next_operation_flag can read the previous line's own flag
+        (see class docstring); this method, not declaration order, is
+        this Enum's single source of truth for pipeline order now."""
+        by_flag = {stage.operation_flag: stage for stage in cls}
         stages = []
         stage = cls.A_COPY_PDFS
         while stage is not None:
             stages.append(stage)
-            stage = stage.next_stage
+            stage = by_flag[stage._next_operation_flag] if stage._next_operation_flag else None
         return stages
 
 
