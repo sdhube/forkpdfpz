@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional
 
 
 class BookOperationStage(Enum):
@@ -39,6 +39,13 @@ class BookOperationStage(Enum):
     back to actual members. The first-declared (last-run) stage's tuple
     omits it, so its next_operation_flag stays None (end of the chain).
     """
+
+    # Declared (not assigned) here so Enum's metaclass never mistakes it
+    # for a member candidate -- only assigned *names* in this body get
+    # treated that way, and a bare annotation assigns nothing. The actual
+    # value is set once, after this class is fully built, inside
+    # BookOperationPlan (see there for why).
+    _canonical_order_cache: ClassVar[List["BookOperationStage"]]
 
     def __init__(self, operation_flag: str, next_operation_flag: Optional[str] = None) -> None:
         self._operation_flag = operation_flag
@@ -89,7 +96,7 @@ class BookOperationStage(Enum):
         """Walk each member's next_operation_flag from A_COPY_PDFS to the
         end, resolving that chain of flag strings into actual members.
         Runs exactly once -- see the assignment to
-        BookOperationStage._canonical_order_cache right after this class
+        BookOperationStage._canonical_order_cache inside BookOperationPlan
         -- caching the answer for canonical_order() to hand back."""
         by_flag = {stage.operation_flag: stage for stage in cls}
         stages = []
@@ -98,13 +105,6 @@ class BookOperationStage(Enum):
             stages.append(stage)
             stage = by_flag[stage._next_operation_flag] if stage._next_operation_flag else None
         return stages
-
-
-# Resolve the pipeline order exactly once, right here at import time --
-# not lazily inside canonical_order() -- since BookOperationStage's chain
-# can't change after the class is defined, so there's nothing to
-# recompute later; canonical_order() just hands back a copy of this.
-BookOperationStage._canonical_order_cache = BookOperationStage._resolve_canonical_order()
 
 
 class BookOperationStatus(Enum):
@@ -140,6 +140,15 @@ class BookOperationPlan:
     this class's job, actually calling BooksActions' methods for each
     stage stays cli.py/BooksActions' job, same as today's operation_map.
     """
+
+    # Resolved exactly once, right here at BookOperationPlan's own
+    # class-definition time -- not lazily inside canonical_order() --
+    # since BookOperationStage's chain can't change after that class is
+    # defined, so there's nothing to recompute later; canonical_order()
+    # just hands back a copy of this. Set here (this class actually uses
+    # BookOperationStage.canonical_order(), in .stages below) rather than
+    # as a bare module-level statement after BookOperationStage itself.
+    BookOperationStage._canonical_order_cache = BookOperationStage._resolve_canonical_order()
 
     operations: BookOperations
 
