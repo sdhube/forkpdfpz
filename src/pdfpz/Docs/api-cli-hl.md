@@ -116,7 +116,7 @@ repeated `Loop` arrow:
   "themeVariables": {
     "fontSize": "32px",
     "actorFontSize": "32px",
-    "messageFontSize": "30px",
+    "messageFontSize": "28px",
     "noteFontSize": "28px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
@@ -194,7 +194,7 @@ collapse into a `Note`:
   "themeVariables": {
     "fontSize": "32px",
     "actorFontSize": "32px",
-    "messageFontSize": "30px",
+    "messageFontSize": "28px",
     "noteFontSize": "28px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
@@ -268,7 +268,7 @@ like `run_plan()` with no `first_stage`:
   "themeVariables": {
       "fontSize": "32px",
       "actorFontSize": "32px",
-      "messageFontSize": "30px",
+      "messageFontSize": "28px",
       "noteFontSize": "28px",
       "actorBkg": "#f5f5f5",
       "actorBorder": "#555555",
