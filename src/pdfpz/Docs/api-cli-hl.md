@@ -66,6 +66,7 @@ No `--from-stage` given (or `--from-stage copy_pdfs`) -- every stage
 runs, in canonical order, starting at `A_COPY_PDFS`:
 
 ```mermaid
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "20px"}, "flowchart": {"nodeSpacing": 60, "rankSpacing": 60, "curve": "basis"}}}%%
 flowchart TD
     Start(["User: pdfpz &lt;persistence_file_path&gt; --run-all"]) --> Build["BookOperations with every flag True"]
     Build --> Plan["plan = operations.plan()<br/>state = plan.new_state()<br/>stages = canonical_order() (11 stages)"]
@@ -103,6 +104,7 @@ flowchart TD
 in a previous invocation:
 
 ```mermaid
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "20px"}, "flowchart": {"nodeSpacing": 60, "rankSpacing": 60, "curve": "basis"}}}%%
 flowchart TD
     Start(["User: pdfpz &lt;persistence_file_path&gt; --from-stage sanitize_info"]) --> Resolve["BookOperationStage.canonical_order()<br/>drop everything before F_SANITIZE_INFO"]
     Resolve --> Build["BookOperations with only<br/>F_SANITIZE_INFO..K_PRINT_FIRST True"]
@@ -130,6 +132,7 @@ How the five classes above connect, with landmarks pointing back at the
 labels in the two flow diagrams:
 
 ```mermaid
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "18px"}}}%%
 classDiagram
     class BookOperations {
         +bool copy_pdfs
