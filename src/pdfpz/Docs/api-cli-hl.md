@@ -32,10 +32,17 @@ None of these run anything themselves -- calling the matching
 ## Future design
 
 Add one new `cli.py` option, e.g. `--from-stage <flag-name>` (omitted
-or `--from-stage copy_pdfs` == run everything), and a small runner loop
-that walks `BookOperationState.next_stage` calling `operation_map`'s
-matching function, exactly as `operation_map` already maps flag name to
-`BooksActions` method today:
+or `--from-stage copy_pdfs` == run everything), and give
+`BookOperationPlan` a `run(operation_map)` method that owns the entire
+loop internally -- creating its own `BookOperationState`, walking
+`state.next_stage`, calling `operation_map`'s matching function, and
+marking `RUNNING`/`DONE`/`FAILED` on `state` itself, exactly as
+`operation_map` already maps flag name to `BooksActions` method today.
+`cli.py` never touches a `BookOperationStage` value or `state` directly
+-- it builds `BookOperations`, calls `plan.run(operation_map)` once,
+and reports whatever `BookOperationState` comes back. That keeps
+`cli.py` agnostic of which stage is currently running or how many
+there are; only `BookOperationPlan`/`BookOperationState` know that.
 
 | Stage | Flag | `BooksActions` method |
 |---|---|---|
@@ -96,13 +103,18 @@ flowchart TD
     Loop -->|"None (state.is_finished())"| Done(["Pipeline complete"])
 ```
 
-### Sequence: triggering the first stage (A_COPY_PDFS)
+### Sequence: triggering a full run (`cli.py` stays stage-agnostic)
 
-The flowchart above shows *what* runs; this sequence diagram shows *who
-calls whom, in what order* to get there -- from the user's `pdfpz`
-invocation through `Build`/`Plan`/`Loop` to the first `S1` action call
-and its `mark_done`, through the repeating `Loop` for the remaining
-stages, down to the same `Done` node the flowchart ends on:
+The flowchart above shows *what* runs; this sequence diagram shows
+*who calls whom, in what order* -- and, per the design above, `cli.py`
+only ever calls `plan.run(operation_map)` once. Everything from
+`state.next_stage` onward happens inside `BookOperationPlan`, between
+`Plan`, `State`, and `Actions` -- `cli.py` is never shown a
+`BookOperationStage` value. The diagram spells out full detail for the
+first stage (`A_COPY_PDFS`) and, per the request to also detail the
+step right before the flow finishes, the last stage (`K_PRINT_FIRST`)
+-- the stages in between collapse into a `Note`, same as the flowchart's
+repeated `Loop` arrow:
 
 ```mermaid
 %%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
@@ -118,17 +130,24 @@ sequenceDiagram
     CLI->>Ops: BookOperations(every flag True)
     CLI->>Ops: operations.plan()
     Ops-->>CLI: plan
-    CLI->>Plan: plan.new_state()
-    Plan-->>CLI: state
-    CLI->>State: state.next_stage
-    State-->>CLI: A_COPY_PDFS
-    CLI->>Actions: actions.copy_assets_pdf()
-    Actions-->>CLI: done
-    CLI->>State: state.mark_done(A_COPY_PDFS)
-    State-->>CLI: next_stage = B_UPDATE_ASSETS_INFO
-    Note over CLI,State: Same next_stage / call / mark_done pattern<br/>repeats for the remaining 10 stages
-    CLI->>State: state.next_stage
-    State-->>CLI: None (state.is_finished())
+    CLI->>Plan: plan.run(operation_map)
+    activate Plan
+    Plan->>Plan: state = self.new_state()
+    Plan->>State: state.next_stage
+    State-->>Plan: A_COPY_PDFS
+    Plan->>Actions: actions.copy_assets_pdf()
+    Actions-->>Plan: done
+    Plan->>State: state.mark_done(A_COPY_PDFS)
+    State-->>Plan: next_stage = B_UPDATE_ASSETS_INFO
+    Note over Plan,State: Same next_stage / call / mark_done pattern<br/>repeats internally for stages B..J (9 stages)
+    Plan->>State: state.next_stage
+    State-->>Plan: K_PRINT_FIRST
+    Plan->>Actions: actions.print_first_entry()
+    Actions-->>Plan: done
+    Plan->>State: state.mark_done(K_PRINT_FIRST)
+    State-->>Plan: next_stage = None (state.is_finished())
+    deactivate Plan
+    Plan-->>CLI: state (finished)
     CLI-->>User: Pipeline complete
 ```
 
@@ -181,6 +200,7 @@ classDiagram
         +BookOperations operations
         +stages List~BookOperationStage~
         +new_state() BookOperationState
+        +run(operation_map dict) BookOperationState
     }
     class BookOperationState {
         +List~BookOperationStage~ stages
@@ -208,8 +228,8 @@ classDiagram
     BookOperationState "1" o-- "*" BookOperationStatus : status per stage
 
     note for BookOperations "Landmark: the 'Build' step\nin both flow diagrams above\n(operations = BookOperations(...))"
-    note for BookOperationPlan "Landmark: the 'Plan' step\n(plan = operations.plan())"
-    note for BookOperationState "Landmark: the 'Loop' step\n(state.next_stage, state.mark_done,\nstate.is_finished() -> 'Done')"
+    note for BookOperationPlan "Landmark: 'Plan' (plan = operations.plan())\nand the 'Loop' step -- run() owns\nnext_stage/mark_done internally,\ncli.py only calls run() once"
+    note for BookOperationState "Landmark: state.next_stage, state.mark_done,\nstate.is_finished() -> 'Done' --\nread by Plan.run(), not by cli.py"
     note for BookOperationStage "Landmark: the S1..S11 / S6..S11\naction labels name these members"
 ```
 
@@ -223,10 +243,13 @@ classDiagram
   named stage onward `True` (via `BookOperationStage.canonical_order()`,
   slicing at the requested stage's index), rather than a single
   `--copy-pdfs`-style flag per stage as today.
-- The runner loop itself in `load_books_collection_and_operate()`:
-  replace the current one-pass `for operation_name, operation_func in
-  operation_map.items(): if getattr(...): operation_func()` with a
-  `while not state.is_finished()` loop over `state.next_stage`, marking
-  `RUNNING`/`DONE`/`FAILED` around each `operation_map[stage.operation_flag]()`
-  call so a failure partway through is visible per-stage rather than as
-  one bare exception.
+- `BookOperationPlan.run(operation_map)` itself: a `while not
+  state.is_finished()` loop over `state.next_stage`, marking
+  `RUNNING`/`DONE`/`FAILED` around each
+  `operation_map[stage.operation_flag]()` call so a failure partway
+  through is visible per-stage rather than as one bare exception.
+  `load_books_collection_and_operate()` in `cli.py` shrinks to building
+  `BookOperations`/`operation_map` and calling `plan.run(operation_map)`
+  once -- it no longer contains the loop itself, or the current
+  one-pass `for operation_name, operation_func in
+  operation_map.items(): if getattr(...): operation_func()`.
