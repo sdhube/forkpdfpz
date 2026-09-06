@@ -120,13 +120,12 @@ repeated `Loop` arrow:
     "noteFontSize": "28px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
-    "actorTextColor": "#111111",
-    "signalTextColor": "#111111",
+    "signalColor": "#90EE90",
+    "signalTextColor": "#90EE90"
     "noteBkgColor": "#fffde7",
     "noteBorderColor": "#777777",
     "noteTextColor": "#111111"
-  },
-  "themeCSS": ".messageLine0 { stroke: #90EE90 !important; } .messageLine1 { stroke: #ADD8E6 !important; } .messageText { font-size: 30px !important; } .messageLine0 + .messageText { fill: #90EE90 !important; } .messageLine1 + .messageText { fill: #ADD8E6 !important; } .noteText { font-size: 28px !important; } .actor { font-size: 32px !important; } .labelText { font-size: 30px !important; } .messageText[class*="messageLine0"] { fill: #90EE90 !important; } .messageText[class*="messageLine1"] { fill: #ADD8E6 !important; }"
+  }
 }}%%
 sequenceDiagram
     actor User
@@ -197,13 +196,12 @@ collapse into a `Note`:
     "noteFontSize": "28px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
-    "actorTextColor": "#111111",
-    "signalTextColor": "#111111",
+    "signalColor": "#90EE90",
+    "signalTextColor": "#90EE90"
     "noteBkgColor": "#fffde7",
     "noteBorderColor": "#777777",
     "noteTextColor": "#111111"
-  },
-  "themeCSS": ".messageLine0 { stroke: #90EE90 !important; } .messageLine1 { stroke: #ADD8E6 !important; } .messageText { font-size: 30px !important; } .messageLine0 + .messageText { fill: #90EE90 !important; } .messageLine1 + .messageText { fill: #ADD8E6 !important; } .noteText { font-size: 28px !important; } .actor { font-size: 32px !important; } .labelText { font-size: 30px !important; } .messageText[class*="messageLine0"] { fill: #90EE90 !important; } .messageText[class*="messageLine1"] { fill: #ADD8E6 !important; }"
+  }
 }}%%
 sequenceDiagram
     actor User
@@ -269,14 +267,12 @@ like `run_plan()` with no `first_stage`:
     "noteFontSize": "28px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
-    "actorTextColor": "#111111",
-    "signalTextColor": "#111111",
+    "signalColor": "#90EE90",
+    "signalTextColor": "#90EE90"
     "noteBkgColor": "#fffde7",
     "noteBorderColor": "#777777",
     "noteTextColor": "#111111"
-  },
-  "themeCSS": ".messageLine0 { stroke: #90EE90 !important; } .messageLine1 { stroke: #ADD8E6 !important; } .messageText { font-size: 30px !important; } .messageLine0 + .messageText { fill: #90EE90 !important; } .messageLine1 + .messageText { fill: #ADD8E6 !important; } .noteText { font-size: 28px !important; } .actor { font-size: 32px !important; } .labelText { font-size: 30px !important; } .messageText[class*="messageLine0"] { fill: #90EE90 !important; } .messageText[class*="messageLine1"] { fill: #ADD8E6 !important; }"
-}}%%
+  }}}%%
 sequenceDiagram
     actor User
     participant CLI as cli.py
