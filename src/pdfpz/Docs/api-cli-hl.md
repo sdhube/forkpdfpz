@@ -1,4 +1,4 @@
-# API cli highlevel, classes and flows version 81.08
+# API cli highlevel, classes and flows version 81.09
 
 ## Current state
 
@@ -112,176 +112,24 @@ repeated `Loop` arrow:
 
 ```mermaid
 %%{init: {
-  "theme": "default",
+  "theme": "base",
   "themeVariables": {
-      "fontSize": "32px",
-      "actorFontSize": "32px",
-      "messageFontSize": "30px",
-      "noteFontSize": "28px",
-      "actorBkg": "#f5f5f5",
-      "actorBorder": "#555555",
-      "actorTextColor": "#111111",
-      "signalColor": "#90EE90",
-      "signalTextColor": "#90EE90",
-      "noteBkgColor": "#fffde7",
-      "noteBorderColor": "#777777",
-      "noteTextColor": "#111111"
-    },
-    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
-  }
+    "fontSize": "32px",
+    "actorFontSize": "32px",
+    "messageFontSize": "30px",
+    "noteFontSize": "28px",
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#555555",
+    "actorTextColor": "#111111",
+    "signalColor": "#32CD32",
+    "signalTextColor": "#32CD32",
+    "labelTextColor": "#32CD32",
+    "noteBkgColor": "#fffde7",
+    "noteBorderColor": "#777777",
+    "noteTextColor": "#111111"
+  },
+  "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
 }}%%
-sequenceDiagram
-    actor User
-    participant CLI as cli.py
-    participant Plan as BookOperationPlan
-    participant Ops as BookOperations
-    participant State as BookOperationState
-    participant DB as book_operation_state (DB)
-    participant Actions as BooksActions
-
-    User->>CLI: pdfpz &lt;persistence_file_path&gt; --run-all
-    CLI->>Plan: BookOperationPlan.run_plan(operation_map)
-    activate Plan
-    Plan->>Ops: BookOperations(every flag True)
-    Plan->>Ops: operations.plan()
-    Ops-->>Plan: plan
-    Plan->>Plan: state = plan.new_state()
-    Plan->>State: state.next_stage
-    State-->>Plan: A_COPY_PDFS
-    Plan->>Actions: actions.copy_assets_pdf()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(A_COPY_PDFS)
-    State->>DB: upsert(persistence_file_path, A_COPY_PDFS, DONE)
-    State-->>Plan: next_stage = B_UPDATE_ASSETS_INFO
-    Note over Plan,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages B..J (9 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: K_PRINT_FIRST
-    Plan->>Actions: actions.print_first_entry()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(K_PRINT_FIRST)
-    State->>DB: upsert(persistence_file_path, K_PRINT_FIRST, DONE)
-    State-->>Plan: next_stage = None (state.is_finished())
-    deactivate Plan
-    Plan-->>CLI: state (finished)
-    CLI-->>User: Pipeline complete
-```
-
-
-### Sequence: user explicitly starts from a stage (this is *not* a resume)
-
-This is worth being precise about: nothing here looks at
-`book_operation_state` or any prior run's outcome. The user is simply
-telling `cli.py` "start at `F_SANITIZE_INFO`" via `--from-stage`,
-regardless of whether anything ran before, succeeded, or failed --
-it's a manually-specified starting point, same shape as the first
-sequence diagram, now with `first_stage` set: `cli.py` calls
-`BookOperationPlan.run_plan(operation_map,
-first_stage=BookOperationStage.F_SANITIZE_INFO)` once. The flowchart's
-`Resolve`/`Build` steps -- slicing `canonical_order()` at
-`F_SANITIZE_INFO` and building a `BookOperations` with only that
-subset `True` -- now happen inside `run_plan` itself, not in `cli.py`;
-`cli.py` only supplies which stage to start at, as a value, never
-performs the slicing or touches `BookOperations`/`state` directly. The
-real, DB-driven resume -- where `BookOperationPlan` itself figures out
-where a *previous* run stopped -- is the next sequence diagram below.
-Full detail is shown for the first stage in this run
-(`F_SANITIZE_INFO`) and the last (`K_PRINT_FIRST`); the
-`G_SANITIZE_NORMALIZE_NAME`..`J_PROPS_FILTER` stages in between
-collapse into a `Note`:
-
-```mermaid
-%%{init: {
-  "theme": "default",
-  "themeVariables": {
-      "fontSize": "32px",
-      "actorFontSize": "32px",
-      "messageFontSize": "30px",
-      "noteFontSize": "28px",
-      "actorBkg": "#f5f5f5",
-      "actorBorder": "#555555",
-      "actorTextColor": "#111111",
-      "signalColor": "#90EE90",
-      "signalTextColor": "#90EE90",
-      "noteBkgColor": "#fffde7",
-      "noteBorderColor": "#777777",
-      "noteTextColor": "#111111"
-    },
-    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
-  }
-}}%%
-sequenceDiagram
-    actor User
-    participant CLI as cli.py
-    participant Plan as BookOperationPlan
-    participant Ops as BookOperations
-    participant State as BookOperationState
-    participant DB as book_operation_state (DB)
-    participant Actions as BooksActions
-
-    User->>CLI: pdfpz &lt;persistence_file_path&gt; --from-stage sanitize_info
-    CLI->>Plan: BookOperationPlan.run_plan(operation_map,<br/>first_stage=F_SANITIZE_INFO)
-    activate Plan
-    Plan->>Plan: BookOperationStage.canonical_order()<br/>drop everything before F_SANITIZE_INFO
-    Plan->>Ops: BookOperations(F_SANITIZE_INFO..K_PRINT_FIRST True)
-    Plan->>Ops: operations.plan()
-    Ops-->>Plan: plan
-    Plan->>Plan: state = plan.new_state()<br/>stages = [F_SANITIZE_INFO ... K_PRINT_FIRST] (6 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: F_SANITIZE_INFO
-    Plan->>Actions: actions.sanitize_books_info()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(F_SANITIZE_INFO)
-    State->>DB: upsert(persistence_file_path, F_SANITIZE_INFO, DONE)
-    State-->>Plan: next_stage = G_SANITIZE_NORMALIZE_NAME
-    Note over Plan,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages G..J (4 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: K_PRINT_FIRST
-    Plan->>Actions: actions.print_first_entry()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(K_PRINT_FIRST)
-    State->>DB: upsert(persistence_file_path, K_PRINT_FIRST, DONE)
-    State-->>Plan: next_stage = None (state.is_finished())
-    deactivate Plan
-    Plan-->>CLI: state (finished)
-    CLI-->>User: Pipeline complete (started from sanitize_info)
-```
-
-### Sequence: resume after a failed run (`BookOperationPlan` finds where it stopped)
-
-This is the actual resume: the user doesn't name a stage at all. Say a
-previous `--run-all` got through `A_COPY_PDFS` and
-`B_UPDATE_ASSETS_INFO`, then `C_MOVE_NO_INFO` failed -- `state.mark(...,
-FAILED)` upserted that into `book_operation_state`, and the process
-exited. `cli.py` calls a new `BookOperationPlan.resume_plan(operation_map)`,
-with no `first_stage` -- `resume_plan` reads `book_operation_state` for
-this `persistence_file_path` itself, finds `C_MOVE_NO_INFO` is the
-first stage that isn't `DONE`, and reconstructs `state` from those rows
-via `BookOperationState.load_from_db()` (so `A_COPY_PDFS`/
-`B_UPDATE_ASSETS_INFO` are already marked done and `next_stage` resolves
-straight to `C_MOVE_NO_INFO`) before continuing the same
-next_stage/call/mark_done/DB-upsert loop `run_plan` uses. If no rows
-exist yet for this path (first run ever), `resume_plan` behaves exactly
-like `run_plan()` with no `first_stage`:
-
-```mermaid
-%%{init: {
-  "theme": "default",
-  "themeVariables": {
-      "fontSize": "32px",
-      "actorFontSize": "32px",
-      "messageFontSize": "30px",
-      "noteFontSize": "28px",
-      "actorBkg": "#f5f5f5",
-      "actorBorder": "#555555",
-      "actorTextColor": "#111111",
-      "signalColor": "#90EE90",
-      "signalTextColor": "#90EE90",
-      "noteBkgColor": "#fffde7",
-      "noteBorderColor": "#777777",
-      "noteTextColor": "#111111"
-    },
-    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
-  }}}%%
 sequenceDiagram
     actor User
     participant CLI as cli.py
