@@ -180,6 +180,54 @@ flowchart TD
     Loop -->|"None (state.is_finished())"| Done(["Pipeline complete (resumed from sanitize_info)"])
 ```
 
+### Sequence: resuming from sanitize-info (`cli.py` stays stage-agnostic)
+
+Same shape as the first sequence diagram: `cli.py` resolves
+`--from-stage sanitize_info` into the right `BookOperations` flags (the
+flowchart's `Resolve`/`Build` steps -- this part is still `cli.py`'s
+job, since it's building the *initial* request, not tracking progress),
+then makes one `plan.run(operation_map)` call and never touches
+`state` directly again. Full detail is shown for the first stage in
+this run (`F_SANITIZE_INFO`) and the last (`K_PRINT_FIRST`); the
+`G_SANITIZE_NORMALIZE_NAME`..`J_PROPS_FILTER` stages in between
+collapse into a `Note`:
+
+```mermaid
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
+sequenceDiagram
+    actor User
+    participant CLI as cli.py
+    participant Ops as BookOperations
+    participant Plan as BookOperationPlan
+    participant State as BookOperationState
+    participant Actions as BooksActions
+
+    User->>CLI: pdfpz &lt;persistence_file_path&gt; --from-stage sanitize_info
+    CLI->>CLI: BookOperationStage.canonical_order()<br/>drop everything before F_SANITIZE_INFO
+    CLI->>Ops: BookOperations(F_SANITIZE_INFO..K_PRINT_FIRST True)
+    CLI->>Ops: operations.plan()
+    Ops-->>CLI: plan
+    CLI->>Plan: plan.run(operation_map)
+    activate Plan
+    Plan->>Plan: state = self.new_state()<br/>stages = [F_SANITIZE_INFO ... K_PRINT_FIRST] (6 stages)
+    Plan->>State: state.next_stage
+    State-->>Plan: F_SANITIZE_INFO
+    Plan->>Actions: actions.sanitize_books_info()
+    Actions-->>Plan: done
+    Plan->>State: state.mark_done(F_SANITIZE_INFO)
+    State-->>Plan: next_stage = G_SANITIZE_NORMALIZE_NAME
+    Note over Plan,State: Same next_stage / call / mark_done pattern<br/>repeats internally for stages G..J (4 stages)
+    Plan->>State: state.next_stage
+    State-->>Plan: K_PRINT_FIRST
+    Plan->>Actions: actions.print_first_entry()
+    Actions-->>Plan: done
+    Plan->>State: state.mark_done(K_PRINT_FIRST)
+    State-->>Plan: next_stage = None (state.is_finished())
+    deactivate Plan
+    Plan-->>CLI: state (finished)
+    CLI-->>User: Pipeline complete (resumed from sanitize_info)
+```
+
 ### Class relationships (`class_book_operations.py`)
 
 How the five classes above connect, with landmarks pointing back at the
