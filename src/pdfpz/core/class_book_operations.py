@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import ClassVar, Dict, List, Optional
+from typing import Callable, ClassVar, Dict, List, Optional
 
 
 class BookOperationStage(Enum):
@@ -165,6 +165,38 @@ class BookOperationPlan:
         """A fresh BookOperationState scoped to just this plan's stages,
         every one starting PENDING."""
         return BookOperationState(stages=self.stages)
+
+    @classmethod
+    def run_plan(
+        cls, operation_map: Dict[str, Callable[[], None]], first_stage: Optional[BookOperationStage] = None
+    ) -> BookOperationState:
+        """cli.py's single entry point for running the pipeline in one
+        call, per the "triggering a full run" and "user explicitly
+        starts from a stage" sequence diagrams in Docs/api-cli-hl.md:
+        builds the right BookOperations (every flag True when
+        first_stage is None, or only first_stage onward -- sliced out of
+        BookOperationStage.canonical_order() -- when given), plans it,
+        creates a BookOperationState, and runs the whole
+        next_stage/call/mark_done loop internally. cli.py calls this
+        once and never touches a BookOperations instance, a
+        BookOperationStage value, or state itself -- only what this
+        classmethod returns.
+
+        DB-backed resumability (resume_plan(),
+        BookOperationState.load_from_db(), the book_operation_state
+        table) is a separate, not-yet-implemented piece -- this only
+        covers the two in-memory sequences, not the third (resume-after-
+        failure) one.
+        """
+        order = BookOperationStage.canonical_order()
+        stages_to_run = order if first_stage is None else order[order.index(first_stage) :]
+        operations = BookOperations(**{stage.operation_flag: True for stage in stages_to_run})
+        state = operations.plan().new_state()
+        while not state.is_finished():
+            stage = state.next_stage
+            operation_map[stage.operation_flag]()
+            state.mark_done(stage)
+        return state
 
 
 @dataclass
