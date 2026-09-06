@@ -123,6 +123,59 @@ flowchart TD
     Loop -->|"None (state.is_finished())"| Done(["Pipeline complete (resumed from sanitize_info)"])
 ```
 
+### Class relationships (`class_book_operations.py`)
+
+How the five classes above connect, with landmarks pointing back at the
+`Build`/`Plan`/`Loop`/`Done` nodes and the `S1..S11`/`S6..S11` action
+labels in the two flow diagrams:
+
+```mermaid
+classDiagram
+    class BookOperations {
+        +bool copy_pdfs
+        +bool ... (11 flags total, one per BookOperationStage)
+        +get_enabled_operations() dict
+        +all_stages()$ List~BookOperations~
+        +plan() BookOperationPlan
+    }
+    class BookOperationPlan {
+        +BookOperations operations
+        +stages List~BookOperationStage~
+        +new_state() BookOperationState
+    }
+    class BookOperationState {
+        +List~BookOperationStage~ stages
+        +Dict~BookOperationStage, BookOperationStatus~ status
+        +next_stage BookOperationStage
+        +mark(stage, status)
+        +mark_done(stage)
+        +is_finished() bool
+    }
+    class BookOperationStage {
+        <<enumeration>>
+        +operation_flag str
+        +canonical_order()$ List~BookOperationStage~
+    }
+    class BookOperationStatus {
+        <<enumeration>>
+        +is_terminal bool
+    }
+
+    BookOperations --> BookOperationPlan : plan()
+    BookOperationPlan --> BookOperationState : new_state()
+    BookOperationPlan ..> BookOperationStage : .stages reads canonical_order()
+    BookOperations ..> BookOperationStage : all_stages() builds one per stage
+    BookOperationState "1" o-- "*" BookOperationStage : stages
+    BookOperationState "1" o-- "*" BookOperationStatus : status per stage
+
+    note for BookOperations "Landmark: the 'Build' step\nin both flow diagrams above\n(operations = BookOperations(...))"
+    note for BookOperationPlan "Landmark: the 'Plan' step\n(plan = operations.plan())"
+    note for BookOperationState "Landmark: the 'Loop' step\n(state.next_stage, state.mark_done,\nstate.is_finished() -> 'Done')"
+    note for BookOperationStage "Landmark: the S1..S11 / S6..S11\naction labels name these members"
+```
+
+`BookOperationStatus` isn't on either flow diagram yet -- `state.mark_done(...)` is shorthand for `mark(stage, BookOperationStatus.DONE)`; a real runner would also use `RUNNING`/`FAILED` around each `S<n>` call, which neither flow spells out today.
+
 ### What's still needed to wire this up (not yet implemented)
 
 - A `--from-stage <flag-name>` cli.py option, validated against
