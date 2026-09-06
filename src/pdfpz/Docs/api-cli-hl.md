@@ -270,6 +270,7 @@ like `run_plan()` with no `first_stage`:
       "actorFontSize": "32px",
       "messageFontSize": "28px",
       "noteFontSize": "28px",
+      "messageMargin: 50",
       "actorBkg": "#f5f5f5",
       "actorBorder": "#555555",
       "actorTextColor": "#111111",
