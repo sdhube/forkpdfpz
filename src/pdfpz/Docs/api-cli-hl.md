@@ -264,8 +264,7 @@ like `run_plan()` with no `first_stage`:
 
 ```mermaid
 %%{init: {
-  "theme": "default",
-  },
+  "theme": "base",
   "themeVariables": {
       "fontSize": "32px",
       "actorFontSize": "32px",
