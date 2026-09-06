@@ -265,26 +265,22 @@ like `run_plan()` with no `first_stage`:
 ```mermaid
 %%{init: {
   "theme": "base",
-  "config": {
-    "sequence": {
-      "messageMargin": 50
-    }
-  },
   "themeVariables": {
-      "fontSize": "32px",
-      "actorFontSize": "32px",
-      "messageFontSize": "28px",
-      "noteFontSize": "28px",
-      "actorBkg": "#f4f5f5",
-      "actorBorder": "#555555",
-      "actorTextColor": "#111111",
-      "signalColor": "#90EE90",
-      "signalTextColor": "#90EE90",
-      "noteBkgColor": "#fffde7",
-      "noteBorderColor": "#777777",
-      "noteTextColor": "#111111"
-    },
-    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; stroke:none !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
+    "fontSize": "32px",
+    "actorFontSize": "32px",
+    "messageFontSize": "28px",
+    "noteFontSize": "28px",
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#555555",
+    "actorTextColor": "#111111",
+    "signalColor": "#32CD32",
+    "signalTextColor": "#32CD32",
+    "labelTextColor": "#32CD32",
+    "noteBkgColor": "#fffde7",
+    "noteBorderColor": "#777777",
+    "noteTextColor": "#111111"
+  },
+  "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
 }}%%
 sequenceDiagram
     actor User
