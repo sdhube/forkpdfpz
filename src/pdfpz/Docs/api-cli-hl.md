@@ -1,4 +1,4 @@
-# API cli highlevel, classes and flows version 81.07
+# API cli highlevel, classes and flows version 81.08
 
 ## Current state
 
@@ -114,17 +114,20 @@ repeated `Loop` arrow:
 %%{init: {
   "theme": "default",
   "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "30px",
-    "noteFontSize": "28px",
-    "actorBkg": "#f5f5f5",
-    "actorBorder": "#555555",
-    "signalColor": "#90EE90",
-    "signalTextColor": "#90EE90"
-    "noteBkgColor": "#fffde7",
-    "noteBorderColor": "#777777",
-    "noteTextColor": "#111111"
+      "fontSize": "32px",
+      "actorFontSize": "32px",
+      "messageFontSize": "30px",
+      "noteFontSize": "28px",
+      "actorBkg": "#f5f5f5",
+      "actorBorder": "#555555",
+      "actorTextColor": "#111111",
+      "signalColor": "#90EE90",
+      "signalTextColor": "#90EE90",
+      "noteBkgColor": "#fffde7",
+      "noteBorderColor": "#777777",
+      "noteTextColor": "#111111"
+    },
+    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
   }
 }}%%
 sequenceDiagram
@@ -190,17 +193,20 @@ collapse into a `Note`:
 %%{init: {
   "theme": "default",
   "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "30px",
-    "noteFontSize": "28px",
-    "actorBkg": "#f5f5f5",
-    "actorBorder": "#555555",
-    "signalColor": "#90EE90",
-    "signalTextColor": "#90EE90"
-    "noteBkgColor": "#fffde7",
-    "noteBorderColor": "#777777",
-    "noteTextColor": "#111111"
+      "fontSize": "32px",
+      "actorFontSize": "32px",
+      "messageFontSize": "30px",
+      "noteFontSize": "28px",
+      "actorBkg": "#f5f5f5",
+      "actorBorder": "#555555",
+      "actorTextColor": "#111111",
+      "signalColor": "#90EE90",
+      "signalTextColor": "#90EE90",
+      "noteBkgColor": "#fffde7",
+      "noteBorderColor": "#777777",
+      "noteTextColor": "#111111"
+    },
+    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
   }
 }}%%
 sequenceDiagram
@@ -261,17 +267,20 @@ like `run_plan()` with no `first_stage`:
 %%{init: {
   "theme": "default",
   "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "30px",
-    "noteFontSize": "28px",
-    "actorBkg": "#f5f5f5",
-    "actorBorder": "#555555",
-    "signalColor": "#90EE90",
-    "signalTextColor": "#90EE90"
-    "noteBkgColor": "#fffde7",
-    "noteBorderColor": "#777777",
-    "noteTextColor": "#111111"
+      "fontSize": "32px",
+      "actorFontSize": "32px",
+      "messageFontSize": "30px",
+      "noteFontSize": "28px",
+      "actorBkg": "#f5f5f5",
+      "actorBorder": "#555555",
+      "actorTextColor": "#111111",
+      "signalColor": "#90EE90",
+      "signalTextColor": "#90EE90",
+      "noteBkgColor": "#fffde7",
+      "noteBorderColor": "#777777",
+      "noteTextColor": "#111111"
+    },
+    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
   }}}%%
 sequenceDiagram
     actor User
