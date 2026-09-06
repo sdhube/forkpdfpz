@@ -111,7 +111,23 @@ stages in between collapse into a `Note`, same as the flowchart's
 repeated `Loop` arrow:
 
 ```mermaid
-%%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
+%%{init: {
+  "theme": "default",
+  "themeVariables": {
+    "fontSize": "32px",
+    "actorFontSize": "32px",
+    "messageFontSize": "30px",
+    "noteFontSize": "28px",
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#555555",
+    "actorTextColor": "#111111",
+    "signalTextColor": "#111111",
+    "noteBkgColor": "#fffde7",
+    "noteBorderColor": "#777777",
+    "noteTextColor": "#111111"
+  },
+  "themeCSS": ".messageLine0 { stroke: #90EE90 !important; } .messageLine1 { stroke: #ADD8E6 !important; } .messageText { font-size: 30px !important; fill: #111111 !important; } .noteText { font-size: 28px !important; } .actor { font-size: 32px !important; } .labelText { font-size: 30px !important; }"
+}}%%
 sequenceDiagram
     actor User
     participant CLI as cli.py
@@ -172,7 +188,23 @@ Full detail is shown for the first stage in this run
 collapse into a `Note`:
 
 ```mermaid
-%%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
+%%{init: {
+  "theme": "default",
+  "themeVariables": {
+    "fontSize": "32px",
+    "actorFontSize": "32px",
+    "messageFontSize": "30px",
+    "noteFontSize": "28px",
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#555555",
+    "actorTextColor": "#111111",
+    "signalTextColor": "#111111",
+    "noteBkgColor": "#fffde7",
+    "noteBorderColor": "#777777",
+    "noteTextColor": "#111111"
+  },
+  "themeCSS": ".messageLine0 { stroke: #90EE90 !important; } .messageLine1 { stroke: #ADD8E6 !important; } .messageText { font-size: 30px !important; fill: #111111 !important; } .noteText { font-size: 28px !important; } .actor { font-size: 32px !important; } .labelText { font-size: 30px !important; }"
+}}%%
 sequenceDiagram
     actor User
     participant CLI as cli.py
@@ -228,7 +260,23 @@ exist yet for this path (first run ever), `resume_plan` behaves exactly
 like `run_plan()` with no `first_stage`:
 
 ```mermaid
-%%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
+%%{init: {
+  "theme": "default",
+  "themeVariables": {
+    "fontSize": "32px",
+    "actorFontSize": "32px",
+    "messageFontSize": "30px",
+    "noteFontSize": "28px",
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#555555",
+    "actorTextColor": "#111111",
+    "signalTextColor": "#111111",
+    "noteBkgColor": "#fffde7",
+    "noteBorderColor": "#777777",
+    "noteTextColor": "#111111"
+  },
+  "themeCSS": ".messageLine0 { stroke: #90EE90 !important; } .messageLine1 { stroke: #ADD8E6 !important; } .messageText { font-size: 30px !important; fill: #111111 !important; } .noteText { font-size: 28px !important; } .actor { font-size: 32px !important; } .labelText { font-size: 30px !important; }"
+}}%%
 sequenceDiagram
     actor User
     participant CLI as cli.py
