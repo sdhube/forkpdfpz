@@ -96,6 +96,39 @@ flowchart TD
     Loop -->|"None (state.is_finished())"| Done(["Pipeline complete"])
 ```
 
+### Sequence: triggering the first stage (A_COPY_PDFS)
+
+The flowchart above shows *what* runs; this sequence diagram shows *who
+calls whom, in what order* to get there -- from the user's `pdfpz`
+invocation through `Build`/`Plan`/`Loop` to the first `S1` action call
+and its `mark_done`, at which point the same `Loop` repeats for
+`B_UPDATE_ASSETS_INFO` onward:
+
+```mermaid
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
+sequenceDiagram
+    actor User
+    participant CLI as cli.py
+    participant Ops as BookOperations
+    participant Plan as BookOperationPlan
+    participant State as BookOperationState
+    participant Actions as BooksActions
+
+    User->>CLI: pdfpz &lt;persistence_file_path&gt; --run-all
+    CLI->>Ops: BookOperations(every flag True)
+    CLI->>Ops: operations.plan()
+    Ops-->>CLI: plan
+    CLI->>Plan: plan.new_state()
+    Plan-->>CLI: state
+    CLI->>State: state.next_stage
+    State-->>CLI: A_COPY_PDFS
+    CLI->>Actions: actions.copy_assets_pdf()
+    Actions-->>CLI: done
+    CLI->>State: state.mark_done(A_COPY_PDFS)
+    State-->>CLI: next_stage = B_UPDATE_ASSETS_INFO
+    Note over CLI,State: Same next_stage / call / mark_done pattern<br/>repeats for the remaining 10 stages<br/>until next_stage is None
+```
+
 ### Flow: user initiates processing from the sanitize-info step
 
 `--from-stage sanitize_info` -- everything before `F_SANITIZE_INFO`
