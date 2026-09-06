@@ -114,10 +114,10 @@ repeated `Loop` arrow:
 %%{init: {
   "theme": "base",
   "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "28px",
-    "noteFontSize": "28px",
+    "fontSize": "48px",
+    "actorFontSize": "48px",
+    "messageFontSize": "44px",
+    "noteFontSize": "40px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
     "actorTextColor": "#111111",
@@ -192,10 +192,10 @@ collapse into a `Note`:
 %%{init: {
   "theme": "base",
   "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "28px",
-    "noteFontSize": "28px",
+    "fontSize": "48px",
+    "actorFontSize": "48px",
+    "messageFontSize": "44px",
+    "noteFontSize": "40px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
     "actorTextColor": "#111111",
@@ -266,10 +266,10 @@ like `run_plan()` with no `first_stage`:
 %%{init: {
   "theme": "base",
   "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "28px",
-    "noteFontSize": "28px",
+    "fontSize": "48px",
+    "actorFontSize": "48px",
+    "messageFontSize": "44px",
+    "noteFontSize": "40px",
     "actorBkg": "#f5f5f5",
     "actorBorder": "#555555",
     "actorTextColor": "#111111",
