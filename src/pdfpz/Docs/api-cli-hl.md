@@ -284,7 +284,7 @@ like `run_plan()` with no `first_stage`:
       "noteBorderColor": "#777777",
       "noteTextColor": "#111111"
     },
-    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
+    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important; stroke:none !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
 }}%%
 sequenceDiagram
     actor User
