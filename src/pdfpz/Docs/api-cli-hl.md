@@ -265,13 +265,17 @@ like `run_plan()` with no `first_stage`:
 ```mermaid
 %%{init: {
   "theme": "default",
+  "config": {
+    "sequence": {
+      "messageMargin": 50
+    }
+  },
   "themeVariables": {
       "fontSize": "32px",
       "actorFontSize": "32px",
       "messageFontSize": "28px",
       "noteFontSize": "28px",
-      "messageMargin: 50",
-      "actorBkg": "#f5f5f5",
+      "actorBkg": "#f4f5f5",
       "actorBorder": "#555555",
       "actorTextColor": "#111111",
       "signalColor": "#90EE90",
