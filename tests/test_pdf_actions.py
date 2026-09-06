@@ -2,12 +2,13 @@
 # PYTHONPATH=./ pytest tests/test_pdf_sanitize.py
 
 
-import pytest
 import shutil
 import tempfile
 from pathlib import Path
 
-from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
+import pytest
+
+from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf_pike
 
 
 @pytest.fixture
@@ -36,7 +37,7 @@ def tmp_dir(source_pdf_folder, source_pdf):
 
 def test_sanitize(tmp_dir, source_pdf_folder, source_base_stem_pdf):
     pdf_path = tmp_dir / f"{source_base_stem_pdf}.pdf"
-    sanitize_pdf(str(pdf_path))
+    sanitize_pdf_pike(str(pdf_path))
 
     sanitized_path = tmp_dir / f"{source_base_stem_pdf}-sanitized.pdf"
     assert sanitized_path.exists()
@@ -45,7 +46,7 @@ def test_sanitize(tmp_dir, source_pdf_folder, source_base_stem_pdf):
 
 def test_legacy_doc_info(tmp_dir, source_pdf_folder, source_base_stem_pdf):
     pdf_path = tmp_dir / f"{source_base_stem_pdf}.pdf"
-    sanitize_pdf(str(pdf_path))
+    sanitize_pdf_pike(str(pdf_path))
 
     sanitized_path = tmp_dir / f"{source_base_stem_pdf}-sanitized.pdf"
     assert sanitized_path.exists()

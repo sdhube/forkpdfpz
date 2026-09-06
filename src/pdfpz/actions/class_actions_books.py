@@ -3,12 +3,12 @@ from functools import partial
 from pathlib import Path, PurePosixPath
 from pprint import pformat
 
-from pdfpz.actions.class_actions_book_props import BooksPropsAction
 from pdfpz.actions.class_actions_book_manifest_file import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
+from pdfpz.actions.class_actions_book_props import BooksPropsAction
 from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
 from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
-from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf
+from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf_pike
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.class_tmp_path import TmpPath
@@ -142,9 +142,9 @@ class BooksActions:
         logger.info("saving  assets info for books")
         self.books_collection.save_books_collection()
 
-    def sanitize_books_didier(self) -> None:
-        """Sanitize books using didier finds."""
-        run_threads_books_collection_pdf_path(self.books_collection, sanitize_pdf)
+    def sanitize_books_pike(self) -> None:
+        """Sanitize books using pike_pdf"""
+        run_threads_books_collection_pdf_path(self.books_collection, sanitize_pdf_pike)
 
     def sanitize_books_fitz_didier(self) -> None:
         """Fitz and move books using didier finds."""

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, ClassVar, Dict, List, Optional
+from typing import ClassVar
 
 
 class BookOperationStage(Enum):
@@ -45,9 +46,9 @@ class BookOperationStage(Enum):
     # treated that way, and a bare annotation assigns nothing. The actual
     # value is set once, after this class is fully built, inside
     # BookOperationPlan (see there for why).
-    _canonical_order_cache: ClassVar[List["BookOperationStage"]]
+    _canonical_order_cache: ClassVar[list[BookOperationStage]]
 
-    def __init__(self, operation_flag: str, next_operation_flag: Optional[str] = None) -> None:
+    def __init__(self, operation_flag: str, next_operation_flag: str | None = None) -> None:
         self._operation_flag = operation_flag
         self._next_operation_flag = next_operation_flag
 
@@ -58,8 +59,8 @@ class BookOperationStage(Enum):
     G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", H_LOAD_YAML_EXPORT_DB[0])
     F_SANITIZE_INFO = ("sanitize_info", G_SANITIZE_NORMALIZE_NAME[0])
     E_FITZ_DIDIER = ("fitz_didier", F_SANITIZE_INFO[0])
-    D_SANITIZE_DIDIER = ("sanitize_didier", E_FITZ_DIDIER[0])
-    C_MOVE_NO_INFO = ("move_no_info", D_SANITIZE_DIDIER[0])
+    D_SANITIZE_PIKE = ("sanitize_pike", E_FITZ_DIDIER[0])
+    C_MOVE_NO_INFO = ("move_no_info", D_SANITIZE_PIKE[0])
     B_UPDATE_ASSETS_INFO = ("update_assets_info", C_MOVE_NO_INFO[0])
     A_COPY_PDFS = ("copy_pdfs", B_UPDATE_ASSETS_INFO[0])
 
@@ -69,7 +70,7 @@ class BookOperationStage(Enum):
         return self._operation_flag
 
     @classmethod
-    def canonical_order(cls) -> List["BookOperationStage"]:
+    def canonical_order(cls) -> list[BookOperationStage]:
         """Every stage in actual pipeline-run order (A_COPY_PDFS first,
         K_PRINT_FIRST last) -- the order to use wherever pipeline order
         matters (BookOperationPlan.stages, BookOperationState's default).
@@ -92,7 +93,7 @@ class BookOperationStage(Enum):
         return list(cls._canonical_order_cache)
 
     @classmethod
-    def _resolve_canonical_order(cls) -> List["BookOperationStage"]:
+    def _resolve_canonical_order(cls) -> list[BookOperationStage]:
         """Walk each member's next_operation_flag from A_COPY_PDFS to the
         end, resolving that chain of flag strings into actual members.
         Runs exactly once -- see the assignment to
@@ -153,13 +154,15 @@ class BookOperationPlan:
     operations: BookOperations
 
     @property
-    def stages(self) -> List[BookOperationStage]:
+    def stages(self) -> list[BookOperationStage]:
         """The requested stages only (operations' enabled flags), in
         BookOperationStage's canonical run order -- not operations' own
         __dict__ order, which get_enabled_operations() uses today, and
         not list(BookOperationStage)'s declaration order either (see
         BookOperationStage.canonical_order)."""
-        return [stage for stage in BookOperationStage.canonical_order() if getattr(self.operations, stage.operation_flag)]
+        return [
+            stage for stage in BookOperationStage.canonical_order() if getattr(self.operations, stage.operation_flag)
+        ]
 
     def new_state(self) -> BookOperationState:
         """A fresh BookOperationState scoped to just this plan's stages,
@@ -168,7 +171,7 @@ class BookOperationPlan:
 
     @classmethod
     def run_plan(
-        cls, operation_map: Dict[str, Callable[[], None]], first_stage: Optional[BookOperationStage] = None
+        cls, operation_map: dict[str, Callable[[], None]], first_stage: BookOperationStage | None = None
     ) -> BookOperationState:
         """cli.py's single entry point for running the pipeline in one
         call, per the "triggering a full run" and "user explicitly
@@ -214,8 +217,8 @@ class BookOperationState:
     requested.
     """
 
-    stages: List[BookOperationStage] = field(default_factory=lambda: BookOperationStage.canonical_order())
-    status: Dict[BookOperationStage, BookOperationStatus] = field(default_factory=dict)
+    stages: list[BookOperationStage] = field(default_factory=lambda: BookOperationStage.canonical_order())
+    status: dict[BookOperationStage, BookOperationStatus] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # pythonic: fill in any stage the caller didn't already set a status for
@@ -223,7 +226,7 @@ class BookOperationState:
             self.status.setdefault(stage, BookOperationStatus.PENDING)
 
     @property
-    def next_stage(self) -> Optional[BookOperationStage]:
+    def next_stage(self) -> BookOperationStage | None:
         """The first of self.stages (in order) whose status isn't terminal
         yet (DONE/SKIPPED), or None once every stage is."""
         for stage in self.stages:
@@ -252,7 +255,7 @@ class BookOperations:
     copy_pdfs: bool = False
     update_assets_info: bool = False
     move_no_info: bool = False
-    sanitize_didier: bool = False
+    sanitize_pike: bool = False
     fitz_didier: bool = False
     sanitize_info: bool = False
     sanitize_normalize_name: bool = False
@@ -270,7 +273,7 @@ class BookOperations:
         return {name: getattr(self, name) for name, value in self.__dict__.items() if value}
 
     @classmethod
-    def all_stages(cls) -> List[BookOperations]:
+    def all_stages(cls) -> list[BookOperations]:
         """One BookOperations per BookOperationStage, in canonical run
         order, each with only that single stage's flag enabled -- for
         running the whole pipeline one operation at a time from a single

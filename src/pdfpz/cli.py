@@ -38,7 +38,7 @@ def load_books_collection_and_operate(
         "copy_pdfs": actions.copy_assets_pdf,
         "update_assets_info": actions.update_books_collection_info_and_save,
         "move_no_info": actions.move_books_to_no_info,
-        "sanitize_didier": actions.sanitize_books_didier,
+        "sanitize_pike": actions.sanitize_books_pike,
         "fitz_didier": actions.sanitize_books_fitz_didier,
         "sanitize_info": actions.sanitize_books_info,
         "sanitize_normalize_name": actions.update_normalized_info_and_move_rename_file,

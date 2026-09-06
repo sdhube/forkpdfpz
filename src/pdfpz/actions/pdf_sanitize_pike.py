@@ -127,7 +127,7 @@ def remove_annots_rewrite_fitz_misses_annots(pdf_path):
 
         if annot_deleted:
             logger.info(f"{pdf_path} annot deleted ")
-            save_tmp_mv_on_source(src, pdf_path, **{"garbage": 4, "clean": True, "deflate": True})
+            save_tmp_mv_on_source(src, pdf_path, garbage=4, clean=True, deflate=True)
         # src.save(str(out_path), garbage=4, clean=True, deflate=False)
 
 
@@ -172,7 +172,7 @@ def pdf_stream_complete_rewrite(pdf_path: str) -> None:
 # --------------------------------------------------------------------------
 
 
-def sanitize_pdf(pdf_path: str) -> None:
+def sanitize_pdf_pike(pdf_path: str) -> None:
     scrubber = (
         pikepdf.sanitize.Sanitizer()
         .remove_javascript()
@@ -217,7 +217,7 @@ def sanitize_pdf(pdf_path: str) -> None:
 @click.command()
 @click.argument("pdf_path", type=click.Path(exists=True, dir_okay=False))
 def main(pdf_path: str) -> None:
-    sanitize_pdf(pdf_path)
+    sanitize_pdf_pike(pdf_path)
 
 
 if __name__ == "__main__":

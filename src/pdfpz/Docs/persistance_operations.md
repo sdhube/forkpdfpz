@@ -45,7 +45,7 @@ collection:
 | `A_COPY_PDFS` | `copy_pdfs` | `copy_assets_pdf` | Yes -- `books_generator()` |
 | `B_UPDATE_ASSETS_INFO` | `update_assets_info` | `update_books_collection_info_and_save` | Yes -- `run_threaded_action(generate_manifest_items(...))` |
 | `C_MOVE_NO_INFO` | `move_no_info` | `move_books_to_no_info` | Yes -- `books_generator(has_no_metadata_info)` |
-| `D_SANITIZE_DIDIER` | `sanitize_didier` | `sanitize_books_didier` | Yes -- `run_threads_books_collection_pdf_path` |
+| `D_SANITIZE_PIKE` | `sanitize_pike` | `sanitize_books_pike` | Yes -- `run_threads_books_collection_pdf_path` |
 | `E_FITZ_DIDIER` | `fitz_didier` | `sanitize_books_fitz_didier` | Yes -- `run_threads_books_collection_pdf_path` |
 | `F_SANITIZE_INFO` | `sanitize_info` | `sanitize_books_info` | Yes -- `run_threaded_action(generate_manifest_items(...))` |
 | `G_SANITIZE_NORMALIZE_NAME` | `sanitize_normalize_name` | `update_normalized_info_and_move_rename_file` | Yes -- `books_generator(...)` |
@@ -108,8 +108,8 @@ they already work today against the in-memory `status` dict.
 
 One row per `(persistence_file_path, stage, book_id)`, only ever
 written for `A_COPY_PDFS`..`G_SANITIZE_NORMALIZE_NAME`. This is what
-lets a failure be reported as "12 of 40 books failed sanitize_didier",
-not just "sanitize_didier failed" -- and, on `resume_plan()`, lets a
+lets a failure be reported as "12 of 40 books failed sanitize_pike",
+not just "sanitize_pike failed" -- and, on `resume_plan()`, lets a
 retry skip the 12 that are already `DONE` rather than redoing all 40.
 
 | Column | Type | Notes |

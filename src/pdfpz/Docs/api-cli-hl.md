@@ -51,7 +51,7 @@ creates along the way) know any of that.
 | A_COPY_PDFS | `copy_pdfs` | `copy_assets_pdf` |
 | B_UPDATE_ASSETS_INFO | `update_assets_info` | `update_books_collection_info_and_save` |
 | C_MOVE_NO_INFO | `move_no_info` | `move_books_to_no_info` |
-| D_SANITIZE_DIDIER | `sanitize_didier` | `sanitize_books_didier` |
+| D_SANITIZE_DIDIER | `sanitize_pike` | `sanitize_books_pike` |
 | E_FITZ_DIDIER | `fitz_didier` | `sanitize_books_fitz_didier` |
 | F_SANITIZE_INFO | `sanitize_info` | `sanitize_books_info` |
 | G_SANITIZE_NORMALIZE_NAME | `sanitize_normalize_name` | `update_normalized_info_and_move_rename_file` |
