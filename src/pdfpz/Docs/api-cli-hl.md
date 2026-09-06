@@ -171,7 +171,7 @@ sequenceDiagram
     Plan->>State: state.mark_done(A_COPY_PDFS)
     State->>DB: upsert(persistence_file_path, A_COPY_PDFS, DONE)
     State-->>Plan: next_stage = B_UPDATE_ASSETS_INFO
-    Note over Plan,State,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages B..J (9 stages)
+    Note over Plan,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages B..J (9 stages)
     Plan->>State: state.next_stage
     State-->>Plan: K_PRINT_FIRST
     Plan->>Actions: actions.print_first_entry()
@@ -263,7 +263,7 @@ sequenceDiagram
     Plan->>State: state.mark_done(F_SANITIZE_INFO)
     State->>DB: upsert(persistence_file_path, F_SANITIZE_INFO, DONE)
     State-->>Plan: next_stage = G_SANITIZE_NORMALIZE_NAME
-    Note over Plan,State,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages G..J (4 stages)
+    Note over Plan,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages G..J (4 stages)
     Plan->>State: state.next_stage
     State-->>Plan: K_PRINT_FIRST
     Plan->>Actions: actions.print_first_entry()
@@ -317,7 +317,7 @@ sequenceDiagram
     Plan->>State: state.mark_done(C_MOVE_NO_INFO)
     State->>DB: upsert(persistence_file_path, C_MOVE_NO_INFO, DONE)
     State-->>Plan: next_stage = D_SANITIZE_DIDIER
-    Note over Plan,State,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages D..J (7 stages)
+    Note over Plan,DB: Same next_stage / call / mark_done / DB-upsert pattern<br/>repeats internally for stages D..J (7 stages)
     Plan->>State: state.next_stage
     State-->>Plan: K_PRINT_FIRST
     Plan->>Actions: actions.print_first_entry()
