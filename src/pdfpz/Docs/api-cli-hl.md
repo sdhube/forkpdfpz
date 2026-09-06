@@ -101,8 +101,8 @@ flowchart TD
 The flowchart above shows *what* runs; this sequence diagram shows *who
 calls whom, in what order* to get there -- from the user's `pdfpz`
 invocation through `Build`/`Plan`/`Loop` to the first `S1` action call
-and its `mark_done`, at which point the same `Loop` repeats for
-`B_UPDATE_ASSETS_INFO` onward:
+and its `mark_done`, through the repeating `Loop` for the remaining
+stages, down to the same `Done` node the flowchart ends on:
 
 ```mermaid
 %%{init: {"theme": "default", "themeVariables": {"fontSize": "24px"}}}%%
@@ -126,7 +126,10 @@ sequenceDiagram
     Actions-->>CLI: done
     CLI->>State: state.mark_done(A_COPY_PDFS)
     State-->>CLI: next_stage = B_UPDATE_ASSETS_INFO
-    Note over CLI,State: Same next_stage / call / mark_done pattern<br/>repeats for the remaining 10 stages<br/>until next_stage is None
+    Note over CLI,State: Same next_stage / call / mark_done pattern<br/>repeats for the remaining 10 stages
+    CLI->>State: state.next_stage
+    State-->>CLI: None (state.is_finished())
+    CLI-->>User: Pipeline complete
 ```
 
 ### Flow: user initiates processing from the sanitize-info step
