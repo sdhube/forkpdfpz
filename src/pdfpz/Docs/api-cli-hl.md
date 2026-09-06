@@ -92,47 +92,6 @@ rows already exist for that path, instead of `new_state()`'s all-`PENDING`
 default. That's what the resume sequence further down uses to find
 where a previous run actually stopped.
 
-### Sequence diagram style (shared, unchanged, by every sequence diagram below)
-
-GitHub renders each fenced `mermaid` block independently -- there's no
-cross-block "import", so the `%%{init: ...}%%` directive below still
-has to be physically present at the top of every sequence diagram in
-this doc. Its *definition* lives here, once, though: every sequence
-diagram below opens with this exact block, byte-for-byte, instead of
-each one re-deriving its own colors/sizes/CSS (which is how the
-"resume" diagram further down drifted to a different theme, different
-color, and dropped `stroke:none` on `.messageText` -- the missing
-`stroke:none` is why its message text rendered as if sitting on top of
-the arrow line itself, since text can otherwise inherit the arrow
-line's stroke).
-
-```mermaid
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "28px",
-    "noteFontSize": "28px",
-    "actorBkg": "#f5f5f5",
-    "actorBorder": "#555555",
-    "actorTextColor": "#111111",
-    "signalColor": "#32CD32",
-    "signalTextColor": "#32CD32",
-    "labelTextColor": "#32CD32",
-    "noteBkgColor": "#fffde7",
-    "noteBorderColor": "#777777",
-    "noteTextColor": "#111111"
-  },
-  "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
-}}%%
-```
-
-Every `sequenceDiagram` fence below starts by pasting that block in
-unchanged, then a `%%` comment line pointing back here instead of
-re-explaining it -- copy this block verbatim if a new sequence diagram
-is ever added to this doc, rather than writing a new one.
-
 ### Sequence: triggering a full run (`cli.py` stays stage-agnostic)
 
 The flowchart above shows *what* runs; this sequence diagram shows
@@ -172,7 +131,6 @@ repeated `Loop` arrow:
   "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
 }}%%
 sequenceDiagram
-    %% shared sequence-diagram style above -- see "Sequence diagram style" section; kept byte-identical across every sequence diagram in this doc
     actor User
     participant CLI as cli.py
     participant Plan as BookOperationPlan
@@ -251,7 +209,6 @@ collapse into a `Note`:
   "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
 }}%%
 sequenceDiagram
-    %% shared sequence-diagram style above -- see "Sequence diagram style" section; kept byte-identical across every sequence diagram in this doc
     actor User
     participant CLI as cli.py
     participant Plan as BookOperationPlan
@@ -307,26 +264,29 @@ like `run_plan()` with no `first_stage`:
 
 ```mermaid
 %%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "fontSize": "32px",
-    "actorFontSize": "32px",
-    "messageFontSize": "28px",
-    "noteFontSize": "28px",
-    "actorBkg": "#f5f5f5",
-    "actorBorder": "#555555",
-    "actorTextColor": "#111111",
-    "signalColor": "#32CD32",
-    "signalTextColor": "#32CD32",
-    "labelTextColor": "#32CD32",
-    "noteBkgColor": "#fffde7",
-    "noteBorderColor": "#777777",
-    "noteTextColor": "#111111"
+  "theme": "default",
+  "config": {
+    "sequence": {
+      "messageMargin": 50
+    }
   },
-  "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
+  "themeVariables": {
+      "fontSize": "32px",
+      "actorFontSize": "32px",
+      "messageFontSize": "28px",
+      "noteFontSize": "28px",
+      "actorBkg": "#f4f5f5",
+      "actorBorder": "#555555",
+      "actorTextColor": "#111111",
+      "signalColor": "#90EE90",
+      "signalTextColor": "#90EE90",
+      "noteBkgColor": "#fffde7",
+      "noteBorderColor": "#777777",
+      "noteTextColor": "#111111"
+    },
+    "themeCSS": ".messageLine0,.messageLine1{stroke:#90EE90 !important;} .messageText{fill:#90EE90 !important; color:#90EE90 !important; font-size:30px !important;} .signalText{fill:#90EE90 !important;} .labelText{fill:#90EE90 !important;}"
 }}%%
 sequenceDiagram
-    %% shared sequence-diagram style above -- see "Sequence diagram style" section; kept byte-identical across every sequence diagram in this doc
     actor User
     participant CLI as cli.py
     participant Plan as BookOperationPlan
