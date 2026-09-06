@@ -1,4 +1,4 @@
-"""fake_operation_map.py -- a test-double operation_map for exercising
+"""python -m pdfpz.fake.fake_operation_map -- a test-double operation_map for exercising
 BookOperationPlan.run_plan() without calling any real BooksActions
 method. Each fake operation just appends its own flag name to a shared
 call_order list, so a caller can assert on the actual order run_plan()
@@ -10,12 +10,12 @@ first_stage) before committing it; moved here so that same check is
 reusable/re-runnable instead of a one-off snippet.
 """
 
-from typing import Callable, Dict, List
+from collections.abc import Callable
 
 from pdfpz.core.class_book_operations import BookOperationPlan, BookOperationStage
 
 
-def make_fake_operation_map(call_order: List[str]) -> Dict[str, Callable[[], None]]:
+def make_fake_operation_map(call_order: list[str]) -> dict[str, Callable[[], None]]:
     """One fake callable per BookOperationStage, keyed by operation_flag
     (same shape cli.py's real operation_map has). Calling any of them
     appends that stage's operation_flag to call_order -- nothing else.
@@ -29,7 +29,7 @@ def make_fake_operation_map(call_order: List[str]) -> Dict[str, Callable[[], Non
 def verify_full_run() -> None:
     """Every stage should run, in canonical order, when first_stage is
     omitted."""
-    call_order: List[str] = []
+    call_order: list[str] = []
     operation_map = make_fake_operation_map(call_order)
 
     state = BookOperationPlan.run_plan(operation_map)
@@ -43,7 +43,7 @@ def verify_full_run() -> None:
 def verify_from_stage() -> None:
     """Only first_stage onward should run, in canonical order, when
     first_stage is given."""
-    call_order: List[str] = []
+    call_order: list[str] = []
     operation_map = make_fake_operation_map(call_order)
 
     state = BookOperationPlan.run_plan(operation_map, first_stage=BookOperationStage.F_SANITIZE_INFO)
