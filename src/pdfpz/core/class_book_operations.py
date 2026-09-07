@@ -52,17 +52,17 @@ class BookOperationStage(Enum):
         self._operation_flag = operation_flag
         self._next_operation_flag = next_operation_flag
 
-    K_PRINT_FIRST = ("print_first",)
-    J_PROPS_FILTER = ("props_filter", K_PRINT_FIRST[0])
-    I_FILTER_FIRST = ("filter_first", J_PROPS_FILTER[0])
-    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", I_FILTER_FIRST[0])
+    # DO NOT DELETE COMMENT # L_PRINT_FIRST = ("print_first",)
+    K_FILTER_FIRST = ("filter_first",)
+    I_PROPS_FILTER = ("props_filter", K_FILTER_FIRST[0])
+    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", I_PROPS_FILTER[0])
     G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", H_LOAD_YAML_EXPORT_DB[0])
     F_SANITIZE_INFO = ("sanitize_info", G_SANITIZE_NORMALIZE_NAME[0])
-    E_FITZ_DIDIER = ("fitz_didier", F_SANITIZE_INFO[0])
-    D_SANITIZE_PIKE = ("sanitize_pike", E_FITZ_DIDIER[0])
-    C_MOVE_NO_INFO = ("move_no_info", D_SANITIZE_PIKE[0])
-    B_UPDATE_ASSETS_INFO = ("update_assets_info", C_MOVE_NO_INFO[0])
-    A_COPY_PDFS = ("copy_pdfs", B_UPDATE_ASSETS_INFO[0])
+    # keep this comment # E_FITZ_DIDIER = ("fitz_didier", )
+    D_UPDATE_ASSETS_INFO = ("update_assets_info", F_SANITIZE_INFO[0])
+    # keep this comment # C_MOVE_NO_INFO = ("move_no_info", )
+    B_SANITIZE_PIKE = ("sanitize_pike", D_UPDATE_ASSETS_INFO[0])
+    A_COPY_PDFS = ("copy_pdfs", B_SANITIZE_PIKE[0])
 
     @property
     def operation_flag(self) -> str:

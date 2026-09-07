@@ -105,7 +105,7 @@ if __name__ == "__main__":
 # pdfpz ~/shared/gitlab_books/output.yaml  --copy-pdfs
 # pdfpz copied.yml --tmp-path=/tmp/tmpijmg7hk2 --update-yaml-info
 # pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/1-sanitized2/ --move-no-info
-# pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-didier"
+# pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/one_file --sanitize-pike"
 # pdfpz  files_info.yaml --tmp-path=/home/sd/tmp/sanitized --sanitize-info"
 # pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --sanitize-normalize-name"
 # pdfpz  files_uuid.yaml --tmp-path=/tmp/tmp_meta/metadata/ --load-yaml-export-db
