@@ -104,6 +104,8 @@ sequenceDiagram
     participant Actions as BooksActions
 
     User->>CLI: pdfpz [persistence_file_path] --run-all
+    CLI->>CLI: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Note over CLI: one-time: builds BooksCollection + BooksActions,<br/>returns {flag_name: bound actions method}
     CLI->>Plan: BookOperationPlan.run_plan(operation_map)
     activate Plan
     Plan->>Ops: BookOperations(every flag True)
@@ -167,6 +169,8 @@ sequenceDiagram
     participant Actions as BooksActions
 
     User->>CLI: pdfpz [persistence_file_path] --from-stage sanitize_info
+    CLI->>CLI: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Note over CLI: same one-time initialization as the full-run<br/>sequence -- built once regardless of first_stage
     CLI->>Plan: BookOperationPlan.run_plan(operation_map,<br/>first_stage=F_SANITIZE_INFO)
     activate Plan
     Plan->>Plan: canonical_order() minus everything before F_SANITIZE_INFO
@@ -231,6 +235,8 @@ sequenceDiagram
     participant Actions as BooksActions
 
     User->>CLI: pdfpz [persistence_file_path] --resume
+    CLI->>CLI: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Note over CLI: same one-time initialization as the other two<br/>sequences -- resume_plan() only reads book_operation_state,<br/>it doesn't rebuild operation_map itself
     CLI->>Plan: BookOperationPlan.resume_plan(operation_map)
     activate Plan
     Plan->>DB: select * where persistence_file_path = ...
@@ -332,7 +338,10 @@ spelled out in the sequences above -- `mark_done` is shorthand for
   `run_plan()`'s loop. Falls back to a full run with no existing rows.
   This is the actual "resume" -- `--from-stage` is a manual override,
   not automatic resume.
-- `load_books_collection_and_operate()` in `cli.py` shrinks to
-  building `operation_map` and calling `run_plan(...)` once, replacing
-  today's one-pass `for operation_name, operation_func in
-  operation_map.items(): if getattr(...): operation_func()`.
+- `load_books_collection_and_operate()` in `cli.py` still runs today's
+  one-pass `for operation_name, operation_func in
+  operation_map.items(): if getattr(...): operation_func()` instead of
+  calling `run_plan(operation_map)`. `operation_map`'s construction is
+  already extracted into `initialize_and_return_operations_map()` (the
+  one-time step shown in all three sequences above) -- what's left is
+  swapping that loop for a `run_plan()`/`resume_plan()` call.
