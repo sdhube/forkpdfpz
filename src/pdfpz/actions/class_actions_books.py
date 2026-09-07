@@ -150,6 +150,10 @@ class BooksActions:
         """Fitz and move books using didier finds."""
         run_threads_books_collection_pdf_path(self.books_collection, sanitize_fitz)
 
+    def sanitize_ps(self) -> None:
+        """Sanitize books using phostscript"""
+        logger.info("currently manual on fedora bash shell pdf-ps-pdf-all()  dot_local/bin/sdpdf.sh ")
+
     def sanitize_books_info(self) -> None:
         """Sanitize and embed info into PDFs."""
         run_threaded_action(

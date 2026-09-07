@@ -54,8 +54,9 @@ class BookOperationStage(Enum):
 
     # DO NOT DELETE COMMENT # L_PRINT_FIRST = ("print_first",)
     K_FILTER_FIRST = ("filter_first",)
-    I_PROPS_FILTER = ("props_filter", K_FILTER_FIRST[0])
-    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", I_PROPS_FILTER[0])
+    J_PROPS_FILTER = ("props_filter", K_FILTER_FIRST[0])
+    I_SANITIZE_PS = ("sanitize_ps", J_PROPS_FILTER[0])
+    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", I_SANITIZE_PS[0])
     G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", H_LOAD_YAML_EXPORT_DB[0])
     F_SANITIZE_INFO = ("sanitize_info", G_SANITIZE_NORMALIZE_NAME[0])
     # keep this comment # E_FITZ_DIDIER = ("fitz_didier", )

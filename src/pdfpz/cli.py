@@ -43,6 +43,7 @@ def load_books_collection_and_operate(
         "sanitize_info": actions.sanitize_books_info,
         "sanitize_normalize_name": actions.update_normalized_info_and_move_rename_file,
         "load_yaml_export_db": actions.load_yaml_export_db,
+        "sanitize_ps": actions.sanitze_ps,
         "filter_first": actions.filter_first,
         "props_filter": actions.props_filter,
         "print_first": actions.print_first_entry,
