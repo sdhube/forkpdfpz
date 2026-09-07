@@ -7,7 +7,7 @@ import re
 import pikepdf
 
 from pdfpz.core.class_book_manifest import PdfManifestEntry
-from pdfpz.application.pdf_scan_info_pages import YEAR_PATTERN
+from pdfpz.metadata.pdf_scan_info_pages import YEAR_PATTERN
 
 COPYRIGHT_WORD_PATTERN = re.compile(r"(?:©|copyright)\s*(.*)", re.IGNORECASE)
 
