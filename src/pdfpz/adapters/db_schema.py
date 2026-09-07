@@ -48,15 +48,13 @@ class BookPropsOrm(Base):
 
 
 class BookOperationStateOrm(Base):
-    """One row per (persistence_file_path, stage).
-
-    Upserted by BookOperationState.mark() so pipeline status survives a
-    crash mid-run and resume_plan() can reconstruct where it stopped.
+    """One row per stage. Upserted by BookOperationState.mark() so pipeline
+    status survives a crash mid-run and resume_plan() can reconstruct where
+    it stopped. One active run at a time -- a new run overwrites previous rows.
     """
 
     __tablename__ = "book_operation_state"
 
-    persistence_file_path = Column(String, primary_key=True)
     stage = Column(String, primary_key=True)  # BookOperationStage member name
     status = Column(String, nullable=False)   # BookOperationStatus member name
     updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
