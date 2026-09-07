@@ -108,33 +108,33 @@ sequenceDiagram
     participant DB as book_operation_state (DB)
     participant Actions as BooksActions
 
-    User->>CLI: pdfpz [persistence_file_path] --run-all
-    CLI->>Plan: BookOperationPlan.run_plan(<br/>persistence_file_path, tmp_path)
+    User->>CLI: user runs pdfpz with --run-all flag
+    CLI->>Plan: CLI delegates full pipeline run to Plan
     activate Plan
-    Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Plan->>Plan: Plan builds and caches the operations map internally
     Note over Plan: one-time: builds BooksCollection + BooksActions,<br/>returns {flag_name: bound actions method}<br/>cached in _operations_map_cache
-    Plan->>Ops: BookOperations(every flag True)
-    Plan->>Ops: operations.plan()
-    Ops-->>Plan: plan
-    Plan->>Plan: state = plan.new_state()
-    Plan->>State: state.next_stage
-    State-->>Plan: A_COPY_PDFS
-    Plan->>Actions: actions.copy_assets_pdf()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(A_COPY_PDFS)
-    State->>DB: upsert(persistence_file_path, A_COPY_PDFS, DONE)
-    State-->>Plan: next_stage = B_SANITIZE_PIKE
+    Plan->>Ops: Plan creates BookOperations with all flags enabled
+    Plan->>Ops: Plan asks Ops to produce an ordered stage plan
+    Ops-->>Plan: Ops returns the ordered plan
+    Plan->>Plan: Plan creates a fresh all-PENDING state from the plan
+    Plan->>State: Plan asks State which stage to run next
+    State-->>Plan: State returns A_COPY_PDFS as the first stage
+    Plan->>Actions: Plan calls the copy-PDFs action
+    Actions-->>Plan: action finished successfully
+    Plan->>State: Plan marks A_COPY_PDFS as DONE
+    State->>DB: State persists A_COPY_PDFS=DONE to DB
+    State-->>Plan: State returns B_SANITIZE_PIKE as next stage
     Note over Plan,DB: Same pattern repeats for B, D, F, G, H, I (6 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: K_FILTER_FIRST
-    Plan->>Actions: actions.filter_first()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(K_FILTER_FIRST)
-    State->>DB: upsert(persistence_file_path, K_FILTER_FIRST, DONE)
-    State-->>Plan: next_stage = None (state.is_finished())
+    Plan->>State: Plan asks State which stage to run next
+    State-->>Plan: State returns K_FILTER_FIRST as the final stage
+    Plan->>Actions: Plan calls the filter-first action
+    Actions-->>Plan: action finished successfully
+    Plan->>State: Plan marks K_FILTER_FIRST as DONE
+    State->>DB: State persists K_FILTER_FIRST=DONE to DB
+    State-->>Plan: State signals pipeline is finished (next_stage = None)
     deactivate Plan
-    Plan-->>CLI: state (finished)
-    CLI-->>User: Pipeline complete
+    Plan-->>CLI: Plan returns finished state to CLI
+    CLI-->>User: CLI reports pipeline complete to user
 ```
 
 ### Sequence: user explicitly starts from a stage (this is *not* a resume)
@@ -174,34 +174,34 @@ sequenceDiagram
     participant DB as book_operation_state (DB)
     participant Actions as BooksActions
 
-    User->>CLI: pdfpz [persistence_file_path] --from-stage sanitize_info
-    CLI->>Plan: BookOperationPlan.run_plan(<br/>persistence_file_path, tmp_path,<br/>first_stage=F_SANITIZE_INFO)
+    User->>CLI: user runs pdfpz with --from-stage sanitize_info
+    CLI->>Plan: CLI delegates run to Plan starting from F_SANITIZE_INFO
     activate Plan
-    Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Plan->>Plan: Plan builds and caches the operations map internally
     Note over Plan: same one-time initialization as the full-run<br/>sequence -- built (or reused from cache)<br/>regardless of first_stage
-    Plan->>Plan: canonical_order() minus everything before F_SANITIZE_INFO
-    Plan->>Ops: BookOperations(F_SANITIZE_INFO..K_FILTER_FIRST True)
-    Plan->>Ops: operations.plan()
-    Ops-->>Plan: plan
-    Plan->>Plan: state = plan.new_state() (5 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: F_SANITIZE_INFO
-    Plan->>Actions: actions.sanitize_books_info()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(F_SANITIZE_INFO)
-    State->>DB: upsert(persistence_file_path, F_SANITIZE_INFO, DONE)
-    State-->>Plan: next_stage = G_SANITIZE_NORMALIZE_NAME
+    Plan->>Plan: Plan slices canonical_order to start at F_SANITIZE_INFO
+    Plan->>Ops: Plan creates BookOperations for stages F through K only
+    Plan->>Ops: Plan asks Ops to produce an ordered stage plan
+    Ops-->>Plan: Ops returns the ordered plan (5 stages)
+    Plan->>Plan: Plan creates a fresh all-PENDING state for 5 stages
+    Plan->>State: Plan asks State which stage to run next
+    State-->>Plan: State returns F_SANITIZE_INFO as the first stage
+    Plan->>Actions: Plan calls the sanitize-info action
+    Actions-->>Plan: action finished successfully
+    Plan->>State: Plan marks F_SANITIZE_INFO as DONE
+    State->>DB: State persists F_SANITIZE_INFO=DONE to DB
+    State-->>Plan: State returns G_SANITIZE_NORMALIZE_NAME as next stage
     Note over Plan,DB: Same pattern repeats for G, H, I (3 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: K_FILTER_FIRST
-    Plan->>Actions: actions.filter_first()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(K_FILTER_FIRST)
-    State->>DB: upsert(persistence_file_path, K_FILTER_FIRST, DONE)
-    State-->>Plan: next_stage = None (state.is_finished())
+    Plan->>State: Plan asks State which stage to run next
+    State-->>Plan: State returns K_FILTER_FIRST as the final stage
+    Plan->>Actions: Plan calls the filter-first action
+    Actions-->>Plan: action finished successfully
+    Plan->>State: Plan marks K_FILTER_FIRST as DONE
+    State->>DB: State persists K_FILTER_FIRST=DONE to DB
+    State-->>Plan: State signals pipeline is finished (next_stage = None)
     deactivate Plan
-    Plan-->>CLI: state (finished)
-    CLI-->>User: Pipeline complete (started from sanitize_info)
+    Plan-->>CLI: Plan returns finished state to CLI
+    CLI-->>User: CLI reports pipeline complete, started from sanitize_info
 ```
 
 ### Sequence: resume after a failed run (`BookOperationPlan` finds where it stopped)
@@ -241,33 +241,33 @@ sequenceDiagram
     participant DB as book_operation_state (DB)
     participant Actions as BooksActions
 
-    User->>CLI: pdfpz [persistence_file_path] --resume
-    CLI->>Plan: BookOperationPlan.resume_plan(<br/>persistence_file_path, tmp_path)
+    User->>CLI: user runs pdfpz with --resume flag
+    CLI->>Plan: CLI delegates resume to Plan
     activate Plan
-    Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Plan->>Plan: Plan builds and caches the operations map internally
     Note over Plan: same one-time initialization as the other two<br/>sequences -- cached the same way run_plan() caches it
-    Plan->>DB: select * where persistence_file_path = ...
-    DB-->>Plan: A_COPY_PDFS=DONE, B_SANITIZE_PIKE=DONE,<br/>D_UPDATE_ASSETS_INFO=FAILED, F..K=PENDING
-    Plan->>State: BookOperationState.load_from_db(rows)
-    State-->>Plan: state
-    Plan->>State: state.next_stage
-    State-->>Plan: D_UPDATE_ASSETS_INFO
-    Plan->>Actions: actions.update_books_collection_info_and_save()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(D_UPDATE_ASSETS_INFO)
-    State->>DB: upsert(persistence_file_path, D_UPDATE_ASSETS_INFO, DONE)
-    State-->>Plan: next_stage = F_SANITIZE_INFO
+    Plan->>DB: Plan queries DB for saved stage statuses
+    DB-->>Plan: DB returns A=DONE, B=DONE, D=FAILED, F..K=PENDING
+    Plan->>State: Plan reconstructs State from saved DB rows
+    State-->>Plan: State returns the reconstructed state object
+    Plan->>State: Plan asks State which stage to run next
+    State-->>Plan: State returns D_UPDATE_ASSETS_INFO (first non-DONE stage)
+    Plan->>Actions: Plan calls the update-assets-info action
+    Actions-->>Plan: action finished successfully
+    Plan->>State: Plan marks D_UPDATE_ASSETS_INFO as DONE
+    State->>DB: State persists D_UPDATE_ASSETS_INFO=DONE to DB
+    State-->>Plan: State returns F_SANITIZE_INFO as next stage
     Note over Plan,DB: Same pattern repeats for F, G, H, I (4 stages)
-    Plan->>State: state.next_stage
-    State-->>Plan: K_FILTER_FIRST
-    Plan->>Actions: actions.filter_first()
-    Actions-->>Plan: done
-    Plan->>State: state.mark_done(K_FILTER_FIRST)
-    State->>DB: upsert(persistence_file_path, K_FILTER_FIRST, DONE)
-    State-->>Plan: next_stage = None (state.is_finished())
+    Plan->>State: Plan asks State which stage to run next
+    State-->>Plan: State returns K_FILTER_FIRST as the final stage
+    Plan->>Actions: Plan calls the filter-first action
+    Actions-->>Plan: action finished successfully
+    Plan->>State: Plan marks K_FILTER_FIRST as DONE
+    State->>DB: State persists K_FILTER_FIRST=DONE to DB
+    State-->>Plan: State signals pipeline is finished (next_stage = None)
     deactivate Plan
-    Plan-->>CLI: state (finished)
-    CLI-->>User: Pipeline complete (resumed from D_UPDATE_ASSETS_INFO)
+    Plan-->>CLI: Plan returns finished state to CLI
+    CLI-->>User: CLI reports pipeline complete, resumed from D_UPDATE_ASSETS_INFO
 ```
 
 ### Class relationships (`class_book_operations.py`)
