@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pdfpz.bridges.assets_legacy import AssetsLegacy
-from pdfpz.bridges.db_bridge import AssetsDb
+from pdfpz.adapters.assets_legacy import AssetsLegacy
+from pdfpz.adapters.db_bridge import AssetsDb
 from pdfpz.core.class_assets import Assets, assets_pathname_to_type
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.crawl import PdfCrawler
