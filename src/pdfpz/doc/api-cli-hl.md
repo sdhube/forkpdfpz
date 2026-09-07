@@ -383,6 +383,46 @@ spelled out in the sequences above -- `mark_done` is shorthand for
   `books_pipeline_state` having no such column, `mark_done(stage)`
   taking no such argument, and `load_from_db()` having no
   `.filter(...)` are all correct as written.)*
+- **No per-book stage-pass check exists either -- a different gap from
+  the one above.** The previous gap is about *pipeline*-level status
+  (`books_pipeline_state`, one row per stage, no book dimension at
+  all). This one is about whether a given book individually passed a
+  given stage, which nothing currently answers. What exists instead,
+  and why it doesn't already cover this: `class_actions_book_props.py`'s
+  `PropStage` enum -- `sanitized`/`n_isbn_prs`/`ps`/`ps_and_ratio_size`/
+  `renamed`, each bound to a `TmpPath` property -- already does
+  per-book, filesystem-existence-driven flag setting
+  (`set_props_from_filesystem()`: `setattr(self.book_row, stage.name,
+  is_file(fpath))`), but only to populate `books_props` columns for
+  *filtering/display* after the fact, run once from `J_PROPS_FILTER`
+  (`props_filter()` -> `update_all_books_props()`) -- not as a
+  per-book gate checked *during* `A_COPY_PDFS`..`K_FILTER_FIRST`'s
+  loop. A stage-pass check would need a `BookOperationStage ->
+  BookPropsOrm/BookOrm field` mapping (e.g. `STAGE_TO_PASS_FIELD:
+  dict[BookOperationStage, str | None]`, checked as `if
+  getattr(book_props_row, field): # stage passed for this book`),
+  which doesn't exist anywhere today. Grounding what that mapping
+  could plausibly be, from what each stage's own method actually
+  writes: `B_SANITIZE_PIKE` and `F_SANITIZE_INFO` both write into
+  `path_sanitized_tmp` (`sanitize_books_info` calls
+  `single_pdf_info_action_with_path(TmpPath(m.name).path_sanitized_tmp,
+  ...)` directly), so `sanitized` can't distinguish which of the two
+  ran -- only that *some* sanitize step did; `G_SANITIZE_NORMALIZE_NAME`
+  lines up with `renamed`; `I_SANITIZE_PS` lines up with `ps` by name.
+  `A_COPY_PDFS`, `D_UPDATE_ASSETS_INFO`, `H_LOAD_YAML_EXPORT_DB`,
+  `J_PROPS_FILTER`, `K_FILTER_FIRST` have no matching `PropStage`
+  entry at all -- each acts on the whole collection at once (a save, an
+  export, a filter/print), not per book, so there's no per-book
+  artifact to check; those stages would have no entry in
+  `STAGE_TO_PASS_FIELD` (or a `None` value) and every book would be
+  assumed to have passed them, same as today's actual (unchecked)
+  behavior. `ps_and_ratio_size` and `n_isbn_prs` are `PropStage`
+  members with no `BookOperationStage` counterpart at all -- they're
+  set by `props_filter()`'s own follow-up calls
+  (`copy_books_ps_with_ratio_and_size()`/
+  `copy_books_ps_with_ratio_to_n_isbn()`), confirming `PropStage` and
+  `BookOperationStage` are two different concept spaces today, not a
+  mapping this gap can just reuse as-is.
 
 ---
 
