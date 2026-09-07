@@ -7,7 +7,7 @@ from pdfpz.application.class_actions_book_manifest_file import cp_pdf_from_metad
 from pdfpz.application.class_actions_book_props import BooksPropsAction
 from pdfpz.application.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.application.pdf_manifest_fetch import single_pdf_action
-from pdfpz.application.pdf_sanitize_fitz import sanitize_fitz
+from pdfpz.processing.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.application.pdf_sanitize_pike import sanitize_pdf_pike
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_books_collection import BooksCollection

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from pdfpz.application.pdf_sanitize_pike import sanitize_pdf_pike
+from pdfpz.processing.pdf_sanitize_pike import sanitize_pdf_pike
 
 
 @pytest.fixture

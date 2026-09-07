@@ -11,3 +11,48 @@
 | `utils/` | Generic technical utilities such as logging | Shared Infrastructure |
 | `cli/` | Command-line interface | Interface Adapter |
 | `tests/` | Fakes and test-only helpers | Testing Support |
+
+
+
+src/pdfpz/
+│
+├── domain/
+│   ├── class_book_manifest.py
+│   ├── class_books_collection.py
+│   ├── class_asset.py
+│   └── ...
+│
+├── application/
+│   ├── import_books.py
+│   ├── sanitize_books.py
+│   ├── scan_books.py
+│   ├── organize_books.py
+│   └── validate_books.py
+│
+├── metadata/
+│   ├── extract.py
+│   ├── normalize.py
+│   └── scan.py
+│
+├── processing/
+│   ├── sanitize_pikepdf.py
+│   ├── sanitize_fitz.py
+│   ├── rename.py
+│   └── merge.py
+│
+├── storage/
+│   ├── database.py
+│   ├── yaml.py
+│   └── filesystem.py
+│
+├── importers/
+│   └── filesystem.py
+│
+├── adapters/
+│   └── ...
+│
+├── utils/
+│   └── logger.py
+│
+└── cli/
+    └── ...
