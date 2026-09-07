@@ -7,6 +7,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import ClassVar
 
+from pdfpz.actions.class_actions_books import BooksActions
+from pdfpz.core.class_books_collection import BooksCollection
+from pdfpz.core.logger import logger
+
 
 class BookOperationStage(Enum):
     """The book-processing pipeline's stages, in the order they should run.
@@ -261,6 +265,7 @@ class BookOperations:
     sanitize_info: bool = False
     sanitize_normalize_name: bool = False
     export_books_to_db: bool = False
+    sanitize_ps: bool = False
     filter_first: bool = False
     props_filter: bool = False
     print_first: bool = False
@@ -286,3 +291,75 @@ class BookOperations:
         """This BookOperations' requested stages, in canonical
         BookOperationStage order -- see BookOperationPlan."""
         return BookOperationPlan(self)
+
+
+# Maps each BookOperationStage's operation_flag to the BooksActions method
+# name that implements it -- Docs/api-cli-hl.md's "Stage | Flag |
+# BooksActions method" table, plus sanitize_ps (I_SANITIZE_PS's flag,
+# missing from that table but already part of canonical_order()'s chain).
+# Keyed by flag rather than by BookOperationStage member so a mistake here
+# is just one wrong dict value, not a second, independently-ordered copy
+# of the stage chain to keep in sync with canonical_order() by hand.
+_OPERATION_FLAG_TO_ACTIONS_METHOD = {
+    "copy_pdfs": "copy_assets_pdf",
+    "sanitize_pike": "sanitize_books_pike",
+    "update_assets_info": "update_books_collection_info_and_save",
+    "sanitize_info": "sanitize_books_info",
+    "sanitize_normalize_name": "update_normalized_info_and_move_rename_file",
+    "export_books_to_db": "export_books_to_db",
+    "sanitize_ps": "sanitize_ps",
+    "props_filter": "props_filter",
+    "filter_first": "filter_first",
+}
+
+
+def initialize_and_return_operations_map(
+    persistence_file_path: str, tmp_path: str | None
+) -> dict[str, Callable[[], None]]:
+    """Build the {operation_flag: bound BooksActions method} map
+    BookOperationPlan.run_plan()/resume_plan() call into -- the "one-time
+    initialization" step shown in every sequence diagram in
+    Docs/api-cli-hl.md. cli.py calls this exactly once per run and passes
+    the result straight through to run_plan()/resume_plan(); it never
+    builds or edits the map itself.
+
+    Moved here from cli.py so the map can be built directly off
+    BookOperationStage.canonical_order() -- the same authoritative stage
+    order everything else in this module already reads from -- instead of
+    cli.py hand-typing the flag list a second time as a dict literal. That
+    hand-typed copy had already drifted from the entity it was supposed to
+    mirror in two ways this rewrite fixes: its "sanitize_ps" entry pointed
+    at actions.sanitze_ps (a method that has never existed -- the real one
+    is sanitize_ps, so cli.py's map construction raised AttributeError on
+    every single call), and BookOperations had no sanitize_ps field at all
+    even though I_SANITIZE_PS has been part of canonical_order()'s chain
+    the whole time (so a full/resumed run reaching that stage would have
+    hit `BookOperations(sanitize_ps=True)` -> TypeError, or
+    BookOperationPlan.stages' `getattr(operations, "sanitize_ps")` ->
+    AttributeError, whichever ran first). Building the map by iterating
+    canonical_order() -- instead of writing out its members' flags again
+    by hand -- means a third such mismatch surfaces immediately as a
+    KeyError out of _OPERATION_FLAG_TO_ACTIONS_METHOD the next time a
+    stage is added there without a matching entry here, rather than
+    silently shipping a map with the wrong keys or wrong order.
+
+    Only the flags canonical_order() actually yields end up in the
+    returned map -- move_no_info, fitz_didier, print_first don't (see
+    BookOperationStage's docstring: they're no longer wired into the
+    pipeline).
+
+    Safe to import BooksActions/BooksCollection here: neither them nor
+    anything they import imports anything from this module, so there's
+    no cycle to create by this module importing them back.
+    """
+    logger.info(f"initializing BooksCollection from legacy_path {persistence_file_path}")
+    books_collection: BooksCollection = BooksCollection.from_persistence_file_path(persistence_file_path)
+    books_collection.set_tmp_path(tmp_path)
+    actions: BooksActions = BooksActions(books_collection)
+    # Ensure collection is loaded (this will set up tmp dir if needed)
+    actions.load_collection(tmp_path=tmp_path)
+
+    return {
+        stage.operation_flag: getattr(actions, _OPERATION_FLAG_TO_ACTIONS_METHOD[stage.operation_flag])
+        for stage in BookOperationStage.canonical_order()
+    }

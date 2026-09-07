@@ -2,36 +2,8 @@ from pathlib import Path
 
 import click
 
-from pdfpz.actions.class_actions_books import BooksActions
-from pdfpz.core.class_book_operations import BookOperations
-from pdfpz.core.class_books_collection import BooksCollection
+from pdfpz.core.class_book_operations import BookOperations, initialize_and_return_operations_map
 from pdfpz.core.logger import logger
-
-
-def initialize_and_return_operations_map(persistence_file_path, tmp_path):
-    logger.info(f"initializing BooksCollection from legacy_path {persistence_file_path}")
-    books_collection: BooksCollection = BooksCollection.from_persistence_file_path(persistence_file_path)
-    books_collection.set_tmp_path(tmp_path)
-    actions: BooksActions = BooksActions(books_collection)
-    # Ensure collection is loaded (this will set up tmp dir if needed)
-    actions.load_collection(tmp_path=tmp_path)
-    # Map operation flags to BooksActions methods
-    operation_map = {
-        "copy_pdfs": actions.copy_assets_pdf,
-        "update_assets_info": actions.update_books_collection_info_and_save,
-        "move_no_info": actions.move_books_to_no_info,
-        "sanitize_pike": actions.sanitize_books_pike,
-        "fitz_didier": actions.sanitize_books_fitz_didier,
-        "sanitize_info": actions.sanitize_books_info,
-        "sanitize_normalize_name": actions.update_normalized_info_and_move_rename_file,
-        "export_books_to_db": actions.export_books_to_db,
-        "sanitize_ps": actions.sanitze_ps,
-        "filter_first": actions.filter_first,
-        "props_filter": actions.props_filter,
-        "print_first": actions.print_first_entry,
-    }
-
-    return operation_map
 
 
 def load_books_collection_and_operate(
