@@ -1,6 +1,7 @@
 # --------------------------------------------------------------------------
 # Data class matching the Rust `PdfManifestEntry` struct
 # --------------------------------------------------------------------------
+from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
