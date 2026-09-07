@@ -9,7 +9,7 @@ from pdfpz.domain.class_assets import Assets
 from pdfpz.domain.class_book_manifest import PdfManifestEntry
 from pdfpz.utils.logger import logger
 
-from .db_schema import Base, BookOrm
+from .db_schema import Base, BookOperationStateOrm, BookOrm
 
 DB_NAME = "books_db"
 DB_FILE = f"{DB_NAME}.db"

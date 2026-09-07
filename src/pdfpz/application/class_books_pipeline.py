@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import ClassVar
 
+from pdfpz.adapters.db_bridge import Session, engine
+from pdfpz.adapters.db_schema import Base, BookOperationStateOrm
 from pdfpz.application.class_actions_books import BooksActions
 from pdfpz.domain.class_books_collection import BooksCollection
 from pdfpz.utils.logger import logger
@@ -165,7 +167,35 @@ class BookOperationPlan:
         while not state.is_finished():
             stage = state.next_stage
             operation_map[stage.operation_flag]()
-            state.mark_done(stage)
+            state.mark_done(stage, persistence_file_path=persistence_file_path)
+        return state
+
+    @classmethod
+    def resume_plan(
+        cls,
+        persistence_file_path: str,
+        tmp_path: str | None = None,
+        operation_map: dict[str, Callable[[], None]] | None = None,
+    ) -> BookOperationState:
+        """Resume a previously interrupted pipeline run.
+
+        Reads book_operation_state for persistence_file_path, rebuilds
+        BookOperationState via load_from_db(), then continues the
+        next_stage/call/mark_done loop from where it stopped.
+        Falls back to a full run when no saved rows exist.
+        """
+        if operation_map is not None:
+            cls._operations_map_cache = operation_map
+        elif cls._operations_map_cache is None:
+            cls._operations_map_cache = initialize_and_return_operations_map(persistence_file_path, tmp_path)
+        operation_map = cls._operations_map_cache
+
+        state = BookOperationState.load_from_db(persistence_file_path)
+        logger.info(f"resume_plan: resuming from {state.next_stage} for {persistence_file_path}")
+        while not state.is_finished():
+            stage = state.next_stage
+            operation_map[stage.operation_flag]()
+            state.mark_done(stage, persistence_file_path=persistence_file_path)
         return state
 
 
@@ -198,16 +228,47 @@ class BookOperationState:
                 return stage
         return None
 
-    def mark(self, stage: BookOperationStage, status: BookOperationStatus) -> None:
-        """Set stage's status."""
+    def mark(
+        self,
+        stage: BookOperationStage,
+        status: BookOperationStatus,
+        persistence_file_path: str | None = None,
+    ) -> None:
+        """Set stage's status in memory and, when persistence_file_path is
+        given, upsert the book_operation_state row in the DB."""
         self.status[stage] = status
+        if persistence_file_path is not None:
+            _upsert_stage_status(persistence_file_path, stage, status)
 
-    def mark_done(self, stage: BookOperationStage) -> None:
+    def mark_done(
+        self,
+        stage: BookOperationStage,
+        persistence_file_path: str | None = None,
+    ) -> None:
         """Shorthand for mark(stage, BookOperationStatus.DONE)."""
-        self.mark(stage, BookOperationStatus.DONE)
+        self.mark(stage, BookOperationStatus.DONE, persistence_file_path=persistence_file_path)
 
     def is_finished(self) -> bool:
         return self.next_stage is None
+
+    @classmethod
+    def load_from_db(cls, persistence_file_path: str) -> BookOperationState:
+        """Reconstruct a BookOperationState from book_operation_state rows.
+
+        Every BookOperationStage in canonical order is included; stages
+        with no saved row default to PENDING. Falls back to an all-PENDING
+        full-pipeline state when no rows exist (same as a fresh run).
+        """
+        all_stages = BookOperationStage.canonical_order()
+        with Session() as session:
+            rows = (
+                session.query(BookOperationStateOrm)
+                .filter(BookOperationStateOrm.persistence_file_path == persistence_file_path)
+                .all()
+            )
+        saved = {row.stage: BookOperationStatus[row.status] for row in rows}
+        status = {stage: saved.get(stage.name, BookOperationStatus.PENDING) for stage in all_stages}
+        return cls(stages=all_stages, status=status)
 
 
 @dataclass
@@ -258,6 +319,31 @@ _OPERATION_FLAG_TO_ACTIONS_METHOD = {
     "props_filter": "props_filter",
     "filter_first": "filter_first",
 }
+
+
+def _upsert_stage_status(
+    persistence_file_path: str,
+    stage: BookOperationStage,
+    status: BookOperationStatus,
+) -> None:
+    """Upsert one book_operation_state row (create table if missing)."""
+    from datetime import datetime, timezone
+
+    Base.metadata.create_all(engine, tables=[BookOperationStateOrm.__table__])
+    with Session() as session:
+        row = session.get(BookOperationStateOrm, (persistence_file_path, stage.name))
+        if row is None:
+            row = BookOperationStateOrm(
+                persistence_file_path=persistence_file_path,
+                stage=stage.name,
+                status=status.name,
+                updated_at=datetime.now(timezone.utc),
+            )
+            session.add(row)
+        else:
+            row.status = status.name
+            row.updated_at = datetime.now(timezone.utc)
+        session.commit()
 
 
 def initialize_and_return_operations_map(
