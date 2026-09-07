@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from pdfpz.core.class_book_operations import BookOperations, initialize_and_return_operations_map
+from pdfpz.core.class_book_operations import BookOperationPlan, BookOperations, initialize_and_return_operations_map
 from pdfpz.core.logger import logger
 
 
@@ -38,6 +38,12 @@ def load_books_collection_and_operate(
 @click.command()
 @click.argument("persistence_file_path", type=click.Path(exists=True, dir_okay=False, path_type=Path))
 @click.option("--tmp-path", type=click.Path(path_type=Path), default=None, help="Optional temporary path.")
+@click.option(
+    "--run-all",
+    is_flag=True,
+    default=False,
+    help="Run every pipeline stage in canonical order via BookOperationPlan.run_plan().",
+)
 @click.option("--copy-pdfs", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
 @click.option("--update-assets-info", is_flag=True, default=False, help="update yaml with pdf metadata")
 @click.option("--move-no-info", is_flag=True, default=False, help="move pdf files from tmp if no info")
@@ -64,6 +70,11 @@ def main(**kwargs) -> None:
     # Extract positional and optional arguments
     persistence_file_path: Path = kwargs.pop("persistence_file_path")
     tmp_path: Path | None = kwargs.pop("tmp_path")
+    run_all: bool = kwargs.pop("run_all")
+
+    if run_all:
+        BookOperationPlan.run_plan(str(persistence_file_path), tmp_path=str(tmp_path) if tmp_path else None)
+        return
 
     # Create BookOperations from remaining kwargs (operation flags)
     operations = BookOperations(**kwargs)
@@ -86,3 +97,4 @@ if __name__ == "__main__":
 # pdfpz  files_uuid.yaml --tmp-path=/tmp/tmp_meta/metadata/ --load-yaml-export-db
 # PYTHONPATH=src python3 -m pdfpz.cli    books_db.db --tmp-path=/tmp/tmp_meta/metadata/ --filter-first
 # PYTHONPATH=src python3 -m pdfpz.cli    books_db.db --tmp-path=/tmp/tmp_meta/metadata/ --props-filter
+# pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --run-all
