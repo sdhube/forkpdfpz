@@ -1,6 +1,6 @@
 import click
 
-from pdfpz.actions.pdf_manifest_fetch import single_pdf_action_with_path
+from pdfpz.application.pdf_manifest_fetch import single_pdf_action_with_path
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 
 # --------------------------------------------------------------------------

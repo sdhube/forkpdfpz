@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import ClassVar
 
-from pdfpz.actions.class_actions_books import BooksActions
+from pdfpz.application.class_actions_books import BooksActions
 from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.logger import logger
 

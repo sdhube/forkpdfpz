@@ -3,7 +3,7 @@ import re
 import click
 import pymupdf
 
-from pdfpz.actions.pdf_scan_info_web import doi_book_info_by_link
+from pdfpz.application.pdf_scan_info_web import doi_book_info_by_link
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.logger import logger
 

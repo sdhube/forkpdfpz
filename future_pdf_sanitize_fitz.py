@@ -12,8 +12,8 @@ import click
 import fitz
 import pikepdf
 
-from pdfpz.actions.pdf_actions_file import save_tmp_mv_on_source
-from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
+from pdfpz.application.pdf_actions_file import save_tmp_mv_on_source
+from pdfpz.application.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.core.logger import logger
 

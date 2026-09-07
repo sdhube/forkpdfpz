@@ -3,12 +3,12 @@ from functools import partial
 from pathlib import Path, PurePosixPath
 from pprint import pformat
 
-from pdfpz.actions.class_actions_book_manifest_file import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
-from pdfpz.actions.class_actions_book_props import BooksPropsAction
-from pdfpz.actions.pdf_actions_info import single_pdf_info_action_with_path
-from pdfpz.actions.pdf_manifest_fetch import single_pdf_action
-from pdfpz.actions.pdf_sanitize_fitz import sanitize_fitz
-from pdfpz.actions.pdf_sanitize_pike import sanitize_pdf_pike
+from pdfpz.application.class_actions_book_manifest_file import cp_pdf_from_metadata_to_normalized, move_pdf_to_no_info
+from pdfpz.application.class_actions_book_props import BooksPropsAction
+from pdfpz.application.pdf_actions_info import single_pdf_info_action_with_path
+from pdfpz.application.pdf_manifest_fetch import single_pdf_action
+from pdfpz.application.pdf_sanitize_fitz import sanitize_fitz
+from pdfpz.application.pdf_sanitize_pike import sanitize_pdf_pike
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.class_tmp_path import TmpPath
