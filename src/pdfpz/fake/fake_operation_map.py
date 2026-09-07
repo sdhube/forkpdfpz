@@ -12,7 +12,7 @@ reusable/re-runnable instead of a one-off snippet.
 
 from collections.abc import Callable
 
-from pdfpz.core.class_book_operations import BookOperationPlan, BookOperationStage
+from pdfpz.core.class_books_pipeline import BookOperationPlan, BookOperationStage
 
 
 def make_fake_operation_map(call_order: list[str]) -> dict[str, Callable[[], None]]:
