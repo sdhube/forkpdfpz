@@ -24,11 +24,14 @@ today that means invoking `pdfpz` once per stage.
 
 ## Future design
 
-`BookOperationPlan.run_plan(operation_map, first_stage=None)` is `cli.py`'s
-single entry point: builds `BookOperations` (every stage, or only
-`first_stage` onward), plans it, creates `state`, and runs the whole
-loop internally. `cli.py` calls it once and never touches
-`BookOperations`, a stage value, or `state` directly.
+`BookOperationPlan.run_plan(persistence_file_path, tmp_path, first_stage=None)`
+is `cli.py`'s single entry point: builds `operation_map` itself via
+`initialize_and_return_operations_map()` (caching it in
+`_operations_map_cache` so a later call reuses it), builds
+`BookOperations` (every stage, or only `first_stage` onward), plans it,
+creates `state`, and runs the whole loop internally. `cli.py` calls it
+once and never touches `operation_map`, `BookOperations`, a stage
+value, or `state` directly.
 
 | Stage | Flag | `BooksActions` method |
 |---|---|---|
@@ -68,9 +71,10 @@ that's what resume (below) uses to find where a run stopped.
 
 ### Sequence: triggering a full run (`cli.py` stays stage-agnostic)
 
-`cli.py` calls `run_plan(operation_map)` once; `BookOperationPlan`
-builds `BookOperations`, plans, creates `state`, and runs the whole
-loop between `Plan`/`State`/`Actions`. Each `mark_done` also upserts
+`cli.py` calls `run_plan(persistence_file_path, tmp_path)` once;
+`BookOperationPlan` builds `operation_map` itself (caching it), builds
+`BookOperations`, plans, creates `state`, and runs the whole loop
+between `Plan`/`State`/`Actions`. Each `mark_done` also upserts
 `book_operation_state`. First (`A_COPY_PDFS`) and last (`K_FILTER_FIRST`)
 stages shown in full; the rest collapse into a `Note`:
 
@@ -104,10 +108,10 @@ sequenceDiagram
     participant Actions as BooksActions
 
     User->>CLI: pdfpz [persistence_file_path] --run-all
-    CLI->>CLI: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
-    Note over CLI: one-time: builds BooksCollection + BooksActions,<br/>returns {flag_name: bound actions method}
-    CLI->>Plan: BookOperationPlan.run_plan(operation_map)
+    CLI->>Plan: BookOperationPlan.run_plan(<br/>persistence_file_path, tmp_path)
     activate Plan
+    Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Note over Plan: one-time: builds BooksCollection + BooksActions,<br/>returns {flag_name: bound actions method};<br/>cached in _operations_map_cache
     Plan->>Ops: BookOperations(every flag True)
     Plan->>Ops: operations.plan()
     Ops-->>Plan: plan
@@ -136,8 +140,9 @@ sequenceDiagram
 
 The user names a stage via `--from-stage`, regardless of any prior
 run's outcome -- nothing here reads `book_operation_state`. Same shape
-as above, with `first_stage` set; slicing `canonical_order()` at
-`F_SANITIZE_INFO` happens inside `run_plan`, not `cli.py`:
+as above, with `first_stage` set; both building `operation_map` and
+slicing `canonical_order()` at `F_SANITIZE_INFO` happen inside
+`run_plan`, not `cli.py`:
 
 ```mermaid
 %%{init: {
@@ -169,10 +174,10 @@ sequenceDiagram
     participant Actions as BooksActions
 
     User->>CLI: pdfpz [persistence_file_path] --from-stage sanitize_info
-    CLI->>CLI: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
-    Note over CLI: same one-time initialization as the full-run<br/>sequence -- built once regardless of first_stage
-    CLI->>Plan: BookOperationPlan.run_plan(operation_map,<br/>first_stage=F_SANITIZE_INFO)
+    CLI->>Plan: BookOperationPlan.run_plan(<br/>persistence_file_path, tmp_path,<br/>first_stage=F_SANITIZE_INFO)
     activate Plan
+    Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Note over Plan: same one-time initialization as the full-run<br/>sequence -- built (or reused from cache)<br/>regardless of first_stage
     Plan->>Plan: canonical_order() minus everything before F_SANITIZE_INFO
     Plan->>Ops: BookOperations(F_SANITIZE_INFO..K_FILTER_FIRST True)
     Plan->>Ops: operations.plan()
@@ -202,7 +207,8 @@ sequenceDiagram
 
 The user doesn't name a stage. Say `A_COPY_PDFS`/`B_SANITIZE_PIKE`
 finished, `D_UPDATE_ASSETS_INFO` failed, and the process exited.
-`resume_plan(operation_map)` reads `book_operation_state`, finds
+`resume_plan(persistence_file_path, tmp_path)` builds `operation_map`
+itself (same as `run_plan`), reads `book_operation_state`, finds
 `D_UPDATE_ASSETS_INFO` is the first non-`DONE` stage, and rebuilds
 `state` via `load_from_db()` before continuing the same loop:
 
@@ -235,10 +241,10 @@ sequenceDiagram
     participant Actions as BooksActions
 
     User->>CLI: pdfpz [persistence_file_path] --resume
-    CLI->>CLI: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
-    Note over CLI: same one-time initialization as the other two<br/>sequences -- resume_plan() only reads book_operation_state,<br/>it doesn't rebuild operation_map itself
-    CLI->>Plan: BookOperationPlan.resume_plan(operation_map)
+    CLI->>Plan: BookOperationPlan.resume_plan(<br/>persistence_file_path, tmp_path)
     activate Plan
+    Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
+    Note over Plan: same one-time initialization as the other two<br/>sequences -- cached the same way run_plan() caches it
     Plan->>DB: select * where persistence_file_path = ...
     DB-->>Plan: A_COPY_PDFS=DONE, B_SANITIZE_PIKE=DONE,<br/>D_UPDATE_ASSETS_INFO=FAILED, F..K=PENDING
     Plan->>State: BookOperationState.load_from_db(rows)
@@ -279,8 +285,8 @@ classDiagram
         +BookOperations operations
         +stages List~BookOperationStage~
         +new_state() BookOperationState
-        +run_plan(operation_map dict, first_stage BookOperationStage)$ BookOperationState
-        +resume_plan(operation_map dict)$ BookOperationState
+        +run_plan(persistence_file_path str, tmp_path str, first_stage BookOperationStage, operation_map dict)$ BookOperationState
+        +resume_plan(persistence_file_path str, tmp_path str)$ BookOperationState
     }
     class BookOperationState {
         +List~BookOperationStage~ stages
@@ -341,7 +347,10 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - `load_books_collection_and_operate()` in `cli.py` still runs today's
   one-pass `for operation_name, operation_func in
   operation_map.items(): if getattr(...): operation_func()` instead of
-  calling `run_plan(operation_map)`. `operation_map`'s construction is
-  already extracted into `initialize_and_return_operations_map()` (the
-  one-time step shown in all three sequences above) -- what's left is
-  swapping that loop for a `run_plan()`/`resume_plan()` call.
+  calling `run_plan(persistence_file_path, tmp_path)`.
+  `operation_map`'s construction is already extracted into
+  `initialize_and_return_operations_map()`, and `run_plan()` already
+  calls it internally (caching the result in `_operations_map_cache`,
+  per the sequences above) -- `cli.py` no longer needs to build
+  `operation_map` itself at all. What's left is swapping that loop for
+  a `run_plan()`/`resume_plan()` call.
