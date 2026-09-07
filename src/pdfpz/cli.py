@@ -8,31 +8,13 @@ from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.logger import logger
 
 
-def load_books_collection_and_operate(
-    persistence_file_path: str,
-    tmp_path: str | None = None,
-    operations: BookOperations | None = None,
-) -> None:
-    """Load books library and perform requested operations.
-
-    Args:
-        persistence_file_path: Path to YAML/DB file
-        tmp_path: Optional temporary directory path
-        operations: BookOperations instance defining which operations to perform
-    """
-    operations = operations or BookOperations()
-
-    logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
+def initialize_and_return_operations_map(persistence_file_path, tmp_path):
     logger.info(f"initializing BooksCollection from legacy_path {persistence_file_path}")
     books_collection: BooksCollection = BooksCollection.from_persistence_file_path(persistence_file_path)
     books_collection.set_tmp_path(tmp_path)
-
-    # Create BooksActions instance
-    actions = BooksActions(books_collection)
-
+    actions: BooksActions = BooksActions(books_collection)
     # Ensure collection is loaded (this will set up tmp dir if needed)
     actions.load_collection(tmp_path=tmp_path)
-
     # Map operation flags to BooksActions methods
     operation_map = {
         "copy_pdfs": actions.copy_assets_pdf,
@@ -49,6 +31,26 @@ def load_books_collection_and_operate(
         "print_first": actions.print_first_entry,
     }
 
+    return operation_map
+
+
+def load_books_collection_and_operate(
+    persistence_file_path: str,
+    tmp_path: str | None = None,
+    operations: BookOperations | None = None,
+) -> None:
+    """Load books library and perform requested operations.
+
+    Args:
+        persistence_file_path: Path to YAML/DB file
+        tmp_path: Optional temporary directory path
+        operations: BookOperations instance defining which operations to perform
+    """
+    operations = operations or BookOperations()
+
+    logger.info(f"Operations to perform: {operations.get_enabled_operations().keys()}")
+    operation_map = initialize_and_return_operations_map(persistence_file_path, tmp_path)
+ 
     # Execute all enabled operations
     for operation_name, operation_func in operation_map.items():
         if getattr(operations, operation_name):
