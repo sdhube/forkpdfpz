@@ -1,3 +1,4 @@
+# pythonic allow forwred declaretion def from_pdf_path(cls, pdf_path: Path | str) -> TmpPath:
 from __future__ import annotations
 
 from dataclasses import dataclass
