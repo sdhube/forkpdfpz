@@ -129,6 +129,7 @@ sequenceDiagram
     State-->>Plan: State returns A_COPY_PDFS as the first stage
     Plan->>Actions: Plan calls the copy-PDFs action
     Actions-->>Plan: action finished successfully
+    Note over Actions: A_COPY_PDFS loops over every book internally;<br/>a single book's exception is caught and only logged,<br/>never surfaced here -- see Gaps below
     Plan->>State: Plan marks A_COPY_PDFS as DONE
     State->>DB: State persists A_COPY_PDFS=DONE to DB
     State-->>Plan: State returns B_SANITIZE_PIKE as next stage
@@ -219,7 +220,12 @@ finished, `D_UPDATE_ASSETS_INFO` failed, and the process exited.
 `resume_plan(persistence_file_path, tmp_path)` builds `operation_map`
 itself (same as `run_plan`), reads `books_pipeline_state`, finds
 `D_UPDATE_ASSETS_INFO` is the first non-`DONE` stage, and rebuilds
-`state` via `load_from_db()` before continuing the same loop:
+`state` via `load_from_db()` before continuing the same loop.
+**Illustrative, not literal:** current code has no path that ever
+marks a stage `FAILED` (see Gaps below) -- a stuck stage would show as
+`PENDING`, which `next_stage` treats the same way (non-terminal), so
+the resume logic itself is unaffected by which of the two it actually
+sees:
 
 ```mermaid
 %%{init: {
@@ -343,15 +349,40 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 
 ### Gaps
 
-*(none -- confirmed: `persistence_file_path` is a fixed value for this
-tool, not a varying dimension, so `books_pipeline_state` having no such
-column is correct by design, not missing scoping. `mark_done(stage)`
-taking no `persistence_file_path` argument, and `load_from_db()` having
-no `.filter(...)`, are both correct as written for the same reason.
-`books_pipeline_state` (renamed from the doc's earlier
-`book_operation_state`) tracks one row per *pipeline stage*, not per
-book -- it's whole-run progress, unrelated to any future per-book
-tracking table.)*
+- **No per-book failure state exists at all, and stage-level `FAILED`
+  is unreachable too -- same root cause.** `BookPropsOrm` has no
+  `failed`/`failed_stage` field, and there's no separate per-book
+  tracking table either -- `books_pipeline_state` tracks one row per
+  *pipeline stage*, not per book (see confirmed-correct note below).
+  Neither `run_plan()` nor `resume_plan()` wraps
+  `operation_map[stage.operation_flag]()` in a `try`/`except`, and
+  nothing in `class_books_pipeline.py` ever calls
+  `state.mark(stage, BookOperationStatus.FAILED)` -- grep confirms
+  `mark_done()` (-> `DONE`) is the only status `mark()` is ever called
+  with. Two consequences:
+  - Every looping stage (`A`, `B`, `D`, `F`, `G`) processes books via
+    `run_threaded_action`/`run_threads_books_collection_pdf_path`,
+    whose shared `run_and_report()` helper catches each book's
+    exception and only logs it (`logger.warning(f"exception in
+    thread: {exc}")` -- doesn't even log *which* book) -- it never
+    propagates back to `BooksActions`. So `state.mark_done(stage)`
+    always fires regardless of how many books failed inside it.
+  - If an exception *does* propagate (a bug outside the per-book
+    helpers, or in a non-looping stage), it crashes `run_plan()`/
+    `resume_plan()` entirely -- `mark_done()` never runs, so the stage
+    is left at whatever it already was (`PENDING` on a fresh run), not
+    `FAILED`.
+  So the resume sequence's `D_UPDATE_ASSETS_INFO=FAILED` below is
+  illustrative of the *intended* design, not a status current code can
+  actually produce -- a genuinely stuck stage would show as `PENDING`.
+  None of the three sequence diagrams show a per-book failure path
+  either -- they draw a single, unconditional `Actions-->>Plan: done`
+  for the whole stage (one now annotated below).
+- *(Confirmed correct, not a gap: `persistence_file_path` is a fixed
+  value for this tool, not a varying dimension, so
+  `books_pipeline_state` having no such column, `mark_done(stage)`
+  taking no such argument, and `load_from_db()` having no
+  `.filter(...)` are all correct as written.)*
 
 ---
 
