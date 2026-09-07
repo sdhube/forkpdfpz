@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import UTC
 from enum import Enum
 from typing import ClassVar
 
 from pdfpz.adapters.db_bridge import Session, engine
-from pdfpz.adapters.db_schema import Base, BookOperationStateOrm
+from pdfpz.adapters.db_schema import Base, BookPipelineStateOrm
 from pdfpz.application.class_actions_books import BooksActions
 from pdfpz.domain.class_books_collection import BooksCollection
 from pdfpz.utils.logger import logger
@@ -254,7 +255,7 @@ class BookOperationState:
         """
         all_stages = BookOperationStage.canonical_order()
         with Session() as session:
-            rows = session.query(BookOperationStateOrm).all()
+            rows = session.query(BookPipelineStateOrm).all()
         saved = {row.stage: BookOperationStatus[row.status] for row in rows}
         status = {stage: saved.get(stage.name, BookOperationStatus.PENDING) for stage in all_stages}
         return cls(stages=all_stages, status=status)
@@ -315,21 +316,21 @@ def _upsert_stage_status(
     status: BookOperationStatus,
 ) -> None:
     """Upsert one book_operation_state row (create table if missing)."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    Base.metadata.create_all(engine, tables=[BookOperationStateOrm.__table__])
+    Base.metadata.create_all(engine, tables=[BookPipelineStateOrm.__table__])
     with Session() as session:
-        row = session.get(BookOperationStateOrm, stage.name)
+        row = session.get(BookPipelineStateOrm, stage.name)
         if row is None:
-            row = BookOperationStateOrm(
+            row = BookPipelineStateOrm(
                 stage=stage.name,
                 status=status.name,
-                updated_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(UTC),
             )
             session.add(row)
         else:
             row.status = status.name
-            row.updated_at = datetime.now(timezone.utc)
+            row.updated_at = datetime.now(UTC)
         session.commit()
 
 

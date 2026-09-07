@@ -298,7 +298,7 @@ classDiagram
         +is_finished() bool
         +load_from_db(persistence_file_path)$ BookOperationState
     }
-    class BookOperationStateOrm {
+    class BookPipelineStateOrm {
         <<ORM, table: book_operation_state>>
         +str persistence_file_path
         +str stage
@@ -321,13 +321,13 @@ classDiagram
     BookOperations ..> BookOperationStage : all_stages() builds one per stage
     BookOperationState "1" o-- "*" BookOperationStage : stages
     BookOperationState "1" o-- "*" BookOperationStatus : status per stage
-    BookOperationState ..> BookOperationStateOrm : mark() upserts /<br/>load_from_db() reads
+    BookOperationState ..> BookPipelineStateOrm : mark() upserts /<br/>load_from_db() reads
 
     note for BookOperations "Built inside run_plan(), not by cli.py"
     note for BookOperationPlan "run_plan()$/resume_plan()$ are cli.py's\nonly calls"
     note for BookOperationState "Read by run_plan()/resume_plan(),\nnot by cli.py"
     note for BookOperationStage "8 stages: S1..S8 / from-stage S4..S8"
-    note for BookOperationStateOrm "The DB write/read in the\nsequence diagrams above"
+    note for BookPipelineStateOrm "The DB write/read in the\nsequence diagrams above"
 ```
 
 `BookOperationStatus` (`RUNNING`/`FAILED` around each call) isn't
@@ -350,7 +350,7 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - `Plan->>State: Plan asks State which stage to run next` / `State-->>Plan` → `BookOperationState.next_stage` in `class_books_pipeline.py`
 - `Plan->>Actions / Actions-->>Plan` (run action) → `operation_map[stage.operation_flag]()` loop in `BookOperationPlan.run_plan()`
 - `Plan->>State: Plan marks <stage> as DONE` → `state.mark_done(stage, persistence_file_path=...)` in `class_books_pipeline.py`
-- `State->>DB: State persists <stage>=DONE to DB` → `_upsert_stage_status()` + `BookOperationStateOrm` in `class_books_pipeline.py` / `db_schema.py`
+- `State->>DB: State persists <stage>=DONE to DB` → `_upsert_stage_status()` + `BookPipelineStateOrm` in `class_books_pipeline.py` / `db_schema.py`
 - `Plan-->>CLI / CLI-->>User` → `run_plan()` returns state; `cli.py` returns normally
 - **Largest implemented path:** `cli.py --run-all` → `run_plan()` → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()` → DB upsert → loop until `next_stage = None`
 
@@ -365,7 +365,7 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - `User->>CLI: user runs pdfpz with --resume flag` → `--resume` flag in `cli.py`
 - `CLI->>Plan: CLI delegates resume to Plan` → `BookOperationPlan.resume_plan()` called from `cli.py`
 - `Plan->>Plan: Plan builds and caches the operations map internally` → same cache as `run_plan()`
-- `Plan->>DB: Plan queries DB for saved stage statuses` → `Session.query(BookOperationStateOrm).filter(...)` in `BookOperationState.load_from_db()`
+- `Plan->>DB: Plan queries DB for saved stage statuses` → `Session.query(BookPipelineStateOrm).filter(...)` in `BookOperationState.load_from_db()`
 - `DB-->>Plan: DB returns A=DONE, B=DONE, D=FAILED, F..K=PENDING` → row-to-status reconstruction in `load_from_db()`
 - `Plan->>State: Plan reconstructs State from saved DB rows` / `State-->>Plan` → `BookOperationState.load_from_db()` in `class_books_pipeline.py`
 - All subsequent `next_stage` / action call / `mark_done` / DB upsert steps → `resume_plan()` loop in `class_books_pipeline.py`

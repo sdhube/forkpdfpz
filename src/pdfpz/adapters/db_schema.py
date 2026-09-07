@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import declarative_base
-from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -47,17 +48,17 @@ class BookPropsOrm(Base):
     ratio_ps_vs_renamed = Column(Integer, default=0, nullable=False)
 
 
-class BookOperationStateOrm(Base):
+class BookPipelineStateOrm(Base):
     """One row per stage. Upserted by BookOperationState.mark() so pipeline
     status survives a crash mid-run and resume_plan() can reconstruct where
     it stopped. One active run at a time -- a new run overwrites previous rows.
     """
 
-    __tablename__ = "book_operation_state"
+    __tablename__ = "books_pipeline_state"
 
     stage = Column(String, primary_key=True)  # BookOperationStage member name
-    status = Column(String, nullable=False)   # BookOperationStatus member name
-    updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    status = Column(String, nullable=False)  # BookOperationStatus member name
+    updated_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
 
 
 # view_books_props exposes every books_props column alongside the BookOrm
