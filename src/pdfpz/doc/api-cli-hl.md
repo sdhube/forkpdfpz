@@ -334,14 +334,41 @@ classDiagram
 spelled out in the sequences above -- `mark_done` is shorthand for
 `mark(stage, DONE)`.
 
-### What's still needed (not yet implemented)
+### Gaps
 
-- `--from-stage <flag-name>` cli.py option -> `run_plan(persistence_file_path,
-  tmp_path, first_stage=<resolved stage>)`.
-- `book_operation_state` table; `BookOperationState.mark()` upserting
-  to it, `load_from_db(persistence_file_path)` reading it back.
-- `BookOperationPlan.resume_plan(persistence_file_path, tmp_path)`: reads
-  `book_operation_state`, rebuilds `state` via `load_from_db()`, runs
-  `run_plan()`'s loop. Falls back to a full run with no existing rows.
-  This is the actual "resume" -- `--from-stage` is a manual override,
-  not automatic resume.
+**Sequence: full run** (`CLI delegates full pipeline run to Plan`)
+- `CLI->>Plan: CLI delegates full pipeline run to Plan` → `cli.py` has no `--run-all` flag wired to `BookOperationPlan.run_plan()` yet; `cli.py` still calls individual stage flags directly.
+
+**Sequence: from-stage** (`CLI delegates run to Plan starting from F_SANITIZE_INFO`)
+- `User->>CLI: user runs pdfpz with --from-stage sanitize_info` → `--from-stage <flag-name>` option not yet in `cli.py`; `cli.py` has no call to `run_plan(first_stage=...)`.
+
+**Sequence: resume** (`CLI delegates resume to Plan`)
+- `User->>CLI: user runs pdfpz with --resume flag` → `--resume` option not yet in `cli.py`; no call to `BookOperationPlan.resume_plan()`.
+
+---
+
+### Implemented
+
+**Sequence: full run** — ~60%
+- `Plan->>Plan: Plan builds and caches the operations map internally` → `initialize_and_return_operations_map()` + `_operations_map_cache` in `class_books_pipeline.py`
+- `Plan->>Ops / Ops-->>Plan` (create BookOperations, produce ordered plan) → `BookOperations` + `BookOperationPlan.stages` in `class_books_pipeline.py`
+- `Plan->>State: Plan asks State which stage to run next` / `State-->>Plan` → `BookOperationState.next_stage` in `class_books_pipeline.py`
+- `Plan->>Actions / Actions-->>Plan` (run action) → `operation_map[stage.operation_flag]()` loop in `BookOperationPlan.run_plan()`
+- `Plan->>State: Plan marks <stage> as DONE` → `state.mark_done(stage, persistence_file_path=...)` in `class_books_pipeline.py`
+- `State->>DB: State persists <stage>=DONE to DB` → `_upsert_stage_status()` + `BookOperationStateOrm` in `class_books_pipeline.py` / `db_schema.py`
+- **Largest implemented path:** `run_plan()` loop: `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()` → DB upsert
+- **Not yet:** `cli.py` → `run_plan()` wiring (`--run-all` flag)
+
+**Sequence: from-stage** — ~50%
+- `Plan->>Plan: Plan slices canonical_order to start at F_SANITIZE_INFO` → `order[order.index(first_stage):]` in `run_plan()` in `class_books_pipeline.py`
+- All Plan/State/Actions/DB steps same as full run (implemented above)
+- **Not yet:** `cli.py` `--from-stage` option → `run_plan(first_stage=...)`
+
+**Sequence: resume** — ~75%
+- `Plan->>Plan: Plan builds and caches the operations map internally` → same cache as `run_plan()`
+- `Plan->>DB: Plan queries DB for saved stage statuses` → `Session.query(BookOperationStateOrm).filter(...)` in `BookOperationState.load_from_db()`
+- `DB-->>Plan: DB returns A=DONE, B=DONE, D=FAILED, F..K=PENDING` → row-to-status reconstruction in `load_from_db()`
+- `Plan->>State: Plan reconstructs State from saved DB rows` / `State-->>Plan` → `BookOperationState.load_from_db()` in `class_books_pipeline.py`
+- All subsequent `next_stage` / action call / `mark_done` / DB upsert steps → `resume_plan()` loop in `class_books_pipeline.py`
+- **Largest implemented path:** `resume_plan()` → `load_from_db()` → DB query → reconstruct state → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()`
+- **Not yet:** `cli.py` `--resume` option → `resume_plan()`
