@@ -156,6 +156,12 @@ class BookOperationPlan:
     # as a bare module-level statement after BookOperationStage itself.
     BookOperationStage._canonical_order_cache = BookOperationStage._resolve_canonical_order()
 
+    # Cached by run_plan() the first time it builds an operations_map, so
+    # later run_plan() calls in the same process reuse it instead of
+    # re-running initialize_and_return_operations_map() (which reloads
+    # BooksCollection from disk) on every call.
+    _operations_map_cache: ClassVar[dict[str, Callable[[], None]] | None] = None
+
     operations: BookOperations
 
     @property
@@ -176,7 +182,11 @@ class BookOperationPlan:
 
     @classmethod
     def run_plan(
-        cls, operation_map: dict[str, Callable[[], None]], first_stage: BookOperationStage | None = None
+        cls,
+        persistence_file_path: str,
+        tmp_path: str | None = None,
+        first_stage: BookOperationStage | None = None,
+        operation_map: dict[str, Callable[[], None]] | None = None,
     ) -> BookOperationState:
         """cli.py's single entry point for running the pipeline in one
         call, per the "triggering a full run" and "user explicitly
@@ -190,12 +200,25 @@ class BookOperationPlan:
         BookOperationStage value, or state itself -- only what this
         classmethod returns.
 
+        Builds operation_map itself via initialize_and_return_operations_map()
+        when the caller doesn't pass one, and caches the result on the class
+        (_operations_map_cache) so a later run_plan() call in the same
+        process reuses it instead of reloading BooksCollection from disk
+        again. An explicitly passed operation_map bypasses and refreshes
+        that cache.
+
         DB-backed resumability (resume_plan(),
         BookOperationState.load_from_db(), the book_operation_state
         table) is a separate, not-yet-implemented piece -- this only
         covers the two in-memory sequences, not the third (resume-after-
         failure) one.
         """
+        if operation_map is not None:
+            cls._operations_map_cache = operation_map
+        elif cls._operations_map_cache is None:
+            cls._operations_map_cache = initialize_and_return_operations_map(persistence_file_path, tmp_path)
+        operation_map = cls._operations_map_cache
+
         order = BookOperationStage.canonical_order()
         stages_to_run = order if first_stage is None else order[order.index(first_stage) :]
         operations = BookOperations(**{stage.operation_flag: True for stage in stages_to_run})
