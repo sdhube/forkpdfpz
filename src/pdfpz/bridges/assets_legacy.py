@@ -3,7 +3,7 @@ from pathlib import Path, PurePosixPath
 
 import yaml
 
-from pdfpz.core.assets import Assets
+from pdfpz.core.class_assets import Assets
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.logger import logger
 
