@@ -111,7 +111,7 @@ sequenceDiagram
     CLI->>Plan: BookOperationPlan.run_plan(<br/>persistence_file_path, tmp_path)
     activate Plan
     Plan->>Plan: operation_map =<br/>initialize_and_return_operations_map(<br/>persistence_file_path, tmp_path)
-    Note over Plan: one-time: builds BooksCollection + BooksActions,<br/>returns {flag_name: bound actions method};<br/>cached in _operations_map_cache
+    Note over Plan: one-time: builds BooksCollection + BooksActions,<br/>returns {flag_name: bound actions method}<br/>cached in _operations_map_cache
     Plan->>Ops: BookOperations(every flag True)
     Plan->>Ops: operations.plan()
     Ops-->>Plan: plan
