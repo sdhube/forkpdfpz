@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.domain.class_book_manifest import PdfManifestEntry
 
 
 def merge(main_entries: List[PdfManifestEntry], additional_entries: List[PdfManifestEntry]) -> List[PdfManifestEntry]:

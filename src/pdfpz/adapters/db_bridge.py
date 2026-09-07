@@ -5,8 +5,8 @@ from pathlib import Path
 from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 
-from pdfpz.core.class_assets import Assets
-from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.domain.class_assets import Assets
+from pdfpz.domain.class_book_manifest import PdfManifestEntry
 from pdfpz.utils.logger import logger
 
 from .db_schema import Base, BookOrm

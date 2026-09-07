@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pdfpz.core.crawl import PdfCrawler
+from pdfpz.importers.crawl import PdfCrawler
 
 
 def _touch(path):

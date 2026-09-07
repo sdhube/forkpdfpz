@@ -8,7 +8,7 @@ from enum import Enum
 from typing import ClassVar
 
 from pdfpz.application.class_actions_books import BooksActions
-from pdfpz.core.class_books_collection import BooksCollection
+from pdfpz.domain.class_books_collection import BooksCollection
 from pdfpz.utils.logger import logger
 
 

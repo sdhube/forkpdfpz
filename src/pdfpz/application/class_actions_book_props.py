@@ -13,7 +13,7 @@ from pdfpz.adapters.db_schema import (
     BookPropsOrm,
     BookViewPropsOrm,
 )
-from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
+from pdfpz.domain.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.utils.logger import logger
 

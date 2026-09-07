@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.domain.class_book_manifest import PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath, TmpStage
 from pdfpz.utils.logger import logger
 

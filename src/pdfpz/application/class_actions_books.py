@@ -9,7 +9,7 @@ from pdfpz.application.pdf_actions_info import single_pdf_info_action_with_path
 from pdfpz.application.pdf_manifest_fetch import single_pdf_action
 from pdfpz.processing.pdf_sanitize_fitz import sanitize_fitz
 from pdfpz.application.pdf_sanitize_pike import sanitize_pdf_pike
-from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
+from pdfpz.domain.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.class_tmp_path import TmpPath
 from pdfpz.utils.logger import logger

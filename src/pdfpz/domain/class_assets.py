@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from pathlib import PurePosixPath
 
-from pdfpz.core.class_book_manifest import POLICIES
+from pdfpz.domain.class_book_manifest import POLICIES
 from pdfpz.utils.logger import logger
 
 

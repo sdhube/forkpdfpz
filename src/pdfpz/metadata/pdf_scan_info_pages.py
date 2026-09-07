@@ -4,7 +4,7 @@ import click
 import pymupdf
 
 from pdfpz.metadata.pdf_scan_info_web import doi_book_info_by_link
-from pdfpz.core.class_book_manifest import PdfManifestEntry
+from pdfpz.domain.class_book_manifest import PdfManifestEntry
 from pdfpz.utils.logger import logger
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
