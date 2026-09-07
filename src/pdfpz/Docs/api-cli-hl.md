@@ -103,7 +103,7 @@ sequenceDiagram
     participant DB as book_operation_state (DB)
     participant Actions as BooksActions
 
-    User->>CLI: pdfpz &lt;persistence_file_path&gt; --run-all
+    User->>CLI: pdfpz [persistence_file_path] --run-all
     CLI->>Plan: BookOperationPlan.run_plan(operation_map)
     activate Plan
     Plan->>Ops: BookOperations(every flag True)
@@ -166,10 +166,10 @@ sequenceDiagram
     participant DB as book_operation_state (DB)
     participant Actions as BooksActions
 
-    User->>CLI: pdfpz &lt;persistence_file_path&gt; --from-stage sanitize_info
+    User->>CLI: pdfpz [persistence_file_path] --from-stage sanitize_info
     CLI->>Plan: BookOperationPlan.run_plan(operation_map,<br/>first_stage=F_SANITIZE_INFO)
     activate Plan
-    Plan->>Plan: canonical_order(); drop everything before F_SANITIZE_INFO
+    Plan->>Plan: canonical_order() minus everything before F_SANITIZE_INFO
     Plan->>Ops: BookOperations(F_SANITIZE_INFO..K_FILTER_FIRST True)
     Plan->>Ops: operations.plan()
     Ops-->>Plan: plan
@@ -230,7 +230,7 @@ sequenceDiagram
     participant DB as book_operation_state (DB)
     participant Actions as BooksActions
 
-    User->>CLI: pdfpz &lt;persistence_file_path&gt; --resume
+    User->>CLI: pdfpz [persistence_file_path] --resume
     CLI->>Plan: BookOperationPlan.resume_plan(operation_map)
     activate Plan
     Plan->>DB: select * where persistence_file_path = ...
