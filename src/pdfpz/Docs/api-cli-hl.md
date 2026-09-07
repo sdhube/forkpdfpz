@@ -4,8 +4,9 @@
 
 `cli.py`'s `main()` takes one `persistence_file_path` and a `--flag`
 per stage; whichever are `True` run in `operation_map`'s dict order,
-one invocation per run. No "run everything" or "resume" mode yet --
-today that means invoking `pdfpz` once per stage.
+one invocation per run. `--run-all` now runs the whole pipeline via
+`BookOperationPlan.run_plan()` in one call; `--from-stage` and
+`--resume` are not yet implemented.
 
 `class_book_operations.py` already has the pieces for the design below:
 
@@ -335,22 +336,12 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 
 ### What's still needed (not yet implemented)
 
-- `--from-stage <flag-name>` cli.py option -> `run_plan(operation_map,
-  first_stage=<resolved stage>)`.
+- `--from-stage <flag-name>` cli.py option -> `run_plan(persistence_file_path,
+  tmp_path, first_stage=<resolved stage>)`.
 - `book_operation_state` table; `BookOperationState.mark()` upserting
   to it, `load_from_db(persistence_file_path)` reading it back.
-- `BookOperationPlan.resume_plan(operation_map)`: reads
+- `BookOperationPlan.resume_plan(persistence_file_path, tmp_path)`: reads
   `book_operation_state`, rebuilds `state` via `load_from_db()`, runs
   `run_plan()`'s loop. Falls back to a full run with no existing rows.
   This is the actual "resume" -- `--from-stage` is a manual override,
   not automatic resume.
-- `load_books_collection_and_operate()` in `cli.py` still runs today's
-  one-pass `for operation_name, operation_func in
-  operation_map.items(): if getattr(...): operation_func()` instead of
-  calling `run_plan(persistence_file_path, tmp_path)`.
-  `operation_map`'s construction is already extracted into
-  `initialize_and_return_operations_map()`, and `run_plan()` already
-  calls it internally (caching the result in `_operations_map_cache`,
-  per the sequences above) -- `cli.py` no longer needs to build
-  `operation_map` itself at all. What's left is swapping that loop for
-  a `run_plan()`/`resume_plan()` call.
