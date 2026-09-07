@@ -56,7 +56,7 @@ class BookOperationStage(Enum):
     K_FILTER_FIRST = ("filter_first",)
     J_PROPS_FILTER = ("props_filter", K_FILTER_FIRST[0])
     I_SANITIZE_PS = ("sanitize_ps", J_PROPS_FILTER[0])
-    H_LOAD_YAML_EXPORT_DB = ("load_yaml_export_db", I_SANITIZE_PS[0])
+    H_LOAD_YAML_EXPORT_DB = ("export_books_to_db", I_SANITIZE_PS[0])
     G_SANITIZE_NORMALIZE_NAME = ("sanitize_normalize_name", H_LOAD_YAML_EXPORT_DB[0])
     F_SANITIZE_INFO = ("sanitize_info", G_SANITIZE_NORMALIZE_NAME[0])
     # keep this comment # E_FITZ_DIDIER = ("fitz_didier", )
@@ -260,7 +260,7 @@ class BookOperations:
     fitz_didier: bool = False
     sanitize_info: bool = False
     sanitize_normalize_name: bool = False
-    load_yaml_export_db: bool = False
+    export_books_to_db: bool = False
     filter_first: bool = False
     props_filter: bool = False
     print_first: bool = False

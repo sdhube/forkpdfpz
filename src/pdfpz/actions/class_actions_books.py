@@ -41,14 +41,14 @@ class BooksActions:
         books_manifest: BooksShelf = self.books_collection.books_shelf
         for book in books_manifest.books_generator(PdfManifestEntry.has_no_metadata_info):
             self.copy_external_file_to_temp(book)
-        self.save_books_collection()
+        self.action_save_books_collection()
 
     def copy_assets_pdf(self) -> None:
         """Copy all PDFs to temp directory."""
         books_manifest: BooksShelf = self.books_collection.books_shelf
         for book in books_manifest.books_generator():
             self.copy_external_file_to_temp(book)
-        self.save_books_collection()
+        self.action_save_books_collection()
 
     def move_books_to_no_info(self):
         """Move PDFs with no metadata info to designated directory."""
@@ -67,9 +67,10 @@ class BooksActions:
             cp_pdf_from_metadata_to_normalized(book, normalized_name)
             book.name = normalized_name
 
-    def load_yaml_export_db(self):
+    def export_books_to_db(self):
         """export to db"""
-        self.books_collection.export_format("db")
+        if self.books_collection.policy != "db":
+            self.books_collection.export_format("db")
 
     def filter_first(self):
         """Print first filtered entry and temp directory contents."""
@@ -128,7 +129,7 @@ class BooksActions:
 
     def update_books_collection_info_and_save(self) -> None:
         self.update_books_collection_info_no_save()
-        self.save_books_collection()
+        self.action_save_books_collection()
 
     def update_books_collection_info_no_save(self) -> None:
         """Update lib info for books using threadpool."""
@@ -138,7 +139,7 @@ class BooksActions:
             partial(single_pdf_action, tmp_path=self.books_collection.tmp_path),
         )
 
-    def save_books_collection(self) -> None:
+    def action_save_books_collection(self) -> None:
         logger.info("saving  assets info for books")
         self.books_collection.save_books_collection()
 

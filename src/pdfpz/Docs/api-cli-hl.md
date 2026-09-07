@@ -37,7 +37,7 @@ loop internally. `cli.py` calls it once and never touches
 | D_UPDATE_ASSETS_INFO | `update_assets_info` | `update_books_collection_info_and_save` |
 | F_SANITIZE_INFO | `sanitize_info` | `sanitize_books_info` |
 | G_SANITIZE_NORMALIZE_NAME | `sanitize_normalize_name` | `update_normalized_info_and_move_rename_file` |
-| H_LOAD_YAML_EXPORT_DB | `load_yaml_export_db` | `load_yaml_export_db` |
+| H_LOAD_YAML_EXPORT_DB | `export_books_to_db` | `export_books_to_db` |
 | I_PROPS_FILTER | `props_filter` | `props_filter` |
 | K_FILTER_FIRST | `filter_first` | `filter_first` |
 

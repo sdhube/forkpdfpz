@@ -42,7 +42,7 @@ need backfill-from-`books_props` treatment.
 | `D_UPDATE_ASSETS_INFO` | `update_assets_info` | `update_books_collection_info_and_save` | Yes -- threaded |
 | `F_SANITIZE_INFO` | `sanitize_info` | `sanitize_books_info` | Yes -- threaded |
 | `G_SANITIZE_NORMALIZE_NAME` | `sanitize_normalize_name` | `update_normalized_info_and_move_rename_file` | Yes |
-| `H_LOAD_YAML_EXPORT_DB` | `load_yaml_export_db` | `load_yaml_export_db` | No -- one `export_format("db")` call |
+| `H_LOAD_YAML_EXPORT_DB` | `export_books_to_db` | `export_books_to_db` | No -- one `export_format("db")` call |
 | `I_PROPS_FILTER` | `props_filter` | `props_filter` | No, from here -- delegates to `BooksPropsAction`'s own SQL against `books_props`, not a loop this design duplicates |
 | `K_FILTER_FIRST` | `filter_first` | `filter_first` | No -- reads a single entry |
 
