@@ -55,11 +55,14 @@ call instead of one in-process loop -- not what the sequences below use.
 
 ### Resumability: a DB entity for `BookOperationState`
 
-One row per stage, so status survives a crash mid-run -- as
-implemented today, this is a **single global run**: `stage` is the
-whole primary key, there's no `persistence_file_path` column, and
-`BookPipelineStateOrm`'s own docstring says so directly ("one active
-run at a time -- a new run overwrites previous rows"):
+One row per stage, so status survives a crash mid-run. This is a
+**single global run by design**: `stage` is the whole primary key,
+there's no `persistence_file_path` column, and that's intentional, not
+missing scoping -- `persistence_file_path` is a fixed value for this
+tool's use, so per-path scoping would add a key for a dimension that
+never actually varies. `BookPipelineStateOrm`'s own docstring says the
+same thing directly ("one active run at a time -- a new run overwrites
+previous rows"):
 
 | Column | Type | Notes |
 |---|---|---|
@@ -72,8 +75,8 @@ the in-memory dict; `load_from_db()` (no arguments) reconstructs
 `state` from it instead of `new_state()`'s all-`PENDING` default --
 that's what resume (below) uses to find where a run stopped. Earlier
 revisions of this doc described `persistence_file_path` as part of the
-key here (to support resuming more than one file's run independently)
--- that was never implemented; see Gaps below.
+key here; that was a mistaken assumption, now corrected -- see Gaps
+below, which no longer lists this as open.
 
 ### Sequence: triggering a full run (`cli.py` stays stage-agnostic)
 
@@ -340,29 +343,15 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 
 ### Gaps
 
-- **Resume isn't actually scoped per file (needs a fix; only sequence
-  affected).** `books_pipeline_state` has no `persistence_file_path`
-  column -- `stage` alone is the primary key, and `load_from_db()`
-  takes no arguments. Resuming file B after file A's run left partial
-  progress would read file A's leftover stage statuses, not file B's.
-  Only the **resume** sequence has a real functional consequence here;
-  full-run and from-stage only ever write forward, so they're
-  unaffected either way.
-  **Asking rather than assuming:** is per-`persistence_file_path`
-  scoping still intended (in which case this is a code gap -- add the
-  column, thread the argument through `mark()`/`load_from_db()`), or
-  is "one active run at a time" the actual intended design going
-  forward (in which case the Resumability section above is now
-  correct as written, and this bullet should just be deleted)?
-- Doc-only mismatches now fixed to match current code, no code change
-  needed: table name was `book_operation_state` throughout, actual
-  table is `books_pipeline_state`; class diagram had a
-  `persistence_file_path` field on `BookPipelineStateOrm` and a
-  `persistence_file_path` argument on `load_from_db()`, neither exists;
-  `resume_plan()` was missing its `operation_map` parameter in the
-  class diagram; the full-run "Implemented" section claimed
-  `mark_done(stage, persistence_file_path=...)`, actual signature is
-  `mark_done(stage)`.
+*(none -- confirmed: `persistence_file_path` is a fixed value for this
+tool, not a varying dimension, so `books_pipeline_state` having no such
+column is correct by design, not missing scoping. `mark_done(stage)`
+taking no `persistence_file_path` argument, and `load_from_db()` having
+no `.filter(...)`, are both correct as written for the same reason.
+`books_pipeline_state` (renamed from the doc's earlier
+`book_operation_state`) tracks one row per *pipeline stage*, not per
+book -- it's whole-run progress, unrelated to any future per-book
+tracking table.)*
 
 ---
 
@@ -375,7 +364,7 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - `Plan->>Ops / Ops-->>Plan` (create BookOperations, produce ordered plan) → `BookOperations` + `BookOperationPlan.stages` in `class_books_pipeline.py`
 - `Plan->>State: Plan asks State which stage to run next` / `State-->>Plan` → `BookOperationState.next_stage` in `class_books_pipeline.py`
 - `Plan->>Actions / Actions-->>Plan` (run action) → `operation_map[stage.operation_flag]()` loop in `BookOperationPlan.run_plan()`
-- `Plan->>State: Plan marks <stage> as DONE` → `state.mark_done(stage)` in `class_books_pipeline.py` (no `persistence_file_path` argument -- see Gaps)
+- `Plan->>State: Plan marks <stage> as DONE` → `state.mark_done(stage)` in `class_books_pipeline.py` (no `persistence_file_path` argument -- correct by design, see Resumability above)
 - `State->>DB: State persists <stage>=DONE to DB` → `_upsert_stage_status()` + `BookPipelineStateOrm` in `class_books_pipeline.py` / `db_schema.py`
 - `Plan-->>CLI / CLI-->>User` → `run_plan()` returns state; `cli.py` returns normally
 - **Largest implemented path:** `cli.py --run-all` → `run_plan()` → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()` → DB upsert → loop until `next_stage = None`
@@ -387,11 +376,11 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - All Plan/State/Actions/DB steps same as full run (implemented above)
 - **Largest implemented path:** `cli.py --from-stage sanitize_info` → flag resolved → `run_plan(first_stage=F_SANITIZE_INFO)` → sliced `canonical_order` → loop → `mark_done()` → `_upsert_stage_status()` → DB upsert
 
-**Sequence: resume** — ~100% of the code path as written; see Gaps above for the scoping caveat
+**Sequence: resume** — ~100%
 - `User->>CLI: user runs pdfpz with --resume flag` → `--resume` flag in `cli.py`
 - `CLI->>Plan: CLI delegates resume to Plan` → `BookOperationPlan.resume_plan()` called from `cli.py`
 - `Plan->>Plan: Plan builds and caches the operations map internally` → same cache as `run_plan()`
-- `Plan->>DB: Plan queries DB for saved stage statuses` → `Session.query(BookPipelineStateOrm).all()` in `BookOperationState.load_from_db()` -- no filter; see Gaps
+- `Plan->>DB: Plan queries DB for saved stage statuses` → `Session.query(BookPipelineStateOrm).all()` in `BookOperationState.load_from_db()` -- no filter needed, correct by design, see Resumability above
 - `DB-->>Plan: DB returns A=DONE, B=DONE, D=FAILED, F..K=PENDING` → row-to-status reconstruction in `load_from_db()`
 - `Plan->>State: Plan reconstructs State from saved DB rows` / `State-->>Plan` → `BookOperationState.load_from_db()` in `class_books_pipeline.py`
 - All subsequent `next_stage` / action call / `mark_done` / DB upsert steps → `resume_plan()` loop in `class_books_pipeline.py`
