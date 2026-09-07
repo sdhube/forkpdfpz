@@ -44,6 +44,12 @@ def load_books_collection_and_operate(
     default=False,
     help="Run every pipeline stage in canonical order via BookOperationPlan.run_plan().",
 )
+@click.option(
+    "--resume",
+    is_flag=True,
+    default=False,
+    help="Resume a previously interrupted pipeline run via BookOperationPlan.resume_plan().",
+)
 @click.option("--copy-pdfs", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
 @click.option("--update-assets-info", is_flag=True, default=False, help="update yaml with pdf metadata")
 @click.option("--move-no-info", is_flag=True, default=False, help="move pdf files from tmp if no info")
@@ -71,9 +77,14 @@ def main(**kwargs) -> None:
     persistence_file_path: Path = kwargs.pop("persistence_file_path")
     tmp_path: Path | None = kwargs.pop("tmp_path")
     run_all: bool = kwargs.pop("run_all")
+    resume: bool = kwargs.pop("resume")
 
     if run_all:
         BookOperationPlan.run_plan(str(persistence_file_path), tmp_path=str(tmp_path) if tmp_path else None)
+        return
+
+    if resume:
+        BookOperationPlan.resume_plan(str(persistence_file_path), tmp_path=str(tmp_path) if tmp_path else None)
         return
 
     # Create BookOperations from remaining kwargs (operation flags)

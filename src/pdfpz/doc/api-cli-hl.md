@@ -343,7 +343,7 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - `User->>CLI: user runs pdfpz with --from-stage sanitize_info` → `--from-stage <flag-name>` option not yet in `cli.py`; `cli.py` has no call to `run_plan(first_stage=...)`.
 
 **Sequence: resume** (`CLI delegates resume to Plan`)
-- `User->>CLI: user runs pdfpz with --resume flag` → `--resume` option not yet in `cli.py`; no call to `BookOperationPlan.resume_plan()`.
+- ~~`User->>CLI: user runs pdfpz with --resume flag`~~ → implemented: `--resume` flag in `cli.py` calls `BookOperationPlan.resume_plan()`.
 
 ---
 
@@ -364,11 +364,12 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - All Plan/State/Actions/DB steps same as full run (implemented above)
 - **Not yet:** `cli.py` `--from-stage` option → `run_plan(first_stage=...)`
 
-**Sequence: resume** — ~75%
+**Sequence: resume** — ~100%
+- `User->>CLI: user runs pdfpz with --resume flag` → `--resume` flag in `cli.py`
+- `CLI->>Plan: CLI delegates resume to Plan` → `BookOperationPlan.resume_plan()` called from `cli.py`
 - `Plan->>Plan: Plan builds and caches the operations map internally` → same cache as `run_plan()`
 - `Plan->>DB: Plan queries DB for saved stage statuses` → `Session.query(BookOperationStateOrm).filter(...)` in `BookOperationState.load_from_db()`
 - `DB-->>Plan: DB returns A=DONE, B=DONE, D=FAILED, F..K=PENDING` → row-to-status reconstruction in `load_from_db()`
 - `Plan->>State: Plan reconstructs State from saved DB rows` / `State-->>Plan` → `BookOperationState.load_from_db()` in `class_books_pipeline.py`
 - All subsequent `next_stage` / action call / `mark_done` / DB upsert steps → `resume_plan()` loop in `class_books_pipeline.py`
-- **Largest implemented path:** `resume_plan()` → `load_from_db()` → DB query → reconstruct state → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()`
-- **Not yet:** `cli.py` `--resume` option → `resume_plan()`
+- **Largest implemented path:** `cli.py --resume` → `resume_plan()` → `load_from_db()` → DB query → reconstruct state → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()`
