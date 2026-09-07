@@ -336,9 +336,6 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 
 ### Gaps
 
-**Sequence: full run** (`CLI delegates full pipeline run to Plan`)
-- `CLI->>Plan: CLI delegates full pipeline run to Plan` → `cli.py` has no `--run-all` flag wired to `BookOperationPlan.run_plan()` yet; `cli.py` still calls individual stage flags directly.
-
 **Sequence: from-stage** (`CLI delegates run to Plan starting from F_SANITIZE_INFO`)
 - `User->>CLI: user runs pdfpz with --from-stage sanitize_info` → `--from-stage <flag-name>` option not yet in `cli.py`; `cli.py` has no call to `run_plan(first_stage=...)`.
 
@@ -349,15 +346,17 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 
 ### Implemented
 
-**Sequence: full run** — ~60%
+**Sequence: full run** — ~100%
+- `User->>CLI: user runs pdfpz with --run-all flag` → `--run-all` flag in `cli.py`
+- `CLI->>Plan: CLI delegates full pipeline run to Plan` → `BookOperationPlan.run_plan()` called from `cli.py`
 - `Plan->>Plan: Plan builds and caches the operations map internally` → `initialize_and_return_operations_map()` + `_operations_map_cache` in `class_books_pipeline.py`
 - `Plan->>Ops / Ops-->>Plan` (create BookOperations, produce ordered plan) → `BookOperations` + `BookOperationPlan.stages` in `class_books_pipeline.py`
 - `Plan->>State: Plan asks State which stage to run next` / `State-->>Plan` → `BookOperationState.next_stage` in `class_books_pipeline.py`
 - `Plan->>Actions / Actions-->>Plan` (run action) → `operation_map[stage.operation_flag]()` loop in `BookOperationPlan.run_plan()`
 - `Plan->>State: Plan marks <stage> as DONE` → `state.mark_done(stage, persistence_file_path=...)` in `class_books_pipeline.py`
 - `State->>DB: State persists <stage>=DONE to DB` → `_upsert_stage_status()` + `BookOperationStateOrm` in `class_books_pipeline.py` / `db_schema.py`
-- **Largest implemented path:** `run_plan()` loop: `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()` → DB upsert
-- **Not yet:** `cli.py` → `run_plan()` wiring (`--run-all` flag)
+- `Plan-->>CLI / CLI-->>User` → `run_plan()` returns state; `cli.py` returns normally
+- **Largest implemented path:** `cli.py --run-all` → `run_plan()` → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()` → DB upsert → loop until `next_stage = None`
 
 **Sequence: from-stage** — ~50%
 - `Plan->>Plan: Plan slices canonical_order to start at F_SANITIZE_INFO` → `order[order.index(first_stage):]` in `run_plan()` in `class_books_pipeline.py`
