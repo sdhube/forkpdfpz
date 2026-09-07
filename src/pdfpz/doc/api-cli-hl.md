@@ -129,7 +129,7 @@ sequenceDiagram
     State-->>Plan: State returns A_COPY_PDFS as the first stage
     Plan->>Actions: Plan calls the copy-PDFs action
     Actions-->>Plan: action finished successfully
-    Note over Actions: A_COPY_PDFS loops over every book internally;<br/>a single book's exception is caught and only logged,<br/>never surfaced here -- see Gaps below
+    Note over Actions: A_COPY_PDFS loops over every book internally,<br/>a single book's exception is caught and only logged,<br/>never surfaced here -- see Gaps below
     Plan->>State: Plan marks A_COPY_PDFS as DONE
     State->>DB: State persists A_COPY_PDFS=DONE to DB
     State-->>Plan: State returns B_SANITIZE_PIKE as next stage
@@ -282,6 +282,75 @@ sequenceDiagram
     deactivate Plan
     Plan-->>CLI: Plan returns finished state to CLI
     CLI-->>User: CLI reports pipeline complete, resumed from D_UPDATE_ASSETS_INFO
+```
+
+### Sequence: filling the per-book gaps with entities that already exist
+
+Illustrative, not implemented: same resume sequence as above, zoomed into
+one collapsed stage (`G_SANITIZE_NORMALIZE_NAME`, chosen because its
+per-book field mapping is unambiguous -- see the per-book gap above) to
+show where `BooksPropsAction`/`TmpPath` -- both real, already-shipped
+code, just never called from here today -- could plug into the
+gap. `PropsAction` and `PropsDB` aren't new participants invented for
+this diagram; they're `BooksPropsAction` and the `books_props` table,
+doing exactly what `set_props_from_filesystem()` already does, just
+shown running per-book *during* `Plan`'s own loop instead of only from
+`J_PROPS_FILTER` afterward:
+
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "48px",
+    "actorFontSize": "48px",
+    "messageFontSize": "44px",
+    "noteFontSize": "40px",
+    "actorBkg": "#f5f5f5",
+    "actorBorder": "#555555",
+    "actorTextColor": "#111111",
+    "signalColor": "#32CD32",
+    "signalTextColor": "#32CD32",
+    "labelTextColor": "#32CD32",
+    "noteBkgColor": "#fffde7",
+    "noteBorderColor": "#777777",
+    "noteTextColor": "#111111"
+  },
+  "themeCSS": ".messageText,.signalText,.labelText{fill:#32CD32 !important;stroke:none !important;} .messageLine0,.messageLine1{stroke:#32CD32 !important;}"
+}}%%
+sequenceDiagram
+    actor User
+    participant CLI as cli.py
+    participant Plan as BookOperationPlan
+    participant State as BookOperationState
+    participant DB as books_pipeline_state (DB)
+    participant Actions as BooksActions
+    participant PropsAction as BooksPropsAction
+    participant Tmp as TmpPath
+    participant PropsDB as books_props (DB)
+
+    User->>CLI: user runs pdfpz with --resume flag
+    CLI->>Plan: CLI delegates resume to Plan
+    activate Plan
+    Note over Plan,DB: DB load / state reconstruction as in the resume<br/>sequence above -- unchanged, omitted here
+    Plan->>State: State returns G_SANITIZE_NORMALIZE_NAME as next stage
+    Plan->>Actions: Plan calls update_normalized_info_and_move_rename_file()
+    loop for each book in books_shelf (existing, internal to Actions)
+        Actions->>Actions: copy this book's file to its normalized name
+    end
+    Actions-->>Plan: action finished successfully
+    Note over Actions: today's actual gap starts here -- Actions returns<br/>one unconditional "done" for the whole stage, nothing<br/>about any individual book comes back to Plan
+    Plan->>PropsAction: BooksPropsAction(books_shelf) -- existing class,<br/>only ever constructed from J_PROPS_FILTER today
+    loop for each book in books_shelf (same shelf Actions just used)
+        PropsAction->>Tmp: TmpPath.from_pdf_path(book.norm_name) -- existing
+        Tmp-->>PropsAction: path_sanitized_renamed_tmp
+        PropsAction->>PropsAction: is_file(path) -- existing check<br/>(PropStage.renamed, set_props_from_filesystem())
+        PropsAction->>PropsDB: setattr(book_row, "renamed", file_exists) -- existing
+    end
+    Note over PropsAction,PropsDB: this loop is real, shipped code -- calling it<br/>here, per stage, is the only new wiring, nothing<br/>underneath it needs to be written
+    Plan->>State: Plan marks G_SANITIZE_NORMALIZE_NAME as DONE
+    State->>DB: State persists G_SANITIZE_NORMALIZE_NAME=DONE to DB
+    Note over State,PropsDB: the gap, precisely: DONE here only ever meant<br/>"the stage ran" -- books_props.renamed is the only place<br/>any book-level truth exists, and nothing joins the<br/>two -- a book with renamed=False after this DONE<br/>isn't flagged in books_pipeline_state, State, or<br/>anywhere Plan/resume_plan looks
+    deactivate Plan
 ```
 
 ### Class relationships (`class_book_operations.py`)
