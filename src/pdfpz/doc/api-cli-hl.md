@@ -336,11 +336,7 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 
 ### Gaps
 
-**Sequence: from-stage** (`CLI delegates run to Plan starting from F_SANITIZE_INFO`)
-- `User->>CLI: user runs pdfpz with --from-stage sanitize_info` → `--from-stage <flag-name>` option not yet in `cli.py`; `cli.py` has no call to `run_plan(first_stage=...)`.
-
-**Sequence: resume** (`CLI delegates resume to Plan`)
-- ~~`User->>CLI: user runs pdfpz with --resume flag`~~ → implemented: `--resume` flag in `cli.py` calls `BookOperationPlan.resume_plan()`.
+*(none — all three sequences fully implemented)*
 
 ---
 
@@ -358,10 +354,12 @@ spelled out in the sequences above -- `mark_done` is shorthand for
 - `Plan-->>CLI / CLI-->>User` → `run_plan()` returns state; `cli.py` returns normally
 - **Largest implemented path:** `cli.py --run-all` → `run_plan()` → `next_stage` → `operation_map[flag]()` → `mark_done()` → `_upsert_stage_status()` → DB upsert → loop until `next_stage = None`
 
-**Sequence: from-stage** — ~50%
+**Sequence: from-stage** — ~100%
+- `User->>CLI: user runs pdfpz with --from-stage sanitize_info` → `--from-stage <flag-name>` option in `cli.py`
+- `CLI->>Plan: CLI delegates run to Plan starting from F_SANITIZE_INFO` → flag-name resolved to `BookOperationStage` via `flag_to_stage` map; `run_plan(first_stage=...)` called in `cli.py`
 - `Plan->>Plan: Plan slices canonical_order to start at F_SANITIZE_INFO` → `order[order.index(first_stage):]` in `run_plan()` in `class_books_pipeline.py`
 - All Plan/State/Actions/DB steps same as full run (implemented above)
-- **Not yet:** `cli.py` `--from-stage` option → `run_plan(first_stage=...)`
+- **Largest implemented path:** `cli.py --from-stage sanitize_info` → flag resolved → `run_plan(first_stage=F_SANITIZE_INFO)` → sliced `canonical_order` → loop → `mark_done()` → `_upsert_stage_status()` → DB upsert
 
 **Sequence: resume** — ~100%
 - `User->>CLI: user runs pdfpz with --resume flag` → `--resume` flag in `cli.py`

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 
-from pdfpz.application.class_books_pipeline import BookOperationPlan, BookOperations, initialize_and_return_operations_map
+from pdfpz.application.class_books_pipeline import BookOperationPlan, BookOperationStage, BookOperations, initialize_and_return_operations_map
 from pdfpz.utils.logger import logger
 
 
@@ -50,6 +50,12 @@ def load_books_collection_and_operate(
     default=False,
     help="Resume a previously interrupted pipeline run via BookOperationPlan.resume_plan().",
 )
+@click.option(
+    "--from-stage",
+    "from_stage",
+    default=None,
+    help="Start pipeline from this operation flag (e.g. sanitize_info). Not a resume — ignores prior run state.",
+)
 @click.option("--copy-pdfs", is_flag=True, default=False, help="copy pdf files from input_files to tmp")
 @click.option("--update-assets-info", is_flag=True, default=False, help="update yaml with pdf metadata")
 @click.option("--move-no-info", is_flag=True, default=False, help="move pdf files from tmp if no info")
@@ -78,6 +84,7 @@ def main(**kwargs) -> None:
     tmp_path: Path | None = kwargs.pop("tmp_path")
     run_all: bool = kwargs.pop("run_all")
     resume: bool = kwargs.pop("resume")
+    from_stage: str | None = kwargs.pop("from_stage")
 
     if run_all:
         BookOperationPlan.run_plan(str(persistence_file_path), tmp_path=str(tmp_path) if tmp_path else None)
@@ -85,6 +92,20 @@ def main(**kwargs) -> None:
 
     if resume:
         BookOperationPlan.resume_plan(str(persistence_file_path), tmp_path=str(tmp_path) if tmp_path else None)
+        return
+
+    if from_stage:
+        flag_to_stage = {s.operation_flag: s for s in BookOperationStage.canonical_order()}
+        if from_stage not in flag_to_stage:
+            raise click.BadParameter(
+                f"Unknown stage flag '{from_stage}'. Valid values: {list(flag_to_stage.keys())}",
+                param_hint="--from-stage",
+            )
+        BookOperationPlan.run_plan(
+            str(persistence_file_path),
+            tmp_path=str(tmp_path) if tmp_path else None,
+            first_stage=flag_to_stage[from_stage],
+        )
         return
 
     # Create BookOperations from remaining kwargs (operation flags)
@@ -109,3 +130,5 @@ if __name__ == "__main__":
 # PYTHONPATH=src python3 -m pdfpz.cli    books_db.db --tmp-path=/tmp/tmp_meta/metadata/ --filter-first
 # PYTHONPATH=src python3 -m pdfpz.cli    books_db.db --tmp-path=/tmp/tmp_meta/metadata/ --props-filter
 # pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --run-all
+# pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --resume
+# pdfpz  files_info.yaml --tmp-path=/tmp/tmp_meta/metadata/ --from-stage sanitize_info
