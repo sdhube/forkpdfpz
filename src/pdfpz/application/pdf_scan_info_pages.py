@@ -5,7 +5,7 @@ import pymupdf
 
 from pdfpz.application.pdf_scan_info_web import doi_book_info_by_link
 from pdfpz.core.class_book_manifest import PdfManifestEntry
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 # 4-digit year, restricted to the 2010s and 2020s (2010-2029)
 YEAR_PATTERN = re.compile(r"\b20[12]\d\b")

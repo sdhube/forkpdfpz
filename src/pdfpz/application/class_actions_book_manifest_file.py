@@ -3,7 +3,7 @@ from pathlib import Path
 
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath, TmpStage
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 
 def move_pdf_to_no_info(entry: PdfManifestEntry):

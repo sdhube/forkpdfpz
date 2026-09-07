@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 KEYWORDS = [
     "/JS",

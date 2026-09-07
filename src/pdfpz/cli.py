@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 
 from pdfpz.core.class_books_pipeline import BookOperationPlan, BookOperations, initialize_and_return_operations_map
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 
 def load_books_collection_and_operate(

@@ -6,7 +6,7 @@ import pikepdf
 from pdfpz.application.pdf_sanitize_info import del_info, pdf_update_metadata
 from pdfpz.core.class_book_manifest import MANIFEST_TO_XMP_FIELDS, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 # --------------------------------------------
 # public functions

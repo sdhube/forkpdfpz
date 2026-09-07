@@ -9,7 +9,7 @@ from pdfpz.application.pdf_scan_info_pages import grep_copyright_line_pdf, grep_
 from pdfpz.application.pdf_scan_info_web import google_book_info_by_isbn, open_library_book_info_by_isbn
 from pdfpz.core.class_book_manifest import PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 # --------------------------------------------
 # public functions

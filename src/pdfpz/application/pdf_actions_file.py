@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path, PurePosixPath
 
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 
 def save_tmp_mv_on_source(src, pdf_path: str, **kwargs):

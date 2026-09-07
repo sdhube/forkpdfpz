@@ -12,7 +12,7 @@ from pdfpz.application.pdf_sanitize_pike import sanitize_pdf_pike
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_books_collection import BooksCollection
 from pdfpz.core.class_tmp_path import TmpPath
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 from pdfpz.core.pdf_list_parallel_threads import (
     generate_manifest_items,
     run_threaded_action,

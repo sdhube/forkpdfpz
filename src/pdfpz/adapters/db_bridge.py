@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from pdfpz.core.class_assets import Assets
 from pdfpz.core.class_book_manifest import PdfManifestEntry
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 from .db_schema import Base, BookOrm
 

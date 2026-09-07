@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import PurePosixPath
 
 from pdfpz.core.class_book_manifest import POLICIES
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 
 class Assets(ABC):

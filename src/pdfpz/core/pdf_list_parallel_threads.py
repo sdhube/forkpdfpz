@@ -5,7 +5,7 @@ from typing import Any, Callable, Iterable, Iterator, List
 
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_books_collection import BooksCollection
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 # ------------------------------------------------------------------------------
 # helpers functions

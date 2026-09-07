@@ -15,7 +15,7 @@ from pdfpz.adapters.db_schema import (
 )
 from pdfpz.core.class_book_manifest import BooksShelf, PdfManifestEntry
 from pdfpz.core.class_tmp_path import TmpPath
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 # PropStage binds a prop-tracking stage's TmpPath property name and which
 # book name it's checked under (the original name vs. the normalized one)

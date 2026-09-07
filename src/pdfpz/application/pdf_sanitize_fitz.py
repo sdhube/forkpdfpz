@@ -3,7 +3,7 @@ from pathlib import Path, PurePosixPath
 
 import fitz  # PyMuPDF
 
-from pdfpz.core.logger import logger
+from pdfpz.utils.logger import logger
 
 
 def sanitize_fitz(pdf_path):
